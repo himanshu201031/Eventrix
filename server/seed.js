@@ -85,10 +85,7 @@ const events = [
 
 const seedDatabase = async () => {
     try {
-        await mongoose.connect(process.env.MONGO_URI || process.env.MONGO_URL, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
+await mongoose.connect(process.env.MONGO_URI || process.env.MONGO_URL);
         console.log('\n✅ MongoDB connection open...');
 
         await User.deleteMany();
@@ -96,11 +93,13 @@ const seedDatabase = async () => {
         await Booking.deleteMany();
         console.log('🗑️  Cleared existing data.');
 
-        // Hash user passwords
+// Hash user passwords
         const salt = await bcrypt.genSalt(10);
         const hashedUsers = users.map(u => ({
-            ...u,
+            username: u.name,
+            email: u.email,
             password: bcrypt.hashSync(u.password, salt),
+            role: u.role,
             isVerified: true
         }));
 
