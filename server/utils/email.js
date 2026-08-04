@@ -36,6 +36,8 @@ const sendBookingEmail= async(email,username,eventTitle) => {
 
 
 
+exports.sendBookingEmail = sendBookingEmail;
+
 exports.sendOtpEmail = async (email, otp, type = "verify") => {
   let subject = "Verify Your Email | Eventrix";
   let title = type === "Verify Your Email" ? "Verify your Eventrix Account":" Confirm Your Action";
