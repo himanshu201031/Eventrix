@@ -1,8 +1,15 @@
 const { spawn } = require('child_process');
 
-const child = spawn('npx', ['-y', '@postman/postman-mcp-server'], {
-  stdio: ['pipe', 'pipe', 'pipe']
-});
+const isWindows = process.platform === 'win32';
+
+const child = spawn(
+  isWindows ? 'npx.cmd' : 'npx',
+  ['-y', '@postman/postman-mcp-server'],
+  {
+    stdio: ['pipe', 'pipe', 'pipe'],
+    shell: isWindows
+  }
+);
 
 let buffer = '';
 let initialized = false;
