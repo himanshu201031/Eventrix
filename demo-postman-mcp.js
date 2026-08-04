@@ -1,6 +1,11 @@
 const { spawn } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 const isWindows = process.platform === 'win32';
+
+// Load the Eventrix Postman collection
+const collection = JSON.parse(fs.readFileSync(path.join(__dirname, 'server', 'eventrix.json'), 'utf8'));
 
 const child = spawn(
   isWindows ? 'npx.cmd' : 'npx',
@@ -63,17 +68,40 @@ function handleMessage(message) {
     });
     console.log(`Total tools: ${message.result.tools.length}`);
     console.log('');
-    // Call the first tool to demonstrate capabilities
-    const firstTool = message.result.tools[0];
-    if (firstTool) {
-      console.log(`=== Calling tool: ${firstTool.name} ===`);
+    // Find the collection creation tool to demonstrate capabilities
+    const collectionTool = message.result.tools.find(t => t.name.toLowerCase().includes('collection'));
+    const toolToCall = collectionTool || message.result.tools[0];
+    if (toolToCall) {
+      console.log(`=== Calling tool: ${toolToCall.name} ===`);
+      console.log(`Using Eventrix collection: ${collection.info.name}`);
+      console.log('');
+      // Pass the collection data to the tool
+      const args = {};
+      if (collectionTool) {
+        // Try to determine the right argument key based on the tool schema
+        const schema = collectionTool.inputSchema || {};
+        const props = schema.properties || {};
+        if (props.collection) {
+          args.collection = collection;
+        } else if (props.collectionData) {
+          args.collectionData = collection;
+        } else if (props.data) {
+          args.data = collection;
+        } else {
+          // Fallback: pass collection as the first property
+          const firstKey = Object.keys(props)[0];
+          if (firstKey) {
+            args[firstKey] = collection;
+          }
+        }
+      }
       sendMessage({
         jsonrpc: '2.0',
         id: 3,
         method: 'tools/call',
         params: {
-          name: firstTool.name,
-          arguments: {}
+          name: toolToCall.name,
+          arguments: args
         }
       });
     } else {
