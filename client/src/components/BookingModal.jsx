@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { AuthContext } from '../context/authContext';
+import { AuthContext } from '../context/auth';
 import api from '../utils/axios';
 import { FaTicketAlt, FaCheck, FaTimes, FaShieldAlt, FaCreditCard, FaLock, FaCheckCircle } from 'react-icons/fa';
 import { HiSparkles, HiChevronRight, HiChevronLeft } from 'react-icons/hi2';
