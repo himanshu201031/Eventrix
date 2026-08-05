@@ -1,34 +1,60 @@
-import React from 'react';
-export const AuthContext = React.createContext({
-  isAuthenticated: false,
-  user: null,
-});
+import { createContext, useState } from 'react';
+import api from '../utils/axios';
 
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+    const [user, setUser] = useState(() => {
+        const userInfo = localStorage.getItem('userInfo');
+        return userInfo ? JSON.parse(userInfo) : null;
+});
+    const [loading, setLoading] = useState(true);
 
-  const [user, setUser] = React.useState(null);
-  const [loading, setLoading] = React.useState(false);
+    setTimeout(() => setLoading(false), 0);
 
-  React.useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
+    const login = async (email, password) => {
+        try {
+            const { data } = await api.post('/auth/login', { email, password });
+            setUser(data.user);
+            localStorage.setItem('userInfo', JSON.stringify(data.user));
+            localStorage.setItem('token', data.user.token);
+            return data.user;
+        } catch (error) {
+            if (error.response?.data?.needsVerification) throw error.response.data;
+            throw error.response?.data?.message || 'Login failed';
+        }
+    };
 
-  const login = (userData) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-  }
-   const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-  }
+    const register = async (username, email, password) => {
+        try {
+            const { data } = await api.post('/auth/register', { username, email, password });
+            return data; // Returns { message, email }
+        } catch (error) {
+            throw error.response?.data?.message || 'Registration failed';
+        }
+    };
+
+    const verifyOTP = async (email, otp) => {
+        try {
+            const { data } = await api.post('/auth/verify-otp', { email, otp });
+            setUser(data.user);
+            localStorage.setItem('userInfo', JSON.stringify(data.user));
+            localStorage.setItem('token', data.user.token);
+            return data.user;
+        } catch (error) {
+            throw error.response?.data?.message || 'OTP verification failed';
+        }
+    };
+
+    const logout = () => {
+        setUser(null);
+        localStorage.removeItem('userInfo');
+        localStorage.removeItem('token');
+    };
 
     return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
+        <AuthContext.Provider value={{ user, login, register, verifyOTP, logout, loading }}>
+            {!loading && children}
+        </AuthContext.Provider>
+    );
 };
