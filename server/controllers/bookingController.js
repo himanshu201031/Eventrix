@@ -74,8 +74,8 @@ exports.confirmBooking = async (req, res) => {
         event.availableSeats -= 1;
         await event.save();
 
-        // Send email on admin confirmation
-        await sendBookingEmail(booking.userId.email, booking.userId.name, booking.eventId.title);
+// Send email on admin confirmation
+        await sendBookingEmail(booking.userId.email, (booking.userId.username || booking.userId.name), booking.eventId.title);
 
         res.json({ message: 'Booking confirmed successfully', booking });
     } catch (error) {
@@ -86,7 +86,7 @@ exports.confirmBooking = async (req, res) => {
 exports.getMyBookings = async (req, res) => {
     try {
         const bookings = req.user.role === 'admin'
-            ? await Booking.find().populate('eventId').populate('userId', 'name email').sort({ createdAt: -1 })
+? await Booking.find().populate('eventId').populate('userId', 'username email').sort({ createdAt: -1 })
             : await Booking.find({ userId: req.user.id }).populate('eventId').sort({ createdAt: -1 });
         res.json(bookings);
     } catch (error) {

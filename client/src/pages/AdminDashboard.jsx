@@ -194,7 +194,7 @@ const AdminDashboard = () => {
                                         <div className="bg-gray-50 rounded-lg p-3 mb-3 border border-gray-100 text-sm">
                                             <p className="text-gray-700 flex items-center gap-2 mb-1">
                                                 <span className="font-bold w-16 text-gray-500 uppercase text-xs">User:</span>
-                                                <span className="font-semibold">{booking.userId?.name}</span>
+<span className="font-semibold">{booking.userId?.username}</span>
                                                 <span className="text-gray-400">({booking.userId?.email})</span>
                                             </p>
                                             <p className="text-gray-700 flex items-center gap-2 mb-1">

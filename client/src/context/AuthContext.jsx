@@ -1,4 +1,4 @@
-import { createContext, useState } from 'react';
+import { createContext, useState, useEffect } from 'react';
 import api from '../utils/axios';
 
 export const AuthContext = createContext();
@@ -10,7 +10,9 @@ export const AuthProvider = ({ children }) => {
     });
     const [loading, setLoading] = useState(true);
 
-    setTimeout(() => setLoading(false), 0);
+    useEffect(() => {
+        setLoading(false);
+    }, []);
 
     const login = async (email, password) => {
         try {
