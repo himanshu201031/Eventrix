@@ -2,13 +2,17 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import api from '../utils/axios';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaTicketAlt, FaTimesCircle } from 'react-icons/fa';
+import QRTicketModal from '../components/QRTicketModal';
+import { FaTicketAlt, FaTimesCircle, FaQrcode, FaCalendarAlt, FaWallet, FaRegHeart, FaUser, FaCheckCircle, FaExclamationTriangle, FaReceipt } from 'react-icons/fa';
+import { HiSparkles } from 'react-icons/hi2';
 
 const UserDashboard = () => {
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedBookingForQR, setSelectedBookingForQR] = useState(null);
+    const [activeTab, setActiveTab] = useState('bookings'); // 'bookings', 'wishlist', 'invoices', 'profile'
 
     useEffect(() => {
         if (!user) {
@@ -40,90 +44,241 @@ const UserDashboard = () => {
         }
     };
 
-    if (loading) return <div className="text-center py-20 text-xl font-semibold">Loading dashboard...</div>;
+    if (loading) {
+        return (
+            <div className="text-center py-28 space-y-4">
+                <div className="w-12 h-12 rounded-full border-4 border-purple-500/30 border-t-purple-500 animate-spin mx-auto"></div>
+                <p className="text-gray-400 text-sm font-medium">Loading user dashboard...</p>
+            </div>
+        );
+    }
+
+    const confirmedCount = bookings.filter(b => b.status === 'confirmed').length;
+    const pendingCount = bookings.filter(b => b.status === 'pending').length;
+    const totalSpent = bookings.reduce((sum, b) => b.paymentStatus === 'paid' ? sum + (b.amount || 0) : sum, 0);
 
     return (
-        <div className="max-w-6xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 mb-8 border border-gray-100 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-6">
-                <div className="w-20 h-20 bg-gray-200 text-gray-900 rounded-full flex items-center justify-center text-3xl font-bold uppercase tracking-widest shrink-0">
-                    {user?.username.charAt(0)}
-                </div>
-                <div className="flex flex-col items-center sm:items-start">
-                    <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">Welcome, {user?.username}!</h1>
-                    <p className="text-gray-500 flex items-center justify-center sm:justify-start gap-2">
-                        <span className="w-2 h-2 rounded-full bg-green-500"></span> User Dashboard
-                    </p>
-                </div>
-            </div>
-
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-2 sm:gap-3">
-                    <FaTicketAlt className="text-gray-700" /> My Bookings requests
-                </h2>
-            </div>
-
-            {bookings.length === 0 ? (
-                <div className="bg-white rounded-xl shadow-sm p-12 text-center border border-gray-100">
-                    <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <FaTicketAlt className="text-gray-300 text-3xl" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            {/* Header User Profile Banner */}
+            <div className="glass-card p-6 sm:p-10 rounded-3xl border border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+                <div className="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left z-10">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-600 flex items-center justify-center text-white text-3xl font-black uppercase shadow-lg shadow-purple-500/30">
+                        {user?.username ? user.username.charAt(0) : 'U'}
                     </div>
-                    <p className="text-xl text-gray-500 mb-6 mt-4 font-medium">You haven't booked any events yet.</p>
-                    <Link to="/" className="inline-block bg-gray-900 hover:bg-black text-white font-bold py-3 px-8 rounded-lg transition shadow-md">
-                        Browse Events
+                    <div className="space-y-1">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-extrabold uppercase tracking-widest">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Active Member
+                        </div>
+                        <h1 className="text-2xl sm:text-3xl font-black text-white">{user?.username}</h1>
+                        <p className="text-xs text-gray-400 font-medium">{user?.email}</p>
+                    </div>
+                </div>
+
+                <div className="flex gap-3 z-10">
+                    <Link
+                        to="/events"
+                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-2.5 px-5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-purple-500/25 flex items-center gap-2"
+                    >
+                        <HiSparkles /> Explore Events
                     </Link>
                 </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {bookings.map((booking) => (
-                        <div key={booking._id} className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition border border-gray-100 flex flex-col">
-                            <div className="p-6 border-b border-gray-50 flex-grow">
-                                {booking.eventId ? (
-                                    <>
-                                        <div className="flex justify-between items-start mb-4">
-                                            <h3 className="text-lg font-bold text-gray-900 leading-tight">{booking.eventId.title}</h3>
-                                            <div className="flex flex-col gap-1 items-end">
-                                                <span className={`px-2 py-1 text-[10px] font-black rounded uppercase tracking-wider ${booking.status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                                                    booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                                                        'bg-yellow-100 text-yellow-700'
-                                                    }`}>
-                                                    {booking.status}
+            </div>
+
+            {/* Quick Stats Grid (Linear Style) */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div className="glass-card p-6 rounded-2xl border border-white/10 space-y-1">
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-purple-400 block">Confirmed VIP Passes</span>
+                    <div className="flex items-baseline justify-between">
+                        <span className="text-3xl font-black text-white">{confirmedCount}</span>
+                        <FaCheckCircle className="text-emerald-400 text-lg" />
+                    </div>
+                </div>
+
+                <div className="glass-card p-6 rounded-2xl border border-white/10 space-y-1">
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-purple-400 block">Pending Gate Approval</span>
+                    <div className="flex items-baseline justify-between">
+                        <span className="text-3xl font-black text-white">{pendingCount}</span>
+                        <FaExclamationTriangle className="text-amber-400 text-lg" />
+                    </div>
+                </div>
+
+                <div className="glass-card p-6 rounded-2xl border border-white/10 space-y-1">
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-purple-400 block">Total Investment</span>
+                    <div className="flex items-baseline justify-between">
+                        <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">₹{totalSpent}</span>
+                        <FaWallet className="text-purple-400 text-lg" />
+                    </div>
+                </div>
+            </div>
+
+            {/* Linear Dashboard Tab Navigation */}
+            <div className="flex items-center gap-2 border-b border-white/10 pb-4 overflow-x-auto no-scrollbar">
+                {[
+                    { id: 'bookings', name: 'My Ticket Passes', icon: FaTicketAlt },
+                    { id: 'invoices', name: 'Billing & Invoices', icon: FaReceipt },
+                    { id: 'profile', name: 'Account Settings', icon: FaUser }
+                ].map((t) => (
+                    <button
+                        key={t.id}
+                        onClick={() => setActiveTab(t.id)}
+                        className={`px-5 py-2.5 rounded-full text-xs font-bold shrink-0 transition-all flex items-center gap-2 ${activeTab === t.id ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                    >
+                        <t.icon className="text-xs" /> {t.name}
+                    </button>
+                ))}
+            </div>
+
+            {/* Tab 1: Bookings List */}
+            {activeTab === 'bookings' && (
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-bold text-white">Event Registrations</h2>
+                        <span className="text-xs text-gray-400 font-semibold">{bookings.length} total entries</span>
+                    </div>
+
+                    {bookings.length === 0 ? (
+                        <div className="glass-card p-16 rounded-3xl text-center border border-white/10 space-y-4">
+                            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto text-gray-500 text-2xl">
+                                <FaTicketAlt />
+                            </div>
+                            <h3 className="text-xl font-bold text-white">No Event Passes Found</h3>
+                            <p className="text-gray-400 text-xs max-w-sm mx-auto">You haven't reserved tickets for any events yet. Explore upcoming festivals and tech conferences today!</p>
+                            <Link to="/events" className="inline-block bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-3 rounded-xl text-xs uppercase tracking-wider transition-all">
+                                Browse Events Now
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {bookings.map((booking) => {
+                                const event = booking.eventId || {};
+                                return (
+                                    <div key={booking._id} className="glass-card rounded-2xl overflow-hidden border border-white/10 hover:border-purple-500/30 transition-all flex flex-col justify-between">
+                                        <div className="p-6 space-y-4">
+                                            <div className="flex items-start justify-between">
+                                                <span className="text-[10px] font-extrabold uppercase tracking-widest text-purple-400 px-2.5 py-1 rounded-full bg-purple-500/20 border border-purple-500/30">
+                                                    {event.category || 'Pass'}
                                                 </span>
-                                                {booking.status !== 'cancelled' && (
-                                                    <span className={`px-2 py-1 text-[10px] font-black rounded uppercase tracking-wider ${booking.paymentStatus === 'paid' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
+                                                <div className="flex flex-col items-end gap-1">
+                                                    <span className={`px-2.5 py-0.5 text-[10px] font-black rounded-full uppercase tracking-wider ${booking.status === 'confirmed' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                                                        booking.status === 'cancelled' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
+                                                            'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                                                         }`}>
-                                                        {booking.paymentStatus.replace('_', ' ')}
+                                                        {booking.status}
                                                     </span>
-                                                )}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <h3 className="text-lg font-bold text-white line-clamp-1">{event.title || 'Event Removed'}</h3>
+                                                <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                                                    <FaCalendarAlt className="text-purple-400" />
+                                                    {event.date ? new Date(event.date).toLocaleDateString() : 'N/A'}
+                                                </p>
+                                            </div>
+
+                                            <div className="pt-3 border-t border-white/10 text-xs space-y-1">
+                                                <div className="flex justify-between text-gray-400">
+                                                    <span>Amount Paid:</span>
+                                                    <span className="font-bold text-white">{booking.amount === 0 ? 'FREE' : `₹${booking.amount}`}</span>
+                                                </div>
+                                                <div className="flex justify-between text-gray-400">
+                                                    <span>Pass Ref ID:</span>
+                                                    <span className="font-mono text-purple-300">#{booking._id?.slice(-8).toUpperCase()}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="text-sm text-gray-500 mb-4 space-y-1">
-                                            <p><strong className="text-gray-700">Date:</strong> {new Date(booking.eventId.date).toLocaleDateString()}</p>
-                                            <p><strong className="text-gray-700">Amount:</strong> {booking.amount === 0 ? 'Free' : `₹${booking.amount}`}</p>
-                                            <p><strong className="text-gray-700">Requested:</strong> {new Date(booking.bookedAt).toLocaleDateString()}</p>
+
+                                        {/* Card Footer Actions */}
+                                        <div className="p-4 bg-white/5 border-t border-white/10 flex items-center justify-between gap-2">
+                                            {booking.status !== 'cancelled' ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => setSelectedBookingForQR(booking)}
+                                                        className="flex-1 bg-purple-600/30 hover:bg-purple-600 text-purple-200 hover:text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all border border-purple-500/30"
+                                                    >
+                                                        <FaQrcode /> View Digital QR
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => cancelBooking(booking._id)}
+                                                        className="px-3 py-2 bg-red-500/10 hover:bg-red-500/30 text-red-400 font-bold rounded-xl text-xs transition-all border border-red-500/20"
+                                                        title="Cancel Booking"
+                                                    >
+                                                        <FaTimesCircle />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <span className="text-xs text-gray-500 font-medium italic w-full text-center">Registration Cancelled</span>
+                                            )}
                                         </div>
-                                    </>
-                                ) : (
-                                    <p className="text-red-500 italic">Event details unavailable (might have been deleted)</p>
-                                )}
-                            </div>
-                            <div className="p-4 bg-gray-50 flex justify-between items-center shrink-0">
-                                {booking.eventId && booking.status !== 'cancelled' ? (
-                                    <>
-                                        <Link to={`/events/${booking.eventId._id}`} className="text-gray-900 font-semibold text-sm hover:underline">View Event</Link>
-                                        <button
-                                            onClick={() => cancelBooking(booking._id)}
-                                            className="text-red-500 font-semibold text-sm hover:text-red-700 transition flex items-center gap-1"
-                                        >
-                                            <FaTimesCircle /> Cancel
-                                        </button>
-                                    </>
-                                ) : (
-                                    <div className="w-full text-center text-sm text-gray-500 italic">Booking Cancelled</div>
-                                )}
-                            </div>
+                                    </div>
+                                );
+                            })}
                         </div>
-                    ))}
+                    )}
                 </div>
+            )}
+
+            {/* Tab 2: Billing & Invoices */}
+            {activeTab === 'invoices' && (
+                <div className="glass-card p-8 rounded-3xl border border-white/10 space-y-6">
+                    <h2 className="text-xl font-bold text-white">Payment Receipts & Invoices</h2>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs text-gray-300">
+                            <thead className="bg-white/5 text-gray-400 uppercase font-bold text-[10px] border-b border-white/10">
+                                <tr>
+                                    <th className="p-4">Transaction ID</th>
+                                    <th className="p-4">Event</th>
+                                    <th className="p-4">Date</th>
+                                    <th className="p-4">Amount</th>
+                                    <th className="p-4">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {bookings.map((b) => (
+                                    <tr key={b._id} className="hover:bg-white/5 transition-colors">
+                                        <td className="p-4 font-mono text-purple-300">TXN-{b._id?.slice(-8).toUpperCase()}</td>
+                                        <td className="p-4 font-bold text-white">{b.eventId?.title || 'Event'}</td>
+                                        <td className="p-4">{new Date(b.bookedAt).toLocaleDateString()}</td>
+                                        <td className="p-4 font-bold">₹{b.amount || 0}</td>
+                                        <td className="p-4">
+                                            <span className="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 font-bold uppercase text-[9px]">PAID</span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {/* Tab 3: Account Profile */}
+            {activeTab === 'profile' && (
+                <div className="glass-card p-8 rounded-3xl border border-white/10 max-w-xl space-y-6">
+                    <h2 className="text-xl font-bold text-white">Profile Details</h2>
+                    <div className="space-y-4 text-xs font-semibold">
+                        <div className="space-y-1">
+                            <label className="text-gray-400 block">Full Name</label>
+                            <input disabled value={user?.username} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-gray-400 block">Email Address</label>
+                            <input disabled value={user?.email} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-gray-400 block">Account Role</label>
+                            <input disabled value={user?.role?.toUpperCase()} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-purple-300 font-bold" />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Interactive QR Ticket Modal Popup */}
+            {selectedBookingForQR && (
+                <QRTicketModal
+                    booking={selectedBookingForQR}
+                    onClose={() => setSelectedBookingForQR(null)}
+                />
             )}
         </div>
     );
