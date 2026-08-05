@@ -63,9 +63,9 @@ exports.login = async (req, res) => {
     await Otp.deleteMany({ email, action: "Acc_verify" }); // Remove any existing OTPs for this email
     await Otp.create({ email, otp, action: "Acc_verify" });
     await sendOtpEmail(email, otp, "login");
-    return res
+return res
       .status(400)
-      .json({ message: "Account not verified. OTP sent to email." });
+      .json({ message: "Account not verified. OTP sent to email.", needsVerification: true });
   }
 
 
@@ -92,7 +92,10 @@ exports.verifyotp = async (req, res) => {
         return res.status(400).json({message:"Invalid or expired OTP"});
     }
 
-    const user=await User.findOneAndUpdate({email},{isVerified:true});
+const user=await User.findOneAndUpdate({email},{isVerified:true});
+    if(!user){
+        return res.status(404).json({message:"User not found"});
+    }
     await Otp.deleteMany({email,action:"Acc_verify"}); // Remove the OTP after successful verification
 
     res.status(200).json({message:"Account verified successfully",
