@@ -24,7 +24,7 @@ const EventDetail = () => {
             try {
                 const { data } = await api.get(`/events/${id}`);
                 setEvent(data);
-            } catch (err) {
+            } catch {
                 setError('Failed to load event details.');
             } finally {
                 setLoading(false);

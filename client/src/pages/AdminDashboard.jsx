@@ -59,7 +59,7 @@ const AdminDashboard = () => {
             try {
                 await api.delete(`/events/${id}`);
                 fetchData();
-            } catch (error) {
+            } catch {
                 alert('Error deleting event');
             }
         }

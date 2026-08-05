@@ -13,7 +13,6 @@ const BookingModal = ({ event, onClose, onSuccess }) => {
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [createdBooking, setCreatedBooking] = useState(null);
 
     if (!event) return null;
 
@@ -45,14 +44,13 @@ const BookingModal = ({ event, onClose, onSuccess }) => {
         setLoading(true);
         setError('');
         try {
-            const { data } = await api.post('/bookings', {
+            await api.post('/bookings', {
                 eventId: event._id,
                 otp,
                 amount: totalAmount,
                 quantity,
                 ticketTier
             });
-            setCreatedBooking(data.booking || { eventId: event, amount: totalAmount, status: 'pending', paymentStatus: 'paid' });
             setStep(6); // Success step
             if (onSuccess) onSuccess();
         } catch (err) {
