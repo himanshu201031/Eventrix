@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../utils/axios';
 import EventCard from '../components/EventCard';
-import { FaSearch, FaPlay, FaArrowUpRightFromSquare, FaArrowLeft, FaArrowRight, FaTrophy, FaGamepad, FaUsers, FaCalendarAlt, FaStar } from 'react-icons/fa6';
+import { FaMagnifyingGlass, FaPlay, FaArrowUpRightFromSquare, FaArrowLeft, FaArrowRight } from 'react-icons/fa6';
 import { HiSparkles, HiUserGroup, HiFire } from 'react-icons/hi2';
 
 const Home = () => {
@@ -108,7 +108,7 @@ const Home = () => {
                         {/* Search Input Bar */}
                         <div className="relative max-w-2xl">
                             <div className="bg-white p-2 rounded-3xl border border-black/10 shadow-lg flex items-center gap-3">
-                                <FaSearch className="text-gray-400 text-base ml-4 shrink-0" />
+                                <FaMagnifyingGlass className="text-gray-400 text-base ml-4 shrink-0" />
                                 <input
                                     type="text"
                                     placeholder="Search showcase events, categories, or keywords..."

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaCalendarAlt, FaMapMarkerAlt, FaBookmark, FaRegBookmark, FaArrowUpRightFromSquare, FaTicketAlt } from 'react-icons/fa6';
+import { FaCalendarDays, FaLocationDot, FaBookmark, FaRegBookmark, FaArrowUpRightFromSquare, FaTicket } from 'react-icons/fa6';
 import { HiSparkles, HiUserGroup } from 'react-icons/hi2';
 
 const EventCard = ({ event }) => {
@@ -72,11 +72,11 @@ const EventCard = ({ event }) => {
                     {/* Date & Location tags */}
                     <div className="flex items-center justify-between text-xs font-bold text-gray-500">
                         <span className="flex items-center gap-1">
-                            <FaCalendarAlt className="text-[#8522FF]" />
+                            <FaCalendarDays className="text-[#8522FF]" />
                             {new Date(event.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                         </span>
                         <span className="flex items-center gap-1 truncate max-w-[130px]">
-                            <FaMapMarkerAlt className="text-red-500 shrink-0" />
+                            <FaLocationDot className="text-red-500 shrink-0" />
                             <span className="truncate">{event.location || 'Main Stage'}</span>
                         </span>
                     </div>

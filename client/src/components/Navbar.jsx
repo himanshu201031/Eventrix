@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { FaTicketAlt, FaUser, FaSignOutAlt, FaBars, FaTimes, FaPlusCircle, FaCompass, FaArrowUpRightFromSquare, FaPlay } from 'react-icons/fa6';
+import { FaTicket, FaUser, FaArrowRightFromBracket, FaBars, FaXmark, FaCirclePlus, FaCompass, FaArrowUpRightFromSquare, FaPlay } from 'react-icons/fa6';
 import { FaThLarge } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi2';
 
@@ -110,7 +110,7 @@ const Navbar = () => {
                                         className="w-10 h-10 rounded-full bg-white hover:bg-red-50 hover:text-red-600 border border-black/10 flex items-center justify-center text-gray-700 transition-all"
                                         title="Sign Out"
                                     >
-                                        <FaSignOutAlt className="text-xs" />
+                                        <FaArrowRightFromBracket className="text-xs" />
                                     </button>
                                 </div>
                             ) : (
@@ -137,7 +137,7 @@ const Navbar = () => {
                                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                                 className="w-10 h-10 rounded-xl bg-white border border-black/10 flex items-center justify-center text-black"
                             >
-                                {mobileMenuOpen ? <FaTimes /> : <FaBars />}
+                                {mobileMenuOpen ? <FaXmark /> : <FaBars />}
                             </button>
                         </div>
                     </div>
