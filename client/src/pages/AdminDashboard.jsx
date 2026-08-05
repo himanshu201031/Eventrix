@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../context/authContext';
 import api from '../utils/axios';
 import { useNavigate } from 'react-router-dom';
 import { FaPlus, FaTrashAlt, FaCheck, FaTimes, FaChartLine, FaUsers, FaClock } from 'react-icons/fa';
