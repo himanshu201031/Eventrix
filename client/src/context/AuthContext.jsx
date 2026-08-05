@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import api from '../utils/axios';
-import { AuthContext } from './authContext';
+import { AuthContext } from './auth';
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(() => {
