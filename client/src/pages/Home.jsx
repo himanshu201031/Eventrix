@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../utils/axios';
 import EventCard from '../components/EventCard';
@@ -24,14 +24,7 @@ const Home = () => {
         return () => clearInterval(timer);
     }, []);
 
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            fetchEvents();
-        }, 300);
-        return () => clearTimeout(timeoutId);
-    }, [search]);
-
-    const fetchEvents = async () => {
+    const fetchEvents = useCallback(async () => {
         try {
             const { data } = await api.get(`/events?search=${search}`);
             setEvents(data);
@@ -40,7 +33,14 @@ const Home = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [search]);
+
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            fetchEvents();
+        }, 300);
+        return () => clearTimeout(timeoutId);
+    }, [fetchEvents]);
 
     // Category slider cards
     const categoryCards = [
