@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import api from '../utils/axios';
 import { useNavigate } from 'react-router-dom';
-import { FaPlus, FaTrashAlt, FaCheck, FaTimes, FaChartLine, FaTicketAlt, FaUsers, FaClock, FaCalendarAlt, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaPlus, FaTrashAlt, FaCheck, FaTimes, FaChartLine, FaUsers, FaClock } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi2';
 
 const AdminDashboard = () => {
@@ -17,7 +17,7 @@ const AdminDashboard = () => {
         title: '', description: '', date: '', location: '', category: '', totalSeats: '', ticketPrice: '', image: ''
     });
 
-    const [activeTab, setActiveTab] = useState('bookings'); // 'bookings', 'events', 'analytics'
+    const [activeTab, setActiveTab] = useState('bookings');
 
     useEffect(() => {
         if (!user || user.role !== 'admin') {
@@ -31,7 +31,7 @@ const AdminDashboard = () => {
         try {
             const [eventsRes, bookingsRes] = await Promise.all([
                 api.get('/events'),
-                api.get('/bookings/my') // Admin gets all bookings
+                api.get('/bookings/my')
             ]);
             setEvents(eventsRes.data);
             setBookings(bookingsRes.data);
@@ -86,12 +86,7 @@ const AdminDashboard = () => {
     };
 
     if (loading) {
-        return (
-            <div className="text-center py-28 space-y-4">
-                <div className="w-12 h-12 rounded-full border-4 border-purple-500/30 border-t-purple-500 animate-spin mx-auto"></div>
-                <p className="text-gray-400 text-sm font-medium">Loading admin suite...</p>
-            </div>
-        );
+        return <div className="text-center py-28 font-bold text-gray-500">Loading admin suite...</div>;
     }
 
     const totalRevenue = bookings.reduce((sum, b) => b.paymentStatus === 'paid' && b.status === 'confirmed' ? sum + (b.amount || 0) : sum, 0);
@@ -100,120 +95,118 @@ const AdminDashboard = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-            {/* Stripe/Vercel Header Banner */}
-            <div className="glass-card p-6 sm:p-10 rounded-3xl border border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
-                <div className="space-y-1 text-center md:text-left z-10">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-extrabold uppercase tracking-widest">
-                        <HiSparkles /> Administrator Console
+            {/* Header Banner */}
+            <div className="bg-[#0B0B0B] text-white p-6 sm:p-10 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+                <div className="space-y-1 text-center md:text-left">
+                    <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-[#8522FF] text-white text-[10px] font-extrabold uppercase">
+                        <HiSparkles /> ADMIN CONSOLE
                     </span>
-                    <h1 className="text-3xl font-black text-white">Eventrix Admin Suite</h1>
-                    <p className="text-xs text-gray-400">Manage live events, approve gate access, and track ticket revenue analytics.</p>
+                    <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight">Eventrix Admin Suite</h1>
+                    <p className="text-xs text-gray-400 font-bold">Manage showcase events, approve gate access, and track gross revenues.</p>
                 </div>
 
                 <button
                     onClick={() => setShowEventForm(!showEventForm)}
-                    className="z-10 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-black py-3 px-6 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-purple-500/25 flex items-center gap-2"
+                    className="bg-[#D2FF00] hover:bg-[#bce400] text-black font-extrabold py-3 px-6 rounded-full text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2"
                 >
                     <FaPlus /> {showEventForm ? 'Close Form' : 'Publish New Event'}
                 </button>
             </div>
 
-            {/* Analytics Metric Cards (Stripe Style) */}
+            {/* Metric Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div className="glass-card p-6 rounded-2xl border border-white/10 space-y-2">
-                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400 block">Gross Ticket Revenue</span>
+                <div className="bg-white p-6 rounded-3xl border border-black/10 space-y-2 shadow-sm">
+                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider block">GROSS TICKET REVENUE</span>
                     <div className="flex items-baseline justify-between">
-                        <span className="text-3xl font-black text-white">₹{totalRevenue}</span>
-                        <FaChartLine className="text-emerald-400 text-xl" />
+                        <span className="font-display font-black text-3xl text-black">₹{totalRevenue}</span>
+                        <FaChartLine className="text-[#8522FF] text-xl" />
                     </div>
                 </div>
 
-                <div className="glass-card p-6 rounded-2xl border border-white/10 space-y-2">
-                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-cyan-400 block">Verified Paid Clients</span>
+                <div className="bg-white p-6 rounded-3xl border border-black/10 space-y-2 shadow-sm">
+                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider block">PAID ATTENDEES</span>
                     <div className="flex items-baseline justify-between">
-                        <span className="text-3xl font-black text-white">{paidClientsCount}</span>
-                        <FaUsers className="text-cyan-400 text-xl" />
+                        <span className="font-display font-black text-3xl text-black">{paidClientsCount}</span>
+                        <FaUsers className="text-[#8522FF] text-xl" />
                     </div>
                 </div>
 
-                <div className="glass-card p-6 rounded-2xl border border-white/10 space-y-2">
-                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-400 block">Pending Gate Requests</span>
+                <div className="bg-white p-6 rounded-3xl border border-black/10 space-y-2 shadow-sm">
+                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider block">PENDING APPROVALS</span>
                     <div className="flex items-baseline justify-between">
-                        <span className="text-3xl font-black text-white">{pendingRequestsCount}</span>
-                        <FaClock className="text-amber-400 text-xl" />
+                        <span className="font-display font-black text-3xl text-black">{pendingRequestsCount}</span>
+                        <FaClock className="text-amber-500 text-xl" />
                     </div>
                 </div>
             </div>
 
-            {/* Event Creation Form Modal / Panel */}
+            {/* Event Creation Form */}
             {showEventForm && (
-                <div className="glass-card p-8 rounded-3xl border border-purple-500/40 glow-purple space-y-6 animate-fadeIn">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                            <FaPlus className="text-purple-400 text-xs" /> Publish New Event Experience
-                        </h2>
-                        <button onClick={() => setShowEventForm(false)} className="text-gray-400 hover:text-white text-sm font-bold">✕</button>
+                <div className="bg-white p-8 rounded-3xl border border-black/10 space-y-6 shadow-xl animate-fadeIn">
+                    <div className="flex items-center justify-between border-b border-black/10 pb-4">
+                        <h2 className="font-display font-black text-xl text-black uppercase">Publish New Event Experience</h2>
+                        <button onClick={() => setShowEventForm(false)} className="text-gray-500 hover:text-black font-extrabold">✕</button>
                     </div>
 
                     <form onSubmit={handleCreateEvent} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-300">Event Title</label>
-                            <input required type="text" placeholder="e.g. Neon Odyssey Cyberpunk Fest" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-purple-500 focus:outline-none" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} />
+                            <label className="text-xs font-extrabold text-gray-700 uppercase">Event Title</label>
+                            <input required type="text" placeholder="Title" className="w-full bg-gray-50 border border-black/10 rounded-2xl p-3 text-xs text-black font-bold focus:border-[#8522FF]" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} />
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-300">Category (Genre)</label>
-                            <input required type="text" placeholder="Music, Tech, Arts, Food, Gaming" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-purple-500 focus:outline-none" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} />
+                            <label className="text-xs font-extrabold text-gray-700 uppercase">Category (Genre)</label>
+                            <input required type="text" placeholder="Music, Tech, Arts, Food, Gaming" className="w-full bg-gray-50 border border-black/10 rounded-2xl p-3 text-xs text-black font-bold focus:border-[#8522FF]" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} />
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-300">Event Date</label>
-                            <input required type="date" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-purple-500 focus:outline-none" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} />
+                            <label className="text-xs font-extrabold text-gray-700 uppercase">Event Date</label>
+                            <input required type="date" className="w-full bg-gray-50 border border-black/10 rounded-2xl p-3 text-xs text-black font-bold focus:border-[#8522FF]" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} />
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-300">Venue Location</label>
-                            <input required type="text" placeholder="e.g. Cyber Arena, Main Stage" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-purple-500 focus:outline-none" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} />
+                            <label className="text-xs font-extrabold text-gray-700 uppercase">Venue Location</label>
+                            <input required type="text" placeholder="Cyber Arena, Main Stage" className="w-full bg-gray-50 border border-black/10 rounded-2xl p-3 text-xs text-black font-bold focus:border-[#8522FF]" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} />
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-300">Total Capacity Seats</label>
-                            <input required type="number" placeholder="200" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-purple-500 focus:outline-none" value={formData.totalSeats} onChange={e => setFormData({ ...formData, totalSeats: e.target.value })} />
+                            <label className="text-xs font-extrabold text-gray-700 uppercase">Total Seats</label>
+                            <input required type="number" placeholder="200" className="w-full bg-gray-50 border border-black/10 rounded-2xl p-3 text-xs text-black font-bold focus:border-[#8522FF]" value={formData.totalSeats} onChange={e => setFormData({ ...formData, totalSeats: e.target.value })} />
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-300">Ticket Price (₹, 0 for free)</label>
-                            <input required type="number" placeholder="1499" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-purple-500 focus:outline-none" value={formData.ticketPrice} onChange={e => setFormData({ ...formData, ticketPrice: e.target.value })} />
+                            <label className="text-xs font-extrabold text-gray-700 uppercase">Ticket Price (₹, 0 for free)</label>
+                            <input required type="number" placeholder="1499" className="w-full bg-gray-50 border border-black/10 rounded-2xl p-3 text-xs text-black font-bold focus:border-[#8522FF]" value={formData.ticketPrice} onChange={e => setFormData({ ...formData, ticketPrice: e.target.value })} />
                         </div>
 
                         <div className="md:col-span-2 space-y-1">
-                            <label className="text-xs font-bold text-gray-300">Cover Image Direct URL</label>
-                            <input type="text" placeholder="https://images.unsplash.com/..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-purple-500 focus:outline-none" value={formData.image} onChange={e => setFormData({ ...formData, image: e.target.value })} />
+                            <label className="text-xs font-extrabold text-gray-700 uppercase">Cover Image Direct Link</label>
+                            <input type="text" placeholder="https://..." className="w-full bg-gray-50 border border-black/10 rounded-2xl p-3 text-xs text-black font-bold focus:border-[#8522FF]" value={formData.image} onChange={e => setFormData({ ...formData, image: e.target.value })} />
                         </div>
 
                         <div className="md:col-span-2 space-y-1">
-                            <label className="text-xs font-bold text-gray-300">Event Description</label>
-                            <textarea required placeholder="Detailed information about speakers, stages, agenda..." className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-purple-500 focus:outline-none h-24" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
+                            <label className="text-xs font-extrabold text-gray-700 uppercase">Event Description</label>
+                            <textarea required placeholder="Information about stages, hosts, agenda..." className="w-full bg-gray-50 border border-black/10 rounded-2xl p-3 text-xs text-black font-bold focus:border-[#8522FF] h-24" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
                         </div>
 
-                        <button type="submit" className="md:col-span-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-lg">
+                        <button type="submit" className="md:col-span-2 bg-[#8522FF] text-white font-extrabold py-3.5 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md">
                             Publish Event Experience
                         </button>
                     </form>
                 </div>
             )}
 
-            {/* Admin Tabs Bar */}
-            <div className="flex items-center gap-2 border-b border-white/10 pb-4">
+            {/* Admin Tabs */}
+            <div className="flex items-center gap-2 border-b border-black/10 pb-4">
                 <button
                     onClick={() => setActiveTab('bookings')}
-                    className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all ${activeTab === 'bookings' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                    className={`px-5 py-2.5 rounded-full text-xs font-extrabold uppercase transition-all ${activeTab === 'bookings' ? 'bg-[#8522FF] text-white shadow-md' : 'bg-white text-gray-700 border border-black/10'}`}
                 >
                     Booking Approvals ({bookings.length})
                 </button>
                 <button
                     onClick={() => setActiveTab('events')}
-                    className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all ${activeTab === 'events' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                    className={`px-5 py-2.5 rounded-full text-xs font-extrabold uppercase transition-all ${activeTab === 'events' ? 'bg-[#8522FF] text-white shadow-md' : 'bg-white text-gray-700 border border-black/10'}`}
                 >
                     All Events ({events.length})
                 </button>
@@ -221,49 +214,46 @@ const AdminDashboard = () => {
 
             {/* Tab 1: Bookings Management */}
             {activeTab === 'bookings' && (
-                <div className="glass-card p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
-                    <h2 className="text-xl font-bold text-white">Attendee Booking Requests</h2>
+                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-black/10 space-y-6 shadow-sm">
+                    <h2 className="font-display font-black text-xl text-black uppercase">Booking Requests</h2>
                     <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                         {bookings.length === 0 ? (
-                            <p className="text-gray-400 text-xs text-center py-8">No booking requests submitted yet.</p>
+                            <p className="text-gray-500 font-bold text-xs text-center py-8">No booking requests submitted yet.</p>
                         ) : (
                             bookings.map((booking) => (
-                                <div key={booking._id} className="bg-white/5 p-5 rounded-2xl border border-white/10 space-y-4 hover:border-white/20 transition-all">
+                                <div key={booking._id} className="bg-gray-50 p-5 rounded-2xl border border-black/10 space-y-4">
                                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                                         <div>
-                                            <h4 className="font-bold text-white text-base">{booking.eventId?.title || 'Deleted Event'}</h4>
-                                            <p className="text-xs text-gray-400 flex items-center gap-2 mt-0.5">
-                                                <span>User: <strong className="text-white">{booking.userId?.username || 'Guest'}</strong> ({booking.userId?.email})</span>
+                                            <h4 className="font-display font-black text-[#0A0A0C] text-base uppercase">{booking.eventId?.title || 'Deleted Event'}</h4>
+                                            <p className="text-xs font-bold text-gray-600">
+                                                User: <strong className="text-black">{booking.userId?.username || 'Guest'}</strong> ({booking.userId?.email})
                                             </p>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className={`px-2.5 py-0.5 text-[10px] font-black rounded-full uppercase tracking-wider ${booking.status === 'confirmed' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
-                                                booking.status === 'cancelled' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
-                                                    'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                                }`}>
-                                                {booking.status}
-                                            </span>
-                                        </div>
+                                        <span className={`px-2.5 py-0.5 text-[10px] font-black rounded-full uppercase ${booking.status === 'confirmed' ? 'bg-[#D2FF00] text-black' :
+                                            booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                                'bg-amber-100 text-amber-800'
+                                            }`}>
+                                            {booking.status}
+                                        </span>
                                     </div>
 
-                                    {/* Action Buttons for Admin */}
                                     {booking.status === 'pending' && (
-                                        <div className="flex flex-wrap gap-2 pt-2 border-t border-white/10">
+                                        <div className="flex flex-wrap gap-2 pt-2 border-t border-black/10">
                                             <button
                                                 onClick={() => handleConfirmBooking(booking._id, 'paid')}
-                                                className="bg-emerald-600/30 hover:bg-emerald-600 text-emerald-200 hover:text-white border border-emerald-500/30 text-xs font-bold py-2 px-4 rounded-xl transition-all flex items-center gap-1"
+                                                className="bg-[#D2FF00] hover:bg-[#bce400] text-black text-xs font-extrabold py-2 px-4 rounded-xl transition-all flex items-center gap-1"
                                             >
                                                 <FaCheck /> Approve as Paid (₹{booking.amount})
                                             </button>
                                             <button
                                                 onClick={() => handleConfirmBooking(booking._id, 'not_paid')}
-                                                className="bg-white/10 hover:bg-white/20 text-gray-300 text-xs font-bold py-2 px-4 rounded-xl transition-all"
+                                                className="bg-gray-200 text-black text-xs font-extrabold py-2 px-4 rounded-xl transition-all"
                                             >
                                                 Approve Undecided
                                             </button>
                                             <button
                                                 onClick={() => handleCancelBooking(booking._id)}
-                                                className="bg-red-500/20 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/30 text-xs font-bold py-2 px-4 rounded-xl transition-all flex items-center gap-1 ml-auto"
+                                                className="bg-red-100 hover:bg-red-200 text-red-700 text-xs font-extrabold py-2 px-4 rounded-xl transition-all flex items-center gap-1 ml-auto"
                                             >
                                                 <FaTimes /> Reject
                                             </button>
@@ -276,21 +266,21 @@ const AdminDashboard = () => {
                 </div>
             )}
 
-            {/* Tab 2: Events Management */}
+            {/* Tab 2: Events Catalogue */}
             {activeTab === 'events' && (
-                <div className="glass-card p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
-                    <h2 className="text-xl font-bold text-white">Live Event Catalogue</h2>
+                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-black/10 space-y-6 shadow-sm">
+                    <h2 className="font-display font-black text-xl text-black uppercase">Live Event Catalogue</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {events.map((event) => (
-                            <div key={event._id} className="bg-white/5 p-5 rounded-2xl border border-white/10 flex items-center justify-between gap-4">
+                            <div key={event._id} className="bg-gray-50 p-5 rounded-2xl border border-black/10 flex items-center justify-between gap-4">
                                 <div className="space-y-1">
-                                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-purple-400">{event.category}</span>
-                                    <h4 className="font-bold text-white text-sm line-clamp-1">{event.title}</h4>
-                                    <p className="text-xs text-gray-400">{event.availableSeats} of {event.totalSeats} seats remaining</p>
+                                    <span className="text-[10px] font-black uppercase text-[#8522FF]">{event.category}</span>
+                                    <h4 className="font-display font-black text-black text-sm uppercase line-clamp-1">{event.title}</h4>
+                                    <p className="text-xs font-bold text-gray-500">{event.availableSeats} of {event.totalSeats} seats left</p>
                                 </div>
                                 <button
                                     onClick={() => handleDeleteEvent(event._id)}
-                                    className="w-9 h-9 rounded-xl bg-red-500/20 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/30 flex items-center justify-center transition-all shrink-0"
+                                    className="w-9 h-9 rounded-xl bg-red-100 text-red-600 hover:bg-red-600 hover:text-white flex items-center justify-center transition-all shrink-0"
                                     title="Delete Event"
                                 >
                                     <FaTrashAlt className="text-xs" />
