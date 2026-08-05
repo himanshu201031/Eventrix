@@ -7,7 +7,7 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(() => {
         const userInfo = localStorage.getItem('userInfo');
         return userInfo ? JSON.parse(userInfo) : null;
-});
+    });
     const [loading, setLoading] = useState(true);
 
     setTimeout(() => setLoading(false), 0);
