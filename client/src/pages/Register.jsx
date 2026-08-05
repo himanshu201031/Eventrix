@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { AuthContext } from '../context/authContext';
+import { AuthContext } from '../context/auth';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaLock, FaEnvelope, FaUser } from 'react-icons/fa';
 import { FaArrowUpRightFromSquare } from 'react-icons/fa6';

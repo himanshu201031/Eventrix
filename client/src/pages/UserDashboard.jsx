@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
-import { AuthContext } from '../context/authContext';
+import { AuthContext } from '../context/auth';
 import api from '../utils/axios';
 import { Link, useNavigate } from 'react-router-dom';
 import QRTicketModal from '../components/QRTicketModal';
