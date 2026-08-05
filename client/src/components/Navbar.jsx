@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { AuthContext } from '../context/authContext';
+import { AuthContext } from '../context/auth';
 import { FaTicket, FaUser, FaArrowRightFromBracket, FaBars, FaXmark, FaCirclePlus, FaCompass, FaArrowUpRightFromSquare, FaPlay } from 'react-icons/fa6';
 import { FaThLarge } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi2';
