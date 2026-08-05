@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../utils/axios';
 import EventCard from '../components/EventCard';
 import { FaSearch, FaFilter, FaThLarge, FaList, FaCalendarAlt, FaMapMarkerAlt } from 'react-icons/fa';
@@ -15,14 +15,7 @@ const Events = () => {
 
     const categories = ['All', 'Music', 'Tech', 'Arts', 'Food', 'Gaming', 'Business'];
 
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            fetchEvents();
-        }, 300);
-        return () => clearTimeout(timeoutId);
-    }, [search]);
-
-    const fetchEvents = async () => {
+    const fetchEvents = useCallback(async () => {
         try {
             const { data } = await api.get(`/events?search=${search}`);
             setEvents(data);
@@ -31,7 +24,14 @@ const Events = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [search]);
+
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            fetchEvents();
+        }, 300);
+        return () => clearTimeout(timeoutId);
+    }, [fetchEvents]);
 
     const filteredEvents = events.filter(event => {
         const categoryMatch = selectedCategory === 'All' || (event.category && event.category.toLowerCase() === selectedCategory.toLowerCase());
