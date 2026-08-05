@@ -1,18 +1,12 @@
-import { createContext, useState, useEffect } from 'react';
+import { useState } from 'react';
 import api from '../utils/axios';
-
-export const AuthContext = createContext();
+import { AuthContext } from './authContext';
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(() => {
         const userInfo = localStorage.getItem('userInfo');
         return userInfo ? JSON.parse(userInfo) : null;
     });
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        setLoading(false);
-    }, []);
 
     const login = async (email, password) => {
         try {
@@ -55,8 +49,8 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, register, verifyOTP, logout, loading }}>
-            {!loading && children}
+        <AuthContext.Provider value={{ user, login, register, verifyOTP, logout }}>
+            {children}
         </AuthContext.Provider>
     );
 };
