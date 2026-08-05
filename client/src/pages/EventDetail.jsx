@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../utils/axios';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../context/authContext';
 import BookingModal from '../components/BookingModal';
 import { FaCalendarAlt, FaMapMarkerAlt, FaChair, FaClock, FaCheckCircle, FaQuestionCircle, FaShareAlt } from 'react-icons/fa';
 import { FaArrowUpRightFromSquare } from 'react-icons/fa6';
