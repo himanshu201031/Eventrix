@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import api from '../utils/axios';
 import { useNavigate } from 'react-router-dom';
@@ -19,15 +19,7 @@ const AdminDashboard = () => {
 
     const [activeTab, setActiveTab] = useState('bookings');
 
-    useEffect(() => {
-        if (!user || user.role !== 'admin') {
-            navigate('/login');
-            return;
-        }
-        fetchData();
-    }, [user, navigate]);
-
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             const [eventsRes, bookingsRes] = await Promise.all([
                 api.get('/events'),
@@ -40,7 +32,15 @@ const AdminDashboard = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        if (!user || user.role !== 'admin') {
+            navigate('/login');
+            return;
+        }
+        fetchData();
+    }, [user, navigate, fetchData]);
 
     const handleCreateEvent = async (e) => {
         e.preventDefault();
