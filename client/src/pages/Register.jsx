@@ -1,8 +1,9 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../context/auth';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaLock, FaEnvelope, FaUser } from 'react-icons/fa';
-import { FaArrowUpRightFromSquare } from 'react-icons/fa6';
+import { motion } from 'framer-motion';
+import { Lock, Mail, UserRound, ArrowUpRight, Sparkle, Ticket, PartyPopper } from 'lucide-react';
+import { Blobs } from '../animations';
 
 const Register = () => {
     const [name, setName] = useState('');
@@ -37,104 +38,126 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-[80vh] flex items-center justify-center py-8 px-4">
-            <div className="w-full max-w-5xl rounded-[2.5rem] bg-white border border-black/10 overflow-hidden shadow-2xl grid grid-cols-1 lg:grid-cols-12 min-h-[600px]">
+        <div className="flex min-h-screen items-center justify-center px-4 py-10 pt-28 sm:pt-24">
+            <motion.div
+                initial={{ opacity: 0, y: 24, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.6, ease: 'easeOut' }}
+                className="grid w-full max-w-5xl grid-cols-1 overflow-hidden rounded-[2.5rem] border border-black/5 bg-white shadow-[0_40px_100px_-30px_rgba(13,13,17,0.4)] lg:grid-cols-2 dark:border-dark-line dark:bg-dark-surface"
+            >
+                {/* Left branding panel */}
+                <div className="relative hidden overflow-hidden border-r border-black/5 bg-brand-light p-10 lg:flex lg:flex-col lg:justify-between dark:border-dark-line dark:bg-dark-page">
+                    <Blobs />
 
-                {/* Left Panel: Graphic Branding */}
-                <div className="lg:col-span-6 bg-[#0B0B0B] text-white p-8 sm:p-12 flex flex-col justify-between relative overflow-hidden">
-                    <div className="relative z-10 space-y-4">
-                        <Link to="/" className="inline-flex items-center gap-2">
-                            <div className="w-10 h-10 rounded-xl bg-[#D2FF00] text-black font-black text-xl flex items-center justify-center">
-                                ⌘
+                    <div className="relative z-10">
+                        <Link to="/" className="flex items-center gap-2.5">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-lime shadow-[0_8px_22px_-8px_rgba(166,255,0,0.4)]">
+                                <Sparkle className="h-5 w-5 text-brand-dark" fill="currentColor" />
                             </div>
-                            <span className="font-display font-black text-2xl tracking-tighter uppercase">
-                                EVENTRIX®
-                            </span>
+                            <span className="font-display text-2xl uppercase tracking-wide text-brand-dark dark:text-dark-ink">eventrix</span>
                         </Link>
                     </div>
 
-                    <div className="relative z-10 space-y-4 my-12">
-                        <span className="px-3 py-1 rounded-full bg-[#8522FF] text-white font-extrabold text-[10px] uppercase">
-                            FREE REGISTRATION
+                    <div className="relative z-10 space-y-5">
+                        <div className="hero-sticker sticker -left-4 top-10 bg-brand-pink px-4 py-2 text-[10px] text-white animate-float">
+                            Free registration
+                        </div>
+                        <div className="hero-sticker sticker -right-4 bottom-24 bg-brand-lime px-4 py-2 text-[10px] text-brand-dark animate-float-slow">
+                            <PartyPopper className="mr-1 inline h-3 w-3" /> Join 500K+ fans
+                        </div>
+
+                        <span className="inline-flex items-center gap-2 rounded-full border border-brand-purple/20 bg-white px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-brand-purple dark:bg-dark-surface">
+                            <Ticket className="h-3.5 w-3.5" /> Create your account
                         </span>
-                        <h2 className="font-display font-black text-3xl sm:text-4xl uppercase tracking-tighter leading-tight">
-                            BE PART OF THE <br />
-                            <span className="text-[#D2FF00]">COMMUNITY</span>
+                        <h2 className="font-display text-4xl uppercase leading-[0.95] text-brand-dark sm:text-5xl dark:text-dark-ink">
+                            Be part of <br /> <span className="text-gradient-lime">the community</span>
                         </h2>
-                        <p className="text-gray-300 text-xs font-medium max-w-sm">
-                            Create a free profile to reserve digital QR passes, vote on leaderboard showcases, and participate in award events.
+                        <p className="max-w-sm text-sm leading-relaxed text-gray-500 dark:text-dark-muted">
+                            Create a free profile to reserve digital QR passes, discover festivals and publish your own events.
                         </p>
                     </div>
 
-                    <div className="relative z-10 text-[11px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-[#D2FF00]"></span>
-                        <span>INSTANT ACCESS PASS GENERATION</span>
+                    <div className="relative z-10 flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-dark-muted">
+                        <span className="h-2 w-2 rounded-full bg-brand-lime animate-pulse" /> Instant access pass generation
                     </div>
                 </div>
 
-                {/* Right Panel: Clean Form */}
-                <div className="lg:col-span-6 p-8 sm:p-12 flex flex-col justify-center space-y-6">
-                    <div className="space-y-1">
-                        <h2 className="font-display font-black text-3xl text-black uppercase tracking-tight">Create Account</h2>
-                        <p className="text-xs font-bold text-gray-500">Register your Eventrix account</p>
+                {/* Right form */}
+                <div className="flex flex-col justify-center p-8 sm:p-12">
+                    <div className="space-y-1.5">
+                        <h2 className="font-display text-3xl uppercase tracking-tight">Create account</h2>
+                        <p className="text-sm font-semibold text-gray-500 dark:text-dark-muted">Register your Eventrix account</p>
                     </div>
 
                     {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-600 p-3.5 rounded-2xl text-xs font-bold">
+                        <motion.div
+                            initial={{ opacity: 0, y: -8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-3.5 text-xs font-bold text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400"
+                        >
                             {error}
-                        </div>
+                        </motion.div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="mt-7 space-y-4">
                         {!showOTP ? (
                             <>
                                 <div className="space-y-1.5">
-                                    <label className="block text-xs font-extrabold uppercase tracking-wider text-gray-700">Full Name</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        placeholder="Alex Rivera"
-                                        className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-black/10 text-black text-sm font-bold focus:outline-none focus:border-[#8522FF]"
-                                        value={name}
-                                        onChange={(e) => setName(e.target.value)}
-                                    />
+                                    <label className="block text-[11px] font-black uppercase tracking-wider text-gray-700 dark:text-dark-muted">Full name</label>
+                                    <div className="relative">
+                                        <UserRound className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                                        <input
+                                            type="text"
+                                            required
+                                            placeholder="Alex Rivera"
+                                            className="w-full rounded-2xl border border-black/10 bg-brand-light py-3.5 pl-11 pr-4 text-sm font-semibold outline-none transition-colors focus:border-brand-purple dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-ink dark:placeholder-dark-muted"
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="block text-xs font-extrabold uppercase tracking-wider text-gray-700">Email Address</label>
-                                    <input
-                                        type="email"
-                                        required
-                                        placeholder="you@domain.com"
-                                        className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-black/10 text-black text-sm font-bold focus:outline-none focus:border-[#8522FF]"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                    />
+                                    <label className="block text-[11px] font-black uppercase tracking-wider text-gray-700 dark:text-dark-muted">Email address</label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                                        <input
+                                            type="email"
+                                            required
+                                            placeholder="you@domain.com"
+                                            className="w-full rounded-2xl border border-black/10 bg-brand-light py-3.5 pl-11 pr-4 text-sm font-semibold outline-none transition-colors focus:border-brand-purple dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-ink dark:placeholder-dark-muted"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="block text-xs font-extrabold uppercase tracking-wider text-gray-700">Password</label>
-                                    <input
-                                        type="password"
-                                        required
-                                        placeholder="••••••••"
-                                        className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-black/10 text-black text-sm font-bold focus:outline-none focus:border-[#8522FF]"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                    />
+                                    <label className="block text-[11px] font-black uppercase tracking-wider text-gray-700 dark:text-dark-muted">Password</label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                                        <input
+                                            type="password"
+                                            required
+                                            placeholder="At least 6 characters"
+                                            className="w-full rounded-2xl border border-black/10 bg-brand-light py-3.5 pl-11 pr-4 text-sm font-semibold outline-none transition-colors focus:border-brand-purple dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-ink dark:placeholder-dark-muted"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                        />
+                                    </div>
                                 </div>
                             </>
                         ) : (
                             <div className="space-y-3">
-                                <div className="p-3 bg-purple-50 border border-purple-200 rounded-2xl text-xs text-purple-800 font-bold">
-                                    An OTP code was sent to {email}. Input code below:
+                                <div className="rounded-2xl border border-brand-purple/20 bg-brand-purple/5 p-3.5 text-xs font-bold text-brand-purple dark:border-brand-purple/30 dark:bg-brand-purple/10">
+                                    Almost there! Enter the 6-digit OTP sent to <strong>{email}</strong>:
                                 </div>
                                 <input
                                     type="text"
                                     required
                                     maxLength="6"
                                     placeholder="000000"
-                                    className="w-full py-3 px-4 text-center font-mono font-black text-2xl tracking-[0.5em] rounded-2xl bg-gray-50 border border-[#8522FF] text-black focus:outline-none"
+                                    className="w-full rounded-2xl border-2 border-brand-purple/40 bg-brand-light py-3.5 text-center font-mono text-2xl font-black tracking-[0.5em] outline-none transition-colors focus:border-brand-purple dark:bg-dark-surface-2 dark:text-dark-ink"
                                     value={otp}
                                     onChange={(e) => setOtp(e.target.value)}
                                 />
@@ -144,26 +167,21 @@ const Register = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-[#8522FF] hover:bg-purple-700 text-white font-extrabold py-3.5 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2"
+                            className="btn-gradient flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-xs font-extrabold uppercase tracking-wider text-white disabled:opacity-60"
                         >
-                            <span>{loading ? 'Creating Profile...' : (showOTP ? 'Verify & Complete' : 'Sign Up Free')}</span>
-                            <FaArrowUpRightFromSquare className="text-[10px]" />
+                            {loading ? 'Please wait...' : (showOTP ? 'Verify OTP & join' : 'Create account')}
+                            {!loading && <ArrowUpRight className="h-4 w-4" />}
                         </button>
                     </form>
 
-                    {!showOTP && (
-                        <div className="text-center pt-2 border-t border-black/10">
-                            <p className="text-xs text-gray-600 font-semibold">
-                                Already registered?{' '}
-                                <Link to="/login" className="text-[#8522FF] font-black uppercase hover:underline">
-                                    Sign In
-                                </Link>
-                            </p>
-                        </div>
-                    )}
+                    <p className="mt-6 border-t border-black/5 pt-5 text-center text-sm font-semibold text-gray-600 dark:border-dark-line dark:text-dark-muted">
+                        Already have an account?{' '}
+                        <Link to="/login" className="font-black uppercase text-brand-purple transition-colors hover:text-brand-pink">
+                            Sign in
+                        </Link>
+                    </p>
                 </div>
-
-            </div>
+            </motion.div>
         </div>
     );
 };
