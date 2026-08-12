@@ -4,21 +4,21 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎟️</text></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0D0D11" />
+    <meta name="theme-color" content="#0B0B14" />
     <title>Eventrix — World Event & Ticket Platform</title>
-    <!-- Apply saved theme before first paint to avoid flash -->
+    <!-- Apply saved theme before first paint to avoid flash (dark-first brand) -->
     <script>
       (function () {
         try {
           var t = localStorage.getItem('eventrix-theme');
-          if (t === 'dark') document.documentElement.classList.add('dark');
+          if (t !== 'light') document.documentElement.classList.add('dark');
         } catch (e) {}
       })();
     </script>
-    <!-- Google Fonts: Anton (display) & Inter (body) -->
+    <!-- Google Fonts: Anton (display) · Space Grotesk (body) · Space Mono (ticket data) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   </head>
   <body>
     <div id="root"></div>

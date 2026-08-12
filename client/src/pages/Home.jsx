@@ -6,28 +6,26 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import api from '../utils/axios';
 import { getLenis } from '../utils/smoothScroll';
 import EventCard from '../components/EventCard';
-import { Reveal, Counter, Magnetic, Tilt } from '../animations';
+import { Reveal, Counter, Magnetic, Tilt, Marquee } from '../animations';
 import crowdImg from '../assets/crowd.png';
 import djImg from '../assets/dj.png';
-import ticketImg from '../assets/ticket3d.png';
 import micImg from '../assets/mic3d.png';
 import headphonesImg from '../assets/headphones3d.png';
 import {
-    Search, MapPin, CalendarDays, ArrowUpRight, Flame, Star, Heart, Ticket,
-    Music2, PartyPopper, GraduationCap, Mic2, Trophy, Users, ShieldCheck,
-    CalendarCheck, BadgePercent, ChevronRight, Sparkle, CheckCircle2,
-    ChevronDown, Layers, CreditCard, Headphones, Plus, SlidersHorizontal,
+    ArrowUpRight, BadgePercent, CalendarCheck, CalendarDays, ChevronDown, ChevronRight,
+    Flame, GraduationCap, Headphones, MapPin, Mic2, Music2, PartyPopper, Plus,
+    Search, ShieldCheck, Sparkle, Star, Ticket, Trophy, Users,
 } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
-/* ---------- Fallback / demo content (used while API loads or is empty) ---------- */
+/* ---------- Demo content (shown while the API loads or is empty) ---------- */
 const demoEvents = [
     {
-        _id: 'sunset-fest-2025',
-        title: 'Sunset Music Festival 2025',
+        _id: 'sunset-fest-2026',
+        title: 'Sunset Music Festival 2026',
         category: 'Festivals',
-        date: '2025-12-14',
+        date: '2026-12-14',
         location: 'Goa, India',
         ticketPrice: 1499,
         description: 'Three days of non-stop music, art and beach vibes.',
@@ -35,10 +33,10 @@ const demoEvents = [
         totalSeats: 5000, availableSeats: 3200,
     },
     {
-        _id: 'arijit-live',
+        _id: 'arijit-live-2026',
         title: 'Arijit Singh · Live in Concert',
         category: 'Music',
-        date: '2025-05-24',
+        date: '2026-10-24',
         location: 'Mumbai, India',
         ticketPrice: 2399,
         description: 'An unforgettable night of soulful melodies under the stars.',
@@ -46,10 +44,10 @@ const demoEvents = [
         totalSeats: 8000, availableSeats: 4100,
     },
     {
-        _id: 'techcrunch-disrupt',
-        title: 'TechCrunch Disrupt 2025',
+        _id: 'techcrunch-disrupt-2026',
+        title: 'TechCrunch Disrupt 2026',
         category: 'Conferences',
-        date: '2025-10-28',
+        date: '2026-11-05',
         location: 'Bengaluru, India',
         ticketPrice: 4999,
         description: 'Startups, investors and the future of technology in one room.',
@@ -57,10 +55,10 @@ const demoEvents = [
         totalSeats: 3000, availableSeats: 890,
     },
     {
-        _id: 'sunburn-arena',
+        _id: 'sunburn-arena-2026',
         title: 'Sunburn Arena Nights',
         category: 'Music',
-        date: '2025-12-31',
+        date: '2026-12-31',
         location: 'Delhi NCR, India',
         ticketPrice: 2999,
         description: 'The biggest EDM night of the year with world-class DJs.',
@@ -68,46 +66,56 @@ const demoEvents = [
         totalSeats: 12000, availableSeats: 5200,
     },
     {
-        _id: 'idw-2025',
-        title: 'India Design Week 2025',
+        _id: 'india-design-week-2026',
+        title: 'India Design Week 2026',
         category: 'Workshops',
-        date: '2025-09-05',
+        date: '2026-09-18',
         location: 'Jaipur, India',
         ticketPrice: 1799,
         description: 'Design thinking, workshops and creative showcases.',
         image: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=1200&auto=format&fit=crop',
         totalSeats: 1500, availableSeats: 620,
     },
+    {
+        _id: 'holi-rave-2027',
+        title: 'Holi Rave · Colors of Sound',
+        category: 'Festivals',
+        date: '2027-03-07',
+        location: 'Jaipur, India',
+        ticketPrice: 1299,
+        description: 'Colour, bass and a thousand strangers becoming friends.',
+        image: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?q=80&w=1200&auto=format&fit=crop',
+        totalSeats: 4000, availableSeats: 2750,
+    },
 ];
 
 const categories = [
-    { name: 'Music', icon: Music2, color: 'bg-brand-pink', count: '1,234 Events' },
-    { name: 'Festivals', icon: PartyPopper, color: 'bg-brand-purple', count: '845 Events' },
-    { name: 'Workshops', icon: GraduationCap, color: 'bg-brand-cyan text-brand-dark', count: '645 Events' },
-    { name: 'Conferences', icon: Mic2, color: 'bg-brand-purple-deep', count: '321 Events' },
-    { name: 'Sports', icon: Trophy, color: 'bg-brand-lime text-brand-dark', count: '421 Events' },
-    { name: 'Meetups', icon: Users, color: 'bg-brand-orange', count: '621 Events' },
+    { name: 'Music', icon: Music2, tint: 'from-brand-pink/25 to-brand-pink/5 text-brand-pink', count: '1,234 events' },
+    { name: 'Festivals', icon: PartyPopper, tint: 'from-brand-purple/25 to-brand-purple/5 text-brand-purple', count: '845 events' },
+    { name: 'Workshops', icon: GraduationCap, tint: 'from-brand-lime/25 to-brand-lime/5 text-brand-lime-deep', count: '645 events' },
+    { name: 'Conferences', icon: Mic2, tint: 'from-brand-purple-deep/25 to-brand-purple-deep/5 text-brand-purple', count: '321 events' },
+    { name: 'Sports', icon: Trophy, tint: 'from-brand-cyan/25 to-brand-cyan/5 text-brand-cyan', count: '421 events' },
+    { name: 'Meetups', icon: Users, tint: 'from-brand-orange/25 to-brand-orange/5 text-brand-orange', count: '621 events' },
 ];
 
 const whyFeatures = [
-    { icon: CalendarCheck, title: 'Easy Booking', desc: 'Quick & hassle-free ticket checkout in under a minute.', accent: 'bg-brand-pink/10 text-brand-pink border-brand-pink/15' },
-    { icon: ShieldCheck, title: 'Secure Payments', desc: '100% safe & secure OTP-verified transactions.', accent: 'bg-brand-lime/15 text-brand-lime-deep border-brand-lime/30' },
-    { icon: BadgePercent, title: 'Best Prices', desc: 'Unbeatable early-bird deals & member pricing.', accent: 'bg-brand-orange/10 text-brand-orange border-brand-orange/15' },
-    { icon: Headphones, title: '24/7 Support', desc: "We're here to help — day or night, always online.", accent: 'bg-brand-cyan/10 text-brand-cyan border-brand-cyan/25' },
+    { icon: ShieldCheck, tint: 'text-brand-lime', chip: 'bg-brand-lime/15', title: 'OTP-verified booking', desc: 'Every booking is confirmed to your email before a seat is held. No bots, no ghost tickets.' },
+    { icon: CalendarCheck, tint: 'text-brand-pink', chip: 'bg-brand-pink/15', title: 'Instant QR passes', desc: 'Your pass lands in the app the moment payment clears — gate-ready before you leave the house.' },
+    { icon: BadgePercent, tint: 'text-brand-orange', chip: 'bg-brand-orange/15', title: 'Best-price promise', desc: 'Early-bird pricing and member deals, with no surprise fees hiding at checkout.' },
+    { icon: Headphones, tint: 'text-brand-cyan', chip: 'bg-brand-cyan/15', title: '24/7 human support', desc: 'Real people, day or night. Most replies land inside five minutes.' },
 ];
 
-const bookingSteps = [
-    { icon: Ticket, title: 'Select Event', desc: 'Choose your favorite event' },
-    { icon: Layers, title: 'Choose Tickets', desc: 'Select ticket type and quantity' },
-    { icon: Users, title: 'Checkout', desc: 'Review your order and details' },
-    { icon: CreditCard, title: 'Payment', desc: 'Make secure payment' },
-    { icon: CheckCircle2, title: 'Success', desc: 'Get your ticket & enjoy the event!' },
+const stats = [
+    { icon: Flame, to: 12, suffix: 'K+', label: 'Events listed', tint: 'text-brand-orange', chip: 'bg-brand-orange/15' },
+    { icon: Ticket, to: 500, suffix: 'K+', label: 'Tickets booked', tint: 'text-brand-pink', chip: 'bg-brand-pink/15' },
+    { icon: MapPin, to: 40, suffix: '+', label: 'Cities covered', tint: 'text-brand-cyan', chip: 'bg-brand-cyan/15' },
+    { icon: Users, to: 98, suffix: '%', label: 'Gate-in rate', tint: 'text-brand-purple', chip: 'bg-brand-purple/15' },
 ];
 
 const testimonials = [
-    { name: 'Ananya Sharma', role: 'Festival regular · Goa', quote: 'Eventrix made booking Sunset Festival feel effortless. Instant QR passes, zero queues at the gate. Best event platform I have used.', initials: 'AS' },
-    { name: 'Rohan Mehta', role: 'Tech founder · Bengaluru', quote: 'The dashboard is beautiful. Every ticket, invoice and confirmation in one clean place. Feels like a premium product.', initials: 'RM' },
-    { name: 'Zara Khan', role: 'Music lover · Mumbai', quote: 'Found my favourite artist\'s concert in seconds, grabbed an early bird pass before it sold out. The OTP booking feels super secure.', initials: 'ZK' },
+    { name: 'Ananya Sharma', role: 'Festival regular · Goa', quote: 'Booked Sunset Festival on a Sunday night. The QR pass was in my wallet before I finished my chai — zero queue at the gate.', initials: 'AS' },
+    { name: 'Rohan Mehta', role: 'Tech founder · Bengaluru', quote: 'Every ticket, invoice and confirmation sits in one dashboard. I always know what I paid and what is coming up.', initials: 'RM' },
+    { name: 'Zara Khan', role: 'Music lover · Mumbai', quote: 'Found the Arijit show in seconds, grabbed an early-bird pass, got the OTP, done. Booking felt genuinely smooth.', initials: 'ZK' },
 ];
 
 const SkeletonCard = () => (
@@ -122,6 +130,66 @@ const SkeletonCard = () => (
     </div>
 );
 
+/* Live countdown — ticks every second, shows ON NOW when the date has passed */
+const Countdown = ({ target }) => {
+    const [now, setNow] = useState(() => Date.now());
+
+    useEffect(() => {
+        const id = setInterval(() => setNow(Date.now()), 1000);
+        return () => clearInterval(id);
+    }, []);
+
+    const diff = target - now;
+    if (!(diff > 0)) {
+        return (
+            <span className="inline-flex items-center gap-2 rounded-full bg-brand-lime px-4 py-1.5 font-mono text-[11px] font-bold uppercase tracking-widest text-brand-dark">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-dark" /> On now
+            </span>
+        );
+    }
+
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+    const pad = (n) => String(n).padStart(2, '0');
+
+    const cells = [
+        { v: String(days).padStart(2, '0'), l: 'days' },
+        { v: pad(hours), l: 'hrs' },
+        { v: pad(mins), l: 'min' },
+        { v: pad(secs), l: 'sec' },
+    ];
+
+    return (
+        <div className="flex items-center gap-1.5">
+            {cells.map((c, i) => (
+                <React.Fragment key={c.l}>
+                    <span className="flex min-w-[44px] flex-col items-center rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1.5 backdrop-blur-sm">
+                        <span className="font-mono text-lg leading-none text-white">{c.v}</span>
+                        <span className="mt-0.5 font-mono text-[9px] uppercase tracking-widest text-white/40">{c.l}</span>
+                    </span>
+                    {i < cells.length - 1 && <span className="font-mono text-sm text-brand-lime">:</span>}
+                </React.Fragment>
+            ))}
+        </div>
+    );
+};
+
+/* Deterministic faux pass number, e.g. EVX-7K2M */
+const passSerial = (str) => {
+    let h = 0;
+    for (let i = 0; i < str.length; i += 1) h = (h * 31 + str.charCodeAt(i)) % 100000;
+    const alpha = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let out = '';
+    let x = h;
+    for (let i = 0; i < 4; i += 1) { out += alpha[x % alpha.length]; x = Math.floor(x / alpha.length); }
+    return `EVX-${out}`;
+};
+
+/* Fallback target for the pass countdown when an event has no date */
+const FALLBACK_TARGET = Date.now() + 30 * 86400000;
+
 const Home = () => {
     const navigate = useNavigate();
     const heroRef = useRef(null);
@@ -133,6 +201,7 @@ const Home = () => {
     const [heroLocation, setHeroLocation] = useState('');
     const [loading, setLoading] = useState(true);
     const [subscribed, setSubscribed] = useState(false);
+    const [email, setEmail] = useState('');
 
     /* ---- API events (kept from original implementation) ---- */
     const fetchEvents = useCallback(async () => {
@@ -151,7 +220,7 @@ const Home = () => {
         return () => clearTimeout(timeoutId);
     }, [fetchEvents]);
 
-    /* ---- GSAP hero intro + scroll parallax (kept in sync with Lenis) ---- */
+    /* ---- GSAP: load-in sequence + scroll parallax (synced with Lenis) ---- */
     useEffect(() => {
         const lenis = getLenis();
         if (lenis) lenis.on('scroll', ScrollTrigger.update);
@@ -164,61 +233,37 @@ const Home = () => {
             );
             gsap.fromTo(
                 '.hero-sticker',
-                { scale: 0, rotate: -20 },
-                { scale: 1, rotate: 0, duration: 0.8, stagger: 0.15, ease: 'back.out(1.8)', delay: 0.7 }
+                { scale: 0, rotate: -24 },
+                { scale: 1, rotate: 0, duration: 0.8, stagger: 0.15, ease: 'back.out(1.8)', delay: 0.75 }
             );
 
-            /* Hero content drift on scroll */
+            /* Hero content drifts up as you scroll */
             gsap.to('.hero-content', {
                 yPercent: -6,
                 ease: 'none',
                 scrollTrigger: { trigger: heroRef.current, start: 'top top', end: 'bottom top', scrub: true },
             });
 
-            /* Floating decor — each layer parallaxes at its own speed */
-            gsap.to('.plx-ticket', {
-                yPercent: 34,
-                rotate: 8,
-                ease: 'none',
-                scrollTrigger: { trigger: heroRef.current, start: 'top top', end: 'bottom top', scrub: true },
-            });
-            gsap.to('.plx-sticker', {
-                yPercent: 22,
-                ease: 'none',
-                scrollTrigger: { trigger: heroRef.current, start: 'top top', end: 'bottom top', scrub: true },
-            });
+            /* Hero photo slowly un-scales for depth */
             gsap.to('.plx-hero-img', {
-                yPercent: -12,
-                scale: 1.08,
-                ease: 'none',
-                scrollTrigger: { trigger: heroRef.current, start: 'top top', end: 'bottom top', scrub: true },
-            });
-            gsap.to('.plx-doodle', {
-                yPercent: -26,
+                scale: 1.1,
                 ease: 'none',
                 scrollTrigger: { trigger: heroRef.current, start: 'top top', end: 'bottom top', scrub: true },
             });
 
-            /* CTA banner parallax */
-            gsap.to('.plx-cta-img', {
-                yPercent: -16,
-                ease: 'none',
-                scrollTrigger: { trigger: '.cta-section', start: 'top bottom', end: 'bottom top', scrub: true },
-            });
-
-            /* Why-choose illustration parallax */
+            /* Why-section illustrations drift at their own speed */
             gsap.to('.plx-dj', {
                 yPercent: -14,
                 ease: 'none',
                 scrollTrigger: { trigger: '.why-section', start: 'top bottom', end: 'bottom top', scrub: true },
             });
             gsap.to('.plx-mic', {
-                yPercent: 20,
+                yPercent: 22,
                 ease: 'none',
                 scrollTrigger: { trigger: '.why-section', start: 'top bottom', end: 'bottom top', scrub: true },
             });
             gsap.to('.plx-phone', {
-                yPercent: 26,
+                yPercent: 28,
                 ease: 'none',
                 scrollTrigger: { trigger: '.why-section', start: 'top bottom', end: 'bottom top', scrub: true },
             });
@@ -232,53 +277,88 @@ const Home = () => {
 
     const displayEvents = events.length > 0 ? events : demoEvents;
     const featured = displayEvents[0];
-    const upcoming = events.length > 0 ? events.slice(0, 6) : displayEvents.slice(0, 6);
+    const featuredDate = new Date(featured?.date);
+    const validFeaturedDate = featured && !Number.isNaN(featuredDate.getTime()) ? featuredDate : new Date(FALLBACK_TARGET);
+
+    /* Trending: ranked by tickets already sold this week */
+    const trending = [...displayEvents]
+        .sort((a, b) => (b.totalSeats - b.availableSeats) - (a.totalSeats - a.availableSeats))
+        .slice(0, 4);
+
+    /* Upcoming: a real chronological lineup */
+    const upcoming = [...displayEvents]
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .slice(0, 6);
+
+    const marqueeItems = [
+        ...displayEvents.map((e) => e.title),
+        'Lollapalooza India', 'NH7 Weekender', 'Comic Con India', 'Magnetic Fields',
+    ];
 
     const goToSearch = (e) => {
         e.preventDefault();
         const params = new URLSearchParams();
         if (heroQuery) params.set('search', heroQuery);
         if (heroCategory) params.set('category', heroCategory);
+        if (heroLocation) params.set('location', heroLocation);
         const qs = params.toString();
         navigate(qs ? `/events?${qs}` : '/events');
     };
 
-    return (
-        <div className="pb-16 md:pb-0">
-            {/* ═══════════ 1 · HERO ═══════════ */}
-            <section ref={heroRef} className="relative overflow-hidden bg-brand-light dark:bg-dark-page">
-                <div className="absolute inset-0 dots-bg opacity-40" />
-                {/* soft color blobs */}
-                <div className="absolute -right-32 top-16 h-80 w-80 rounded-full bg-brand-purple/10" />
-                <div className="absolute -left-24 top-40 h-64 w-64 rounded-full bg-brand-pink/10" />
-                <div className="absolute bottom-24 right-1/4 h-56 w-56 rounded-full bg-brand-cyan/10" />
+    const subscribe = (e) => {
+        e.preventDefault();
+        if (!email.trim()) return;
+        setSubscribed(true);
+    };
 
-                <div className="hero-content relative mx-auto max-w-7xl px-4 pt-36 pb-16 sm:px-6 sm:pt-40 lg:px-8">
-                    <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-12">
-                        {/* Left */}
+    const formatDate = (d) =>
+        new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+
+    return (
+        <div>
+            {/* ═══════════ STAGE · HERO (always night) ═══════════ */}
+            <section ref={heroRef} className="relative overflow-hidden bg-[#0b0b14] text-white">
+                {/* Dynamic gradient background — drifting aurora */}
+                <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+                    <div className="aurora-blob aurora-a -left-48 -top-40 h-[620px] w-[620px]" />
+                    <div className="aurora-blob aurora-b top-1/3 -right-48 h-[560px] w-[560px]" style={{ animationDelay: '-7s' }} />
+                    <div className="aurora-blob aurora-c -bottom-52 left-1/3 h-[560px] w-[560px]" style={{ animationDelay: '-13s' }} />
+                </div>
+                <div className="pointer-events-none absolute inset-0 dots-bg opacity-30" aria-hidden="true" />
+                <div className="noise pointer-events-none absolute inset-0" aria-hidden="true" />
+
+                <div className="hero-content relative mx-auto max-w-7xl px-4 pt-32 pb-14 sm:px-6 sm:pt-40 lg:px-8">
+                    <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-12">
+                        {/* Left: thesis */}
                         <div className="lg:col-span-7">
-                            <h1 className="hero-el font-display text-[2.9rem] uppercase leading-[0.92] tracking-tight text-brand-dark dark:text-dark-ink sm:text-7xl lg:text-[5.2rem]">
-                                Experience <br />
-                                events like <br />
-                                <span className="text-gradient-brand">never before</span>
+                            <span className="hero-el eyebrow inline-flex items-center gap-2.5 text-brand-lime">
+                                <Sparkle className="h-3.5 w-3.5" fill="currentColor" />
+                                Concerts · Festivals · Workshops — 40+ cities
+                            </span>
+
+                            <h1 className="hero-el font-display mt-5 text-[3.4rem] uppercase leading-[0.9] tracking-tight sm:text-8xl lg:text-[6rem]">
+                                <span className="block">The ticket</span>
+                                <span className="text-outline block">to your</span>
+                                <span className="text-gradient-sunset block">next night</span>
                             </h1>
 
-                            <p className="hero-el mt-6 max-w-lg text-base leading-relaxed text-gray-500 dark:text-dark-muted sm:text-lg">
-                                Discover epic events, book your tickets and create unforgettable memories.
+                            <p className="hero-el mt-6 max-w-xl text-base leading-relaxed text-white/60 sm:text-lg">
+                                Concerts, festivals and workshops across India. Book in seconds —
+                                your pass is gate-ready before you leave the house.
                             </p>
 
-                            {/* Search bar */}
+                            {/* Search */}
                             <form onSubmit={goToSearch} className="hero-el mt-8 max-w-2xl">
                                 <Magnetic strength={0.06}>
-                                    <div className="flex flex-col gap-2 rounded-[1.75rem] border border-black/10 bg-white p-2 shadow-[0_20px_50px_-20px_rgba(13,13,17,0.2)] dark:border-dark-line dark:bg-dark-surface sm:flex-row sm:items-center sm:pl-5">
+                                    <div className="flex flex-col gap-2 rounded-[2rem] border border-white/15 bg-white/[0.08] p-2 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:flex-row sm:items-center sm:pl-5">
                                         <div className="flex flex-1 items-center gap-2.5">
-                                            <Search className="h-5 w-5 shrink-0 text-gray-400 dark:text-dark-muted" />
+                                            <Search className="h-5 w-5 shrink-0 text-brand-lime" />
                                             <input
                                                 type="text"
                                                 value={heroQuery}
                                                 onChange={(e) => setHeroQuery(e.target.value)}
-                                                placeholder="Search events, artists, venues..."
-                                                className="w-full bg-transparent py-2.5 text-sm font-semibold text-gray-800 placeholder-gray-400 outline-none dark:text-dark-ink dark:placeholder-dark-muted"
+                                                placeholder="Search artists, festivals, venues…"
+                                                className="w-full bg-transparent py-2.5 text-sm font-semibold text-white placeholder-white/40 outline-none"
                                             />
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -286,27 +366,29 @@ const Home = () => {
                                                 <select
                                                     value={heroCategory}
                                                     onChange={(e) => setHeroCategory(e.target.value)}
-                                                    className="appearance-none rounded-full border border-black/10 bg-brand-light py-2.5 pl-4 pr-9 text-xs font-extrabold uppercase tracking-wider text-gray-700 outline-none transition-colors hover:border-brand-purple focus:border-brand-purple dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-muted"
+                                                    aria-label="Filter by category"
+                                                    className="appearance-none rounded-full border border-white/15 bg-white/10 py-2.5 pl-4 pr-9 font-mono text-[11px] font-bold uppercase tracking-wider text-white/85 outline-none transition-colors hover:border-brand-lime/60 focus:border-brand-lime"
                                                 >
-                                                    <option value="">All Categories</option>
+                                                    <option value="" className="bg-[#14141f] text-white/70">All categories</option>
                                                     {['Music', 'Festivals', 'Workshops', 'Conferences', 'Sports'].map((c) => (
-                                                        <option key={c} value={c}>{c}</option>
+                                                        <option key={c} value={c} className="bg-[#14141f] text-white/70">{c}</option>
                                                     ))}
                                                 </select>
-                                                <ChevronDown className="pointer-events-none absolute right-3 h-4 w-4 text-gray-400 dark:text-dark-muted" />
+                                                <ChevronDown className="pointer-events-none absolute right-3 h-4 w-4 text-white/50" />
                                             </div>
                                             <div className="relative hidden items-center md:flex">
                                                 <select
                                                     value={heroLocation}
                                                     onChange={(e) => setHeroLocation(e.target.value)}
-                                                    className="appearance-none rounded-full border border-black/10 bg-brand-light py-2.5 pl-4 pr-9 text-xs font-extrabold uppercase tracking-wider text-gray-700 outline-none transition-colors hover:border-brand-purple focus:border-brand-purple dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-muted"
+                                                    aria-label="Filter by city"
+                                                    className="appearance-none rounded-full border border-white/15 bg-white/10 py-2.5 pl-4 pr-9 font-mono text-[11px] font-bold uppercase tracking-wider text-white/85 outline-none transition-colors hover:border-brand-lime/60 focus:border-brand-lime"
                                                 >
-                                                    <option value="">Location</option>
+                                                    <option value="" className="bg-[#14141f] text-white/70">Any city</option>
                                                     {['Mumbai', 'Goa', 'Bengaluru', 'Delhi', 'Jaipur'].map((l) => (
-                                                        <option key={l} value={l}>{l}</option>
+                                                        <option key={l} value={l} className="bg-[#14141f] text-white/70">{l}</option>
                                                     ))}
                                                 </select>
-                                                <ChevronDown className="pointer-events-none absolute right-3 h-4 w-4 text-gray-400 dark:text-dark-muted" />
+                                                <ChevronDown className="pointer-events-none absolute right-3 h-4 w-4 text-white/50" />
                                             </div>
                                             <button
                                                 type="submit"
@@ -321,12 +403,12 @@ const Home = () => {
 
                             {/* Quick pills */}
                             <div className="hero-el mt-5 flex flex-wrap items-center gap-2 text-[11px] font-bold">
-                                <span className="uppercase tracking-widest text-brand-gray-400 dark:text-dark-muted">Popular:</span>
+                                <span className="eyebrow mr-1 text-white/40">Popular:</span>
                                 {['Concerts', 'Festivals', 'Workshops', 'Conferences', 'Sports', 'More'].map((tag) => (
                                     <button
                                         key={tag}
                                         onClick={() => navigate(`/events?category=${tag === 'More' ? 'Tech' : tag}`)}
-                                        className="rounded-full border border-black/10 bg-white px-3.5 py-1.5 text-gray-600 transition-all hover:border-brand-purple hover:text-brand-purple dark:border-dark-line dark:bg-dark-surface dark:text-dark-muted dark:hover:text-brand-purple"
+                                        className="rounded-full border border-white/15 bg-white/[0.06] px-3.5 py-1.5 text-white/70 transition-all hover:border-brand-lime/70 hover:text-brand-lime"
                                     >
                                         {tag}
                                     </button>
@@ -334,77 +416,118 @@ const Home = () => {
                             </div>
                         </div>
 
-                        {/* Right: featured event card + floating stickers */}
+                        {/* Right: the pass — this page's signature */}
                         <div className="hero-el relative lg:col-span-5">
-                            {/* GOOD MUSIC badge */}
-                            <div className="hero-sticker plx-sticker sticker -top-8 right-6 z-20 h-24 w-24 rotate-12 rounded-full bg-brand-lime text-brand-dark animate-float sm:right-10">
+                            {/* Floating stickers */}
+                            <div className="hero-sticker sticker -top-10 right-10 z-20 h-24 w-24 rotate-12 rounded-full bg-brand-lime text-brand-dark shadow-[0_20px_50px_-12px_rgba(166,255,0,0.5)] animate-float">
                                 <div className="flex flex-col items-center leading-tight">
-                                    <span className="font-display text-sm uppercase">Good</span>
-                                    <span className="font-display text-sm uppercase">Music</span>
+                                    <span className="font-display text-sm uppercase">Early</span>
+                                    <span className="font-display text-sm uppercase">bird</span>
+                                    <span className="font-display text-lg uppercase leading-none">30%</span>
                                 </div>
                             </div>
-
-                            {/* FEEL THE VIBE cloud sticker */}
-                            <div className="hero-sticker plx-sticker sticker -left-4 top-14 hidden rounded-[2rem] rounded-bl-md bg-brand-orange px-5 py-3 text-[11px] text-white animate-float-slow sm:flex">
+                            <div className="hero-sticker sticker -left-5 top-16 z-20 rounded-[2rem] rounded-bl-md bg-brand-orange px-5 py-3 text-[11px] text-white animate-float-slow">
                                 <Sparkle className="mr-1.5 h-3.5 w-3.5 text-brand-lime" fill="currentColor" />
                                 Feel the vibe
                             </div>
-
-                            {/* Floating 3D ticket: 30% OFF */}
-                            <div className="plx-ticket hero-sticker sticker -right-3 bottom-24 z-20 hidden w-36 flex-col rounded-3xl bg-brand-purple px-4 py-4 text-white shadow-[0_24px_50px_-16px_rgba(186,40,226,0.55)] animate-float lg:flex">
-                                <img src={ticketImg} alt="Early bird ticket" className="mb-2 h-12 w-12 object-contain drop-shadow-lg" />
-                                <span className="font-display text-2xl leading-none uppercase text-brand-lime">30% off</span>
-                                <span className="mt-0.5 text-[9px] font-black uppercase tracking-[0.2em] text-white/85">Early bird</span>
+                            <div className="hero-sticker sticker -right-4 bottom-32 z-20 hidden rounded-[2rem] rounded-tr-md bg-brand-purple px-5 py-3 text-[11px] text-white animate-float lg:flex">
+                                <Ticket className="mr-1.5 h-3.5 w-3.5 text-brand-lime" />
+                                Instant QR pass
                             </div>
 
-                            {/* doodles */}
+                            {/* Doodles */}
                             <motion.span
                                 animate={{ rotate: [0, 18, 0], y: [0, -8, 0] }}
                                 transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-                                className="plx-doodle absolute -top-4 left-16 hidden text-brand-purple md:block"
+                                className="absolute -top-2 left-8 hidden text-brand-lime md:block"
                             >
                                 <Plus className="h-6 w-6" />
                             </motion.span>
                             <motion.span
                                 animate={{ rotate: [0, -14, 0], y: [0, 6, 0] }}
                                 transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-                                className="plx-doodle absolute bottom-36 -left-8 hidden text-brand-orange lg:block"
+                                className="absolute -bottom-10 -left-10 hidden text-brand-orange lg:block"
                             >
                                 <Star className="h-7 w-7" fill="currentColor" />
                             </motion.span>
-                            <span className="plx-doodle absolute right-14 top-40 hidden h-8 w-8 rounded-full border-[3px] border-brand-cyan lg:block" />
+                            <span className="absolute right-16 top-40 hidden h-8 w-8 rounded-full border-[3px] border-brand-cyan/80 lg:block" />
 
-                            {/* Tilted featured card */}
+                            {/* The pass */}
                             <div className="relative rotate-2 transition-transform duration-500">
-                                <Tilt max={7}>
-                                    <div className="relative overflow-hidden rounded-[2rem] border border-brand-purple/30 bg-white p-4 shadow-[0_30px_70px_-30px_rgba(13,13,17,0.3)] dark:border-brand-purple/40 dark:bg-dark-surface">
-                                        <div className="relative h-52 w-full overflow-hidden rounded-2xl bg-brand-gray-900">
-                                            <img src={crowdImg} alt="Concert crowd" className="plx-hero-img h-full w-full object-cover" />
-                                            <div className="absolute inset-0 bg-brand-purple/15" />
-                                            <span className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-brand-pink px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg">
-                                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> Live concert
+                                <Tilt max={6}>
+                                    <div className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-[#14141f]/85 shadow-[0_40px_90px_-30px_rgba(0,0,0,0.7)] backdrop-blur-2xl">
+                                        {/* Image + glass overlay */}
+                                        <div className="relative h-56 w-full overflow-hidden bg-[#1a1a24]">
+                                            <img
+                                                src={featured?.image || crowdImg}
+                                                alt={featured?.title || 'Featured event'}
+                                                onError={(e) => { e.target.src = crowdImg; }}
+                                                className="plx-hero-img h-full w-full object-cover"
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-[#14141f] via-[#14141f]/20 to-black/20" />
+                                            <span className="absolute left-4 top-4 z-10 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-brand-orange via-brand-pink to-brand-purple px-3.5 py-1.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg">
+                                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+                                                Featured
+                                            </span>
+                                            <span className="absolute right-4 top-4 z-10 rounded-full border border-white/20 bg-[#0b0b14]/60 px-3.5 py-1.5 font-mono text-[10px] font-bold uppercase tracking-widest text-white backdrop-blur-md">
+                                                {featured?.category || 'Festivals'}
                                             </span>
                                         </div>
 
-                                        <h3 className="font-display mt-4 text-xl uppercase leading-tight text-brand-dark dark:text-dark-ink sm:text-2xl">
-                                            {featured.title}
-                                        </h3>
-                                        <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-bold text-gray-500 dark:text-dark-muted">
-                                            <span className="flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-brand-purple" /> {new Date(featured.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                                            <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-brand-orange" /> {featured.location}</span>
+                                        {/* Pass body */}
+                                        <div className="p-5 sm:p-6">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div>
+                                                    <span className="eyebrow text-brand-lime">Pass · General admission</span>
+                                                    <h3 className="font-display mt-1.5 text-2xl uppercase leading-none tracking-wide text-white sm:text-[1.7rem]">
+                                                        {featured?.title || 'Sunset Music Festival'}
+                                                    </h3>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="block font-mono text-[9px] uppercase tracking-[0.2em] text-white/40">From</span>
+                                                    <span className="font-display text-2xl leading-none text-white">₹{featured?.ticketPrice || 1499}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 font-mono text-xs text-white/55">
+                                                <span className="flex items-center gap-1.5">
+                                                    <CalendarDays className="h-3.5 w-3.5 text-brand-pink" />
+                                                    {featured ? formatDate(featured.date) : 'TBA'}
+                                                </span>
+                                                <span className="flex items-center gap-1.5">
+                                                    <MapPin className="h-3.5 w-3.5 text-brand-orange" />
+                                                    {featured?.location || 'Venue TBA'}
+                                                </span>
+                                            </div>
+
+                                            {/* Countdown */}
+                                            <div className="mt-5 flex flex-wrap items-center gap-4">
+                                                <span className="eyebrow text-white/45">Doors open in</span>
+                                                <Countdown target={validFeaturedDate.getTime()} />
+                                            </div>
                                         </div>
 
-                                        <div className="mt-4 flex items-center justify-between border-t border-black/10 pt-4 dark:border-dark-line">
-                                            <div>
-                                                <span className="block text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-dark-muted">From</span>
-                                                <span className="font-display text-2xl text-brand-dark dark:text-dark-ink">₹{featured.ticketPrice || 1499}</span>
-                                            </div>
+                                        {/* Perforation */}
+                                        <div className="relative mx-5 border-t-2 border-dashed border-white/20">
+                                            <span className="ticket-notch -left-5" aria-hidden="true" />
+                                            <span className="ticket-notch -right-5" aria-hidden="true" />
+                                        </div>
+
+                                        {/* Stub */}
+                                        <div className="flex items-center justify-between gap-4 p-5 sm:p-6">
                                             <Link
-                                                to={`/events/${featured._id}`}
-                                                className="btn-gradient flex items-center gap-1.5 rounded-full px-5 py-2.5 text-[11px] font-extrabold uppercase tracking-wider text-white"
+                                                to={featured ? `/events/${featured._id}` : '/events'}
+                                                className="btn-gradient flex shrink-0 items-center gap-2 rounded-full px-6 py-3 text-xs font-extrabold uppercase tracking-wider text-white"
                                             >
-                                                Book now <ArrowUpRight className="h-3.5 w-3.5" />
+                                                Book tickets <ArrowUpRight className="h-3.5 w-3.5" />
                                             </Link>
+                                            <div className="flex items-center gap-4">
+                                                <div className="barcode hidden w-36 text-white/60 sm:block" aria-hidden="true" />
+                                                <div className="text-right">
+                                                    <span className="block font-mono text-[9px] uppercase tracking-[0.2em] text-white/40">Pass no.</span>
+                                                    <span className="font-mono text-sm font-bold text-brand-lime">{passSerial(featured?._id || 'eventrix')}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </Tilt>
@@ -413,42 +536,50 @@ const Home = () => {
                     </div>
                 </div>
 
-                {/* Stats bar */}
-                <div className="relative border-t border-black/5 bg-white dark:border-dark-line dark:bg-dark-surface">
-                    <div className="mx-auto grid max-w-7xl grid-cols-2 gap-y-8 px-4 py-10 sm:px-6 md:grid-cols-4 lg:px-8">
-                        {[
-                            { icon: Flame, color: 'bg-brand-orange/10 text-brand-orange', to: 10, suffix: 'K+', label: 'Events' },
-                            { icon: Star, color: 'bg-brand-purple/10 text-brand-purple', to: 500, suffix: 'K+', label: 'Users' },
-                            { icon: Users, color: 'bg-brand-purple/10 text-brand-purple', to: 25, suffix: 'K+', label: 'Organizers' },
-                            { icon: Heart, color: 'bg-brand-pink/10 text-brand-pink', to: 98, suffix: '%', label: 'Happy customers' },
-                        ].map((s) => (
-                            <div key={s.label} className="flex items-center justify-center gap-4 md:border-r md:border-black/10 last:md:border-r-0 dark:md:border-dark-line">
-                                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${s.color}`}>
-                                    <s.icon className="h-5 w-5" />
-                                </div>
-                                <div>
-                                    <Counter to={s.to} suffix={s.suffix} className="font-display text-3xl text-brand-dark dark:text-dark-ink sm:text-4xl" />
-                                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-dark-muted">{s.label}</div>
-                                </div>
-                            </div>
+                {/* Lineup marquee — the curtain between stage and content */}
+                <div className="marquee-band relative border-white/10 bg-[#0b0b14]/60 py-4 backdrop-blur-sm">
+                    <Marquee>
+                        {marqueeItems.map((name, i) => (
+                            <span key={`${name}-${i}`} className="mx-5 flex items-center gap-5 font-display text-xl uppercase text-white/50 sm:text-2xl">
+                                {name}
+                                <Sparkle className="h-4 w-4 shrink-0 text-brand-lime/70" fill="currentColor" />
+                            </span>
                         ))}
-                    </div>
+                    </Marquee>
                 </div>
             </section>
 
-            {/* ═══════════ 2 · FEATURED EVENTS ═══════════ */}
+            {/* ═══════════ STATS ═══════════ */}
+            <section className="border-b border-black/5 bg-white dark:border-white/5 dark:bg-dark-page">
+                <div className="mx-auto grid max-w-7xl grid-cols-2 gap-y-10 px-4 py-12 sm:px-6 md:grid-cols-4 lg:px-8">
+                    {stats.map((s, i) => (
+                        <Reveal key={s.label} delay={i * 0.08} className="flex items-center justify-center gap-4 md:border-r md:border-black/10 md:last:border-r-0 dark:md:border-white/10">
+                            <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${s.chip} ${s.tint}`}>
+                                <s.icon className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <Counter to={s.to} suffix={s.suffix} className="font-display text-3xl text-brand-dark sm:text-4xl dark:text-dark-ink" />
+                                <div className="eyebrow mt-1 text-[10px] text-gray-400 dark:text-dark-muted">{s.label}</div>
+                            </div>
+                        </Reveal>
+                    ))}
+                </div>
+            </section>
+
+            {/* ═══════════ FEATURED EVENTS ═══════════ */}
             <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
                 <Reveal>
                     <div className="flex flex-wrap items-end justify-between gap-4">
                         <div>
-                            <h2 className="font-display text-4xl uppercase leading-none text-brand-dark dark:text-dark-ink sm:text-5xl">
-                                Featured <span className="text-gradient-brand">events</span>
+                            <span className="eyebrow text-brand-pink">Hand-picked this week</span>
+                            <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
+                                Featured <span className="text-gradient-sunset">events</span>
                             </h2>
-                            <p className="mt-2 text-sm text-gray-500 dark:text-dark-muted">Hand-picked experiences the crowd is loving right now.</p>
+                            <p className="mt-3 text-sm text-gray-500 dark:text-dark-muted">The shows the crowd is talking about right now.</p>
                         </div>
                         <Link
                             to="/events"
-                            className="group inline-flex items-center gap-2 rounded-full border-[1.5px] border-black/15 px-6 py-3 text-xs font-extrabold uppercase tracking-wider text-gray-700 transition-all hover:border-brand-purple hover:text-brand-purple dark:border-white/20 dark:text-dark-muted dark:hover:border-brand-purple dark:hover:text-brand-purple"
+                            className="group inline-flex items-center gap-2 rounded-full border-[1.5px] border-black/15 px-6 py-3 text-xs font-extrabold uppercase tracking-wider text-gray-700 transition-all hover:border-brand-pink hover:text-brand-pink dark:border-white/20 dark:text-dark-muted dark:hover:border-brand-pink dark:hover:text-brand-pink"
                         >
                             View all events <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                         </Link>
@@ -464,19 +595,14 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* ═══════════ 3 · EXPLORE BY CATEGORY ═══════════ */}
-            <section className="bg-white py-20 dark:bg-dark-page">
+            {/* ═══════════ POPULAR CATEGORIES ═══════════ */}
+            <section className="border-y border-black/5 bg-white py-20 dark:border-white/5 dark:bg-dark-page">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal className="text-center">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-brand-purple/10 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-brand-purple">
-                            <SlidersHorizontal className="h-3.5 w-3.5" /> Browse
-                        </span>
-                        <h2 className="font-display mt-3 text-4xl uppercase leading-none text-brand-dark dark:text-dark-ink sm:text-5xl">
-                            Explore by <span className="text-gradient-brand">category</span>
+                        <span className="eyebrow text-brand-lime-deep">Six ways to spend a night out</span>
+                        <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
+                            Pick your <span className="text-gradient-sunset">vibe</span>
                         </h2>
-                        <p className="mx-auto mt-3 max-w-md text-sm text-gray-500 dark:text-dark-muted">
-                            From underground gigs to mega festivals — pick a lane and dive in.
-                        </p>
                     </Reveal>
 
                     <div className="mt-12 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-6">
@@ -486,14 +612,14 @@ const Home = () => {
                                     whileHover={{ y: -6, rotate: i % 2 === 0 ? -1 : 1 }}
                                     transition={{ type: 'spring', stiffness: 300, damping: 18 }}
                                     onClick={() => navigate(`/events?category=${cat.name}`)}
-                                    className="card-lift group flex w-full flex-col items-center gap-3 rounded-3xl border border-black/5 bg-brand-light p-6 text-center dark:border-dark-line dark:bg-dark-surface"
+                                    className="glass-card group flex w-full flex-col items-center gap-3 rounded-3xl border border-black/5 bg-brand-light p-6 text-center dark:border-white/10 dark:bg-white/[0.04]"
                                 >
-                                    <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${cat.color} shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6`}>
+                                    <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${cat.tint} shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6`}>
                                         <cat.icon className="h-6 w-6" />
                                     </div>
                                     <div>
                                         <h3 className="font-display text-base uppercase text-brand-dark dark:text-dark-ink">{cat.name}</h3>
-                                        <span className="text-[11px] font-bold text-gray-400 dark:text-dark-muted">{cat.count}</span>
+                                        <span className="font-mono text-[11px] font-bold text-gray-400 dark:text-dark-muted">{cat.count}</span>
                                     </div>
                                 </motion.button>
                             </Reveal>
@@ -502,235 +628,225 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* ═══════════ 4 · UPCOMING EVENTS ═══════════ */}
+            {/* ═══════════ TRENDING EVENTS ═══════════ */}
             <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
                 <Reveal>
                     <div className="flex flex-wrap items-end justify-between gap-4">
                         <div>
-                            <h2 className="font-display text-4xl uppercase leading-none text-brand-dark dark:text-dark-ink sm:text-5xl">
-                                Upcoming <span className="text-gradient-brand">events</span>
+                            <span className="eyebrow inline-flex items-center gap-2 text-brand-orange">
+                                <Flame className="h-3.5 w-3.5" fill="currentColor" /> Ranked by tickets sold
+                            </span>
+                            <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
+                                Trending <span className="text-gradient-sunset">this week</span>
                             </h2>
-                            <p className="mt-2 text-sm text-gray-500 dark:text-dark-muted">Grab your passes before they sell out.</p>
+                            <p className="mt-3 text-sm text-gray-500 dark:text-dark-muted">The most-booked shows right now — seats are moving.</p>
                         </div>
-                        <Link
-                            to="/events"
-                            className="group inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-gray-600 transition-colors hover:text-brand-purple dark:text-dark-muted"
-                        >
-                            View all events <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                        </Link>
                     </div>
                 </Reveal>
 
-                {loading ? (
-                    <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                        {[1, 2, 3, 4].map((n) => <SkeletonCard key={n} />)}
-                    </div>
-                ) : (
-                    <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                        {upcoming.slice(0, 4).map((ev, i) => (
-                            <Reveal key={ev._id} delay={(i % 4) * 0.08}>
+                <div className="no-scrollbar mt-12 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4">
+                    {trending.map((ev, i) => (
+                        <div key={ev._id} className="relative w-[300px] shrink-0 snap-start sm:w-[320px]">
+                            <span
+                                className={`font-display pointer-events-none absolute -top-9 left-2 z-0 text-8xl leading-none text-black/10 dark:text-white/10 ${i === 0 ? 'text-brand-orange/25 dark:text-brand-orange/25' : ''}`}
+                                aria-hidden="true"
+                            >
+                                {i + 1}
+                            </span>
+                            <div className="relative z-10">
                                 <EventCard event={ev} />
-                            </Reveal>
-                        ))}
-                    </div>
-                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </section>
 
-            {/* ═══════════ 5 · WHY CHOOSE EVENTRIX ═══════════ */}
-            <section className="why-section relative overflow-hidden bg-white py-24 dark:bg-dark-page">
-                <div className="absolute -left-24 top-1/4 h-72 w-72 rounded-full bg-brand-purple/10" />
-                <div className="absolute -right-20 bottom-10 h-64 w-64 rounded-full bg-brand-pink/10" />
+            {/* ═══════════ UPCOMING · THE LINEUP ═══════════ */}
+            <section className="border-y border-black/5 bg-white py-20 dark:border-white/5 dark:bg-dark-page">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <Reveal>
+                        <div className="flex flex-wrap items-end justify-between gap-4">
+                            <div>
+                                <span className="eyebrow text-brand-purple">What's on next, in order</span>
+                                <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
+                                    The <span className="text-gradient-sunset">lineup</span>
+                                </h2>
+                                <p className="mt-3 text-sm text-gray-500 dark:text-dark-muted">Dates, venues and live seat counts — grab yours before the meter empties.</p>
+                            </div>
+                            <Link
+                                to="/events"
+                                className="group inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-gray-600 transition-colors hover:text-brand-purple dark:text-dark-muted dark:hover:text-brand-purple"
+                            >
+                                View all events <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                            </Link>
+                        </div>
+                    </Reveal>
 
-                {/* DJ illustration — parallax decor */}
-                <div className="plx-dj absolute right-[6%] top-14 hidden w-44 opacity-90 xl:block">
+                    <div className="mt-10 overflow-hidden rounded-[2rem] border border-black/5 bg-white shadow-[0_20px_60px_-30px_rgba(13,13,17,0.25)] dark:border-white/10 dark:bg-white/[0.03]">
+                        {loading ? (
+                            <div className="space-y-0 p-6">
+                                {[1, 2, 3, 4].map((n) => (
+                                    <div key={n} className="skeleton mb-4 h-20 w-full rounded-2xl" />
+                                ))}
+                            </div>
+                        ) : (
+                            upcoming.map((ev, i) => {
+                                const d = new Date(ev.date);
+                                const day = Number.isNaN(d.getTime()) ? '--' : d.getDate();
+                                const month = Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString(undefined, { month: 'short' });
+                                const year = Number.isNaN(d.getTime()) ? '' : d.getFullYear();
+                                const available = ev.availableSeats ?? ev.totalSeats ?? 50;
+                                const total = ev.totalSeats ?? 100;
+                                const pct = Math.round((available / total) * 100);
+                                const low = available > 0 && available <= 15;
+                                const soldOut = available <= 0;
+                                return (
+                                    <Link
+                                        key={ev._id}
+                                        to={`/events/${ev._id}`}
+                                        className={`group grid grid-cols-[auto_1fr] items-center gap-x-5 gap-y-2 px-5 py-5 transition-colors hover:bg-black/[0.03] sm:grid-cols-[120px_1fr_120px_auto] sm:gap-x-8 sm:px-8 dark:hover:bg-white/[0.05] ${i !== 0 ? 'border-t border-black/5 dark:border-white/10' : ''}`}
+                                    >
+                                        {/* Date block */}
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-display text-4xl leading-none text-brand-dark dark:text-white">{day}</span>
+                                            <span className="font-mono text-[11px] uppercase leading-tight text-gray-400 dark:text-dark-muted">
+                                                <span className="block">{month}</span>
+                                                <span className="block">{year}</span>
+                                            </span>
+                                        </div>
+
+                                        {/* Title + venue */}
+                                        <div className="min-w-0">
+                                            <h3 className="font-display truncate text-lg uppercase leading-tight tracking-wide text-brand-dark transition-colors group-hover:text-brand-pink sm:text-xl dark:text-dark-ink dark:group-hover:text-brand-pink">
+                                                {ev.title}
+                                            </h3>
+                                            <div className="mt-1 flex items-center gap-1.5 font-mono text-[11px] text-gray-400 dark:text-dark-muted">
+                                                <MapPin className="h-3.5 w-3.5 shrink-0 text-brand-orange" />
+                                                <span className="truncate">{ev.location || 'Venue TBA'}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Seats meter */}
+                                        <div className="hidden w-full sm:block">
+                                            <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-wider">
+                                                <span className="text-gray-400 dark:text-dark-muted">Seats left</span>
+                                                <span className={soldOut ? 'font-bold text-red-500' : low ? 'font-bold text-brand-orange' : 'font-bold text-brand-lime-deep dark:text-brand-lime'}>
+                                                    {soldOut ? 'Sold out' : available}
+                                                </span>
+                                            </div>
+                                            <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
+                                                <div
+                                                    className={`h-full rounded-full ${soldOut ? 'bg-red-500' : low ? 'bg-brand-orange' : 'bg-gradient-to-r from-brand-orange via-brand-pink to-brand-purple'}`}
+                                                    style={{ width: `${Math.min(100, Math.max(5, pct))}%` }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Price + arrow */}
+                                        <div className="col-span-2 flex items-center gap-4 justify-self-end sm:col-span-1">
+                                            <div className="text-right">
+                                                <span className="block font-display text-xl leading-none text-brand-dark dark:text-white">{ev.ticketPrice ? `₹${ev.ticketPrice}` : 'Free'}</span>
+                                                <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-gray-400 dark:text-dark-muted">{ev.ticketPrice ? 'from' : 'entry'}</span>
+                                            </div>
+                                            <span className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 text-gray-500 transition-all group-hover:border-transparent group-hover:bg-gradient-to-br group-hover:from-brand-orange group-hover:via-brand-pink group-hover:to-brand-purple group-hover:text-white dark:border-white/15 dark:text-dark-muted">
+                                                <ArrowUpRight className="h-4 w-4" />
+                                            </span>
+                                        </div>
+                                    </Link>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+            </section>
+
+            {/* ═══════════ WHY EVENTRIX ═══════════ */}
+            <section className="why-section relative overflow-hidden py-24">
+                <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+                    <div className="aurora-blob aurora-b -right-48 top-1/4 h-[480px] w-[480px]" />
+                    <div className="aurora-blob aurora-c -left-40 bottom-0 h-[420px] w-[420px]" />
+                </div>
+
+                {/* Floating festival illustrations */}
+                <div className="plx-dj pointer-events-none absolute right-[5%] top-16 hidden w-40 opacity-90 xl:block" aria-hidden="true">
                     <motion.img
                         src={djImg}
-                        alt="DJ illustration"
+                        alt=""
                         animate={{ y: [0, -14, 0], rotate: [0, -3, 0] }}
                         transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-                        className="w-full object-contain drop-shadow-[0_30px_40px_rgba(186,40,226,0.25)]"
+                        className="w-full object-contain drop-shadow-[0_30px_40px_rgba(186,40,226,0.35)]"
+                    />
+                </div>
+                <div className="plx-mic pointer-events-none absolute -left-8 top-20 hidden w-24 lg:block" aria-hidden="true">
+                    <motion.img
+                        src={micImg}
+                        alt=""
+                        animate={{ y: [0, -10, 0], rotate: [0, 4, 0] }}
+                        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                        className="w-full object-contain drop-shadow-[0_20px_30px_rgba(255,45,122,0.3)]"
+                    />
+                </div>
+                <div className="plx-phone pointer-events-none absolute -right-6 top-2/3 hidden w-24 lg:block" aria-hidden="true">
+                    <motion.img
+                        src={headphonesImg}
+                        alt=""
+                        animate={{ y: [0, -12, 0], rotate: [0, -5, 0] }}
+                        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+                        className="w-full object-contain drop-shadow-[0_20px_30px_rgba(0,229,255,0.3)]"
                     />
                 </div>
 
                 <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal className="text-center">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-brand-lime/20 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-brand-lime-deep">
-                            <Sparkle className="h-3.5 w-3.5" /> Eventrix advantage
-                        </span>
-                        <h2 className="font-display mt-3 text-4xl uppercase leading-none text-brand-dark dark:text-dark-ink sm:text-5xl">
-                            Why choose <span className="text-gradient-brand">Eventrix?</span>
+                        <span className="eyebrow text-brand-lime-deep">Why Eventrix</span>
+                        <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
+                            Built for the <span className="text-gradient-sunset">night out</span>
                         </h2>
                     </Reveal>
 
-                    <div className="relative mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                         {whyFeatures.map((f, i) => (
                             <Reveal key={f.title} delay={i * 0.08}>
-                                <div className={`card-lift h-full rounded-3xl border p-6 transition-all hover:-translate-y-1 ${f.accent} dark:bg-dark-surface`}>
-                                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${f.accent} shadow-sm`}>
+                                <div className="glass-card h-full rounded-[2rem] border border-black/5 bg-white p-7 dark:border-white/10 dark:bg-white/[0.04]">
+                                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${f.chip} ${f.tint}`}>
                                         <f.icon className="h-6 w-6" />
                                     </div>
-                                    <h4 className="mt-4 text-sm font-black uppercase tracking-wide text-brand-dark dark:text-dark-ink">{f.title}</h4>
-                                    <p className="mt-1.5 text-xs leading-relaxed text-gray-500 dark:text-dark-muted">{f.desc}</p>
+                                    <h4 className="mt-5 font-display text-lg uppercase tracking-wide text-brand-dark dark:text-dark-ink">{f.title}</h4>
+                                    <p className="mt-2 text-sm leading-relaxed text-gray-500 dark:text-dark-muted">{f.desc}</p>
                                 </div>
                             </Reveal>
                         ))}
                     </div>
-
-                    {/* Floating 3D elements */}
-                    <div className="plx-mic pointer-events-none absolute -left-6 top-8 hidden w-28 lg:block">
-                        <motion.img
-                            src={micImg}
-                            alt="3D microphone"
-                            animate={{ y: [0, -10, 0], rotate: [0, 4, 0] }}
-                            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-                            className="w-full object-contain"
-                        />
-                    </div>
-                    <div className="plx-phone pointer-events-none absolute -right-4 top-2/3 hidden w-28 lg:block">
-                        <motion.img
-                            src={headphonesImg}
-                            alt="3D headphones"
-                            animate={{ y: [0, -12, 0], rotate: [0, -5, 0] }}
-                            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-                            className="w-full object-contain"
-                        />
-                    </div>
                 </div>
             </section>
 
-            {/* ═══════════ 6 · CTA BANNER ═══════════ */}
-            <section className="cta-section mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
-                <Reveal>
-                    <div className="relative overflow-hidden rounded-[2.5rem] border border-brand-purple/20 bg-brand-purple/[0.08] px-6 py-14 sm:px-12 sm:py-16 dark:bg-brand-purple/[0.12]">
-                        <div className="absolute inset-0 dots-bg opacity-30" />
-
-                        <div className="relative grid grid-cols-1 items-center gap-10 lg:grid-cols-12">
-                            {/* Left copy */}
-                            <div className="lg:col-span-6">
-                                <span className="inline-flex items-center gap-2 rounded-full border border-brand-purple/25 bg-white px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-brand-purple dark:bg-dark-surface">
-                                    <Sparkle className="h-3 w-3" /> Join the movement
-                                </span>
-                                <h2 className="font-display mt-4 text-4xl uppercase leading-[0.95] text-brand-dark dark:text-dark-ink sm:text-6xl">
-                                    Ready for your <br /> next experience?
-                                </h2>
-                                <p className="mt-4 max-w-md text-sm leading-relaxed text-gray-500 dark:text-dark-muted">
-                                    Join thousands of people discovering and booking amazing events.
-                                </p>
-                                <Link
-                                    to="/register"
-                                    className="btn-gradient mt-8 inline-flex items-center gap-2 rounded-full px-9 py-4 text-xs font-extrabold uppercase tracking-wider text-white"
-                                >
-                                    Sign up now <ArrowUpRight className="h-4 w-4" />
-                                </Link>
-                            </div>
-
-                            {/* Right visual: crowd photo + progress ring + badge */}
-                            <div className="relative lg:col-span-6">
-                                <div className="relative mx-auto max-w-lg overflow-hidden rounded-[2rem] border-4 border-white bg-brand-gray-900 shadow-[0_40px_90px_-30px_rgba(186,40,226,0.4)] dark:border-dark-surface">
-                                    <img
-                                        src={crowdImg}
-                                        alt="Concert crowd raising hands"
-                                        className="plx-cta-img h-72 w-full object-cover sm:h-80"
-                                    />
-                                    <div className="absolute inset-0 bg-brand-purple/20" />
-                                </div>
-
-                                {/* Progress ring */}
-                                <motion.svg
-                                    initial={{ rotate: -90 }}
-                                    animate={{ rotate: 270 }}
-                                    transition={{ duration: 2.4, ease: 'easeInOut', delay: 0.3 }}
-                                    viewBox="0 0 120 120"
-                                    className="absolute -left-6 -top-6 hidden h-28 w-28 sm:block"
-                                >
-                                    <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(186,40,226,0.15)" strokeWidth="12" />
-                                    <circle cx="60" cy="60" r="52" fill="none" stroke="#ba28e2" strokeWidth="12" strokeDasharray="326" strokeDashoffset="72" strokeLinecap="round" />
-                                </motion.svg>
-
-                                {/* GOOD VIBES ONLY badge */}
-                                <div className="sticker -bottom-6 -right-3 flex h-24 w-24 rotate-6 flex-col items-center justify-center rounded-full bg-brand-lime text-center text-brand-dark shadow-[0_20px_40px_-10px_rgba(166,255,0,0.5)] animate-float-slow sm:h-28 sm:w-28">
-                                    <span className="font-display text-[11px] uppercase leading-tight sm:text-sm">Good</span>
-                                    <span className="font-display text-[11px] uppercase leading-tight sm:text-sm">Vibes</span>
-                                    <span className="font-display text-[11px] uppercase leading-tight sm:text-sm">Only</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </Reveal>
-            </section>
-
-            {/* ═══════════ 7 · SIMPLE BOOKING FLOW ═══════════ */}
-            <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
-                <Reveal className="text-center">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-brand-pink/10 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-brand-pink">
-                        <Ticket className="h-3.5 w-3.5" /> How it works
-                    </span>
-                    <h2 className="font-display mt-3 text-4xl uppercase leading-none text-brand-dark dark:text-dark-ink sm:text-5xl">
-                        Simple booking <span className="text-gradient-brand">flow</span>
-                    </h2>
-                    <p className="mx-auto mt-3 max-w-md text-sm text-gray-500 dark:text-dark-muted">
-                        Book your tickets in just a few simple steps.
-                    </p>
-                </Reveal>
-
-                <div className="relative mt-14 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5 lg:gap-4">
-                    {/* dotted connector (desktop) */}
-                    <div className="absolute left-[8%] right-[8%] top-7 hidden border-t-2 border-dashed border-brand-purple/40 lg:block" />
-                    {bookingSteps.map((step, i) => (
-                        <Reveal key={step.title} delay={i * 0.1}>
-                            <div className="group relative flex flex-col items-center text-center">
-                                <span className="font-display absolute -top-6 text-5xl text-brand-gray-400/30 transition-colors group-hover:text-brand-purple/40 dark:text-dark-muted/30">
-                                    {String(i + 1).padStart(2, '0')}
-                                </span>
-                                <motion.div
-                                    whileHover={{ scale: 1.1, rotate: i % 2 === 0 ? -5 : 5 }}
-                                    transition={{ type: 'spring', stiffness: 300, damping: 16 }}
-                                    className="relative z-10 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-purple text-white shadow-[0_14px_30px_-10px_rgba(186,40,226,0.5)]"
-                                >
-                                    <step.icon className="h-6 w-6" />
-                                    {i === 4 && (
-                                        <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-brand-lime text-[10px] font-black text-brand-dark">
-                                            05
-                                        </span>
-                                    )}
-                                </motion.div>
-                                <h4 className="mt-4 text-sm font-black uppercase tracking-wide text-brand-dark dark:text-dark-ink">{step.title}</h4>
-                                <p className="mt-1 max-w-[150px] text-xs leading-relaxed text-gray-500 dark:text-dark-muted">{step.desc}</p>
-                            </div>
-                        </Reveal>
-                    ))}
-                </div>
-            </section>
-
-            {/* ═══════════ 8 · TESTIMONIALS ═══════════ */}
-            <section className="bg-white py-20 dark:bg-dark-page">
+            {/* ═══════════ TESTIMONIALS ═══════════ */}
+            <section className="border-y border-black/5 bg-white py-20 dark:border-white/5 dark:bg-dark-page">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal className="text-center">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-brand-purple/10 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-brand-purple">
-                            <Star className="h-3.5 w-3.5" fill="currentColor" /> Testimonials
-                        </span>
-                        <h2 className="font-display mt-3 text-4xl uppercase leading-none text-brand-dark dark:text-dark-ink sm:text-5xl">
-                            Loved by <span className="text-gradient-brand">the crowd</span>
+                        <span className="eyebrow text-brand-pink">From the crowd</span>
+                        <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
+                            Loved by <span className="text-gradient-sunset">the crowd</span>
                         </h2>
                     </Reveal>
 
                     <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
                         {testimonials.map((t, i) => (
                             <Reveal key={t.name} delay={i * 0.1}>
-                                <div className="card-lift flex h-full flex-col rounded-[2rem] border border-black/5 bg-brand-light p-7 dark:border-dark-line dark:bg-dark-surface">
+                                <div className="glass-card flex h-full flex-col rounded-[2rem] border border-black/5 bg-white p-7 dark:border-white/10 dark:bg-white/[0.04]">
                                     <div className="flex gap-1">
                                         {[...Array(5)].map((_, s) => (
                                             <Star key={s} className="h-4 w-4 text-brand-orange" fill="currentColor" />
                                         ))}
                                     </div>
                                     <p className="mt-4 flex-1 text-sm leading-relaxed text-gray-600 dark:text-dark-muted">"{t.quote}"</p>
-                                    <div className="mt-6 flex items-center gap-3 border-t border-black/5 pt-5 dark:border-dark-line">
-                                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-purple text-sm font-black text-white">
+                                    <div className="mt-6 flex items-center gap-3 border-t border-black/5 pt-5 dark:border-white/10">
+                                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-brand-orange via-brand-pink to-brand-purple font-mono text-sm font-bold text-white">
                                             {t.initials}
                                         </div>
                                         <div>
                                             <h4 className="text-sm font-black text-brand-dark dark:text-dark-ink">{t.name}</h4>
-                                            <p className="text-xs font-bold text-gray-400 dark:text-dark-muted">{t.role}</p>
+                                            <p className="font-mono text-[11px] font-bold text-gray-400 dark:text-dark-muted">{t.role}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -740,50 +856,45 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* ═══════════ 9 · NEWSLETTER ═══════════ */}
+            {/* ═══════════ NEWSLETTER ═══════════ */}
             <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
                 <Reveal>
-                    <div className="relative overflow-hidden rounded-[2.5rem] bg-brand-purple px-6 py-16 text-center text-white sm:px-12">
-                        <div className="absolute inset-0 dots-bg-light opacity-40" />
-                        <div className="sticker -top-5 left-10 hidden bg-brand-lime px-4 py-2 text-[11px] text-brand-dark animate-float sm:flex">
-                            Early bird drops 🔥
-                        </div>
-                        <div className="sticker -bottom-4 right-14 hidden bg-white px-4 py-2 text-[11px] text-brand-pink animate-float-slow sm:flex">
-                            No spam, ever
-                        </div>
+                    <div className="relative overflow-hidden rounded-[2.5rem] border border-black/5 bg-white px-6 py-16 text-center sm:px-12 dark:border-white/10 dark:bg-white/[0.04]">
+                        {/* Gradient glow */}
+                        <div className="pointer-events-none absolute -top-48 left-1/2 h-80 w-[130%] -translate-x-1/2 bg-gradient-to-r from-brand-orange/25 via-brand-pink/25 to-brand-purple/25 blur-[110px]" aria-hidden="true" />
+                        <div className="pointer-events-none absolute inset-0 dots-bg opacity-25" aria-hidden="true" />
 
                         <div className="relative mx-auto max-w-xl">
-                            <h2 className="font-display text-4xl uppercase leading-[0.95] sm:text-5xl">
-                                Get the good vibes <br /> in your inbox
+                            <span className="eyebrow inline-flex items-center gap-2 text-brand-lime-deep">
+                                <Ticket className="h-3.5 w-3.5" /> Twice a month, no spam
+                            </span>
+                            <h2 className="font-display mt-3 text-4xl uppercase leading-[0.95] text-brand-dark sm:text-5xl dark:text-dark-ink">
+                                Passes drop <span className="text-gradient-sunset">early</span>
                             </h2>
-                            <p className="mx-auto mt-4 max-w-md text-sm text-white/80">
-                                Join 500K+ event lovers. Early-bird passes, secret gigs and festival news — twice a month, straight to you.
+                            <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-gray-500 dark:text-dark-muted">
+                                Early-bird pricing and secret gigs, before they hit the feed. Join 500K+ people who never miss a drop.
                             </p>
 
                             {subscribed ? (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="mx-auto mt-8 flex max-w-md items-center justify-center gap-2 rounded-full bg-white/20 px-6 py-4 font-black uppercase tracking-wider"
-                                >
-                                    <CheckCircle2 className="h-5 w-5 text-brand-lime" /> You're on the list! See you at the festival 🎉
-                                </motion.div>
+                                <p className="mx-auto mt-8 inline-flex items-center gap-2 rounded-full bg-brand-lime px-6 py-3 font-mono text-xs font-bold uppercase tracking-widest text-brand-dark">
+                                    <Sparkle className="h-4 w-4" fill="currentColor" /> You're on the list — watch your inbox
+                                </p>
                             ) : (
-                                <form
-                                    onSubmit={(e) => { e.preventDefault(); setSubscribed(true); }}
-                                    className="mx-auto mt-8 flex max-w-md flex-col gap-3 sm:flex-row"
-                                >
+                                <form onSubmit={subscribe} className="mx-auto mt-8 flex max-w-md flex-col gap-2 rounded-[2rem] border border-black/10 bg-brand-light p-1.5 sm:flex-row sm:items-center sm:pl-5 dark:border-white/10 dark:bg-white/[0.06]">
                                     <input
                                         type="email"
                                         required
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
                                         placeholder="your@email.com"
-                                        className="flex-1 rounded-full border border-white/30 bg-white/15 px-6 py-4 text-sm font-semibold text-white placeholder-white/60 outline-none transition-colors focus:border-white"
+                                        aria-label="Email address"
+                                        className="w-full bg-transparent py-2.5 text-sm font-semibold text-brand-dark placeholder-gray-400 outline-none dark:text-dark-ink dark:placeholder-dark-muted"
                                     />
                                     <button
                                         type="submit"
-                                        className="rounded-full bg-brand-dark px-8 py-4 text-xs font-extrabold uppercase tracking-wider text-white transition-all hover:scale-[1.03] hover:bg-black"
+                                        className="btn-gradient shrink-0 rounded-full px-6 py-3 text-xs font-extrabold uppercase tracking-wider text-white"
                                     >
-                                        Subscribe
+                                        Get early access
                                     </button>
                                 </form>
                             )}
@@ -791,6 +902,8 @@ const Home = () => {
                     </div>
                 </Reveal>
             </section>
+
+            {/* Footer lives in App.jsx */}
         </div>
     );
 };

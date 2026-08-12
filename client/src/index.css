@@ -13,7 +13,8 @@
 
 @theme {
   --font-display: "Anton", "Arial Narrow", sans-serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 
   /* Brand palette */
   --color-brand-purple: #ba28e2;
@@ -38,6 +39,7 @@
   --color-dark-ink: #f2f2f7;       /* primary text */
   --color-dark-muted: #a6a6b8;     /* secondary text */
   --color-dark-line: rgb(255 255 255 / 0.1);
+  --color-night: #0b0b14;       /* festival-night page tint */
 
   /* Shadows */
   --shadow-soft: 0 16px 40px -20px rgb(13 13 17 / 0.14);
@@ -54,7 +56,22 @@
   --animate-shimmer: shimmer 2.2s linear infinite;
   --animate-wiggle: wiggle 5s ease-in-out infinite;
   --animate-bounce-soft: bounceSoft 3.5s ease-in-out infinite;
+  --animate-aurora-a: auroraA 24s ease-in-out infinite;
+  --animate-aurora-b: auroraB 28s ease-in-out infinite;
+  --animate-aurora-c: auroraC 20s ease-in-out infinite;
 
+  @keyframes auroraA {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(70px, 46px, 0) scale(1.18); }
+  }
+  @keyframes auroraB {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1.12); }
+    50% { transform: translate3d(-84px, -38px, 0) scale(0.94); }
+  }
+  @keyframes auroraC {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(52px, -58px, 0) scale(1.22); }
+  }
   @keyframes float {
     0%, 100% { transform: translateY(0) rotate(0deg); }
     50% { transform: translateY(-14px) rotate(2deg); }
@@ -130,6 +147,23 @@
 
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Visible keyboard focus — never invisible while tabbing */
+  :focus-visible {
+    outline: 2px solid #ff2d7a;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Respect reduced motion: kill ambient loops, keep instant states */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 /* ═══════════════════════════════════════════════
@@ -152,14 +186,15 @@ html.lenis, html.lenis body { height: auto; }
 .text-gradient-lime { color: #5cd200; }
 .text-gradient-cyan { color: #00b8d0; }
 
-/* Solid buttons */
+/* Sunset gradient button (purple → pink → orange, festival CTA) */
 .btn-gradient {
-  background-color: #ba28e2;
+  background-image: linear-gradient(92deg, #ff5a1f 0%, #ff2d7a 52%, #ba28e2 100%);
+  background-size: 140% 140%;
   color: #fff;
-  box-shadow: 0 10px 26px -10px rgb(186 40 226 / 0.45);
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background-color 0.25s ease;
+  box-shadow: 0 12px 30px -12px rgb(255 45 122 / 0.55);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background-position 0.4s ease, filter 0.25s ease;
 }
-.btn-gradient:hover { transform: translateY(-2px); background-color: #a91fce; box-shadow: 0 16px 34px -10px rgb(186 40 226 / 0.5); }
+.btn-gradient:hover { transform: translateY(-2px); background-position: 90% 50%; box-shadow: 0 20px 42px -14px rgb(255 45 122 / 0.6); filter: brightness(1.07); }
 
 .btn-gradient-orange {
   background-color: #ff5a1f;
@@ -247,3 +282,116 @@ html.dark .skeleton::after { background: rgb(255 255 255 / 0.07); }
 
 /* Anton display helper */
 .font-display { font-family: var(--font-display); letter-spacing: 0.01em; }
+
+/* ══════════════════════════════════════════════════════════════
+   FESTIVAL NIGHT LAYER — gradients · glass · aurora
+   Dark-first art direction for the Eventrix landing page.
+   Light mode is a clean variant; every rule flips with .dark.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ---- Glass surfaces -------------------------------------------------- */
+.glass {
+  background: rgb(255 255 255 / 0.06);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  backdrop-filter: blur(18px) saturate(1.35);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+}
+html:not(.dark) .glass {
+  background: rgb(255 255 255 / 0.62);
+  border-color: rgb(13 13 17 / 0.08);
+}
+
+.glass-strong {
+  background: rgb(17 17 27 / 0.72);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  backdrop-filter: blur(22px) saturate(1.4);
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+}
+html:not(.dark) .glass-strong {
+  background: rgb(255 255 255 / 0.82);
+  border-color: rgb(13 13 17 / 0.08);
+}
+
+/* Card that lifts + lights its border on hover */
+.glass-card {
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease, border-color 0.4s ease, background 0.4s ease;
+}
+.glass-card:hover {
+  transform: translateY(-6px);
+  border-color: rgb(255 45 122 / 0.45);
+  box-shadow: 0 30px 60px -24px rgb(186 40 226 / 0.45);
+}
+
+/* ---- Sunset gradient text -------------------------------------------- */
+.text-gradient-sunset {
+  background-image: linear-gradient(92deg, #ff5a1f 0%, #ff2d7a 46%, #ba28e2 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Outlined display word (editorial contrast against the gradient) */
+.text-outline {
+  color: transparent;
+  -webkit-text-stroke: 2px rgb(255 255 255 / 0.9);
+}
+html:not(.dark) .text-outline {
+  -webkit-text-stroke: 2px rgb(13 13 17 / 0.9);
+}
+
+/* ---- Hero aurora (dynamic gradient background) ------------------------ */
+.aurora-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  will-change: transform;
+  pointer-events: none;
+}
+.aurora-a { background: radial-gradient(circle, rgb(186 40 226 / 0.5), transparent 65%); animation: var(--animate-aurora-a); }
+.aurora-b { background: radial-gradient(circle, rgb(255 45 122 / 0.42), transparent 65%); animation: var(--animate-aurora-b); }
+.aurora-c { background: radial-gradient(circle, rgb(255 90 31 / 0.34), transparent 65%); animation: var(--animate-aurora-c); }
+html:not(.dark) .aurora-a { background: radial-gradient(circle, rgb(186 40 226 / 0.22), transparent 65%); }
+html:not(.dark) .aurora-b { background: radial-gradient(circle, rgb(255 45 122 / 0.18), transparent 65%); }
+html:not(.dark) .aurora-c { background: radial-gradient(circle, rgb(255 90 31 / 0.16), transparent 65%); }
+
+/* ---- Ticket pass ------------------------------------------------------ */
+.barcode {
+  height: 30px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    currentColor 0 2px, transparent 2px 6px,
+    currentColor 6px 7px, transparent 7px 13px,
+    currentColor 13px 16px, transparent 16px 19px,
+    currentColor 19px 20px, transparent 20px 25px
+  );
+}
+
+/* Perforation notches: semicircle cut-outs at the card edges.
+   The hero stage is always night, so notches match #0b0b14 in both themes. */
+.ticket-notch {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background: #0b0b14;
+  top: -13px;
+  z-index: 2;
+}
+
+/* ---- Lineup / marquee band -------------------------------------------- */
+.marquee-band {
+  border-top: 1px solid rgb(255 255 255 / 0.09);
+  border-bottom: 1px solid rgb(255 255 255 / 0.09);
+}
+html:not(.dark) .marquee-band {
+  border-color: rgb(13 13 17 / 0.09);
+}
+
+/* ---- Utility: mono eyebrows (data, labels) ---------------------------- */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}

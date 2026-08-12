@@ -47,7 +47,7 @@ const Navbar = () => {
                     <nav
                         className={`flex items-center justify-between gap-3 rounded-full px-4 sm:px-5 transition-all duration-500 ${
                             scrolled
-                                ? 'h-14 bg-white border border-black/10 shadow-[0_14px_44px_-14px_rgba(13,13,17,0.25)] dark:bg-dark-surface dark:border-dark-line'
+                                ? 'glass-strong h-14 shadow-[0_14px_44px_-14px_rgba(13,13,17,0.4)]'
                                 : 'h-16 sm:h-[72px] bg-transparent border border-transparent'
                         }`}
                     >
@@ -64,7 +64,7 @@ const Navbar = () => {
                                 <span className="font-display text-2xl tracking-wide text-brand-dark uppercase dark:text-dark-ink">
                                     eventrix
                                 </span>
-                                <span className="mt-0.5 block text-[9px] font-black uppercase tracking-[0.28em] text-brand-gray-400">
+                                <span className="eyebrow mt-0.5 block text-[9px] text-brand-gray-400 dark:text-dark-muted">
                                     Live experiences
                                 </span>
                             </div>
@@ -79,12 +79,11 @@ const Navbar = () => {
                                         key={l.to}
                                         to={l.to}
                                         className="relative rounded-full px-5 py-2 text-xs font-extrabold uppercase tracking-wider"
-                                    >                        {active && (
-                            <motion.span
-                                layoutId="nav-active-pill"
-                                className="absolute inset-0 rounded-full bg-brand-purple shadow-[0_8px_18px_-6px_rgba(186,40,226,0.5)]"
-                                transition={{ type: 'spring', stiffness: 320, damping: 26 }}
-                            />
+                                    >                        {active && (                                    <motion.span
+                                        layoutId="nav-active-pill"
+                                        className="absolute inset-0 rounded-full bg-gradient-to-r from-brand-orange via-brand-pink to-brand-purple shadow-[0_8px_18px_-6px_rgba(255,45,122,0.5)]"
+                                        transition={{ type: 'spring', stiffness: 320, damping: 26 }}
+                                    />
                         )}
                                         <span className={`relative z-10 transition-colors ${active ? 'text-white' : 'text-gray-700 hover:text-black dark:text-dark-muted dark:hover:text-dark-ink'}`}>
                                             {l.label}
@@ -170,7 +169,7 @@ const Navbar = () => {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -12 }}
                             transition={{ duration: 0.25, ease: 'easeOut' }}
-                            className="md:hidden mx-4 mt-2 rounded-3xl border border-black/10 bg-white p-4 shadow-2xl dark:border-dark-line dark:bg-dark-surface"
+                            className="glass-strong md:hidden mx-4 mt-2 rounded-3xl p-4 shadow-2xl"
                         >
                             <div className="space-y-1">
                                 {[{ label: 'Home', to: '/' }, { label: 'Events', to: '/events' }, ...(user ? [{ label: 'Dashboard', to: dashPath }] : [])].map((l) => (
@@ -209,7 +208,7 @@ const Navbar = () => {
             </header>
 
             {/* Mobile bottom navigation */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-black/10 bg-white px-8 py-2.5 flex items-center justify-between dark:border-dark-line dark:bg-dark-surface">
+            <div className="glass-strong md:hidden fixed bottom-0 left-0 right-0 z-40 border-t px-8 py-2.5 flex items-center justify-between">
                 <Link to="/" className={`flex flex-col items-center gap-0.5 text-[10px] font-extrabold uppercase ${isActive('/') ? 'text-brand-purple' : 'text-gray-500 dark:text-dark-muted'}`}>
                     <Compass className="h-5 w-5" />
                     Home

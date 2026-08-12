@@ -5,9 +5,9 @@ const ThemeContext = createContext({ theme: 'light', toggle: () => {} });
 export const ThemeProvider = ({ children }) => {
     const [theme, setTheme] = useState(() => {
         try {
-            return localStorage.getItem('eventrix-theme') || 'light';
+            return localStorage.getItem('eventrix-theme') || 'dark';
         } catch {
-            return 'light';
+            return 'dark';
         }
     });
 
@@ -17,7 +17,7 @@ export const ThemeProvider = ({ children }) => {
         else root.classList.remove('dark');
         try {
             localStorage.setItem('eventrix-theme', theme);
-        } catch (e) {
+        } catch {
             /* storage unavailable */
         }
     }, [theme]);
