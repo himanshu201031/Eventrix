@@ -193,6 +193,7 @@ const FALLBACK_TARGET = Date.now() + 30 * 86400000;
 const Home = () => {
     const navigate = useNavigate();
     const heroRef = useRef(null);
+    const whyRef = useRef(null);
     const [searchParams] = useSearchParams();
     const search = searchParams.get('search') || '';
     const [events, setEvents] = useState([]);
@@ -225,7 +226,7 @@ const Home = () => {
         const lenis = getLenis();
         if (lenis) lenis.on('scroll', ScrollTrigger.update);
 
-        const ctx = gsap.context(() => {
+        const heroCtx = gsap.context(() => {
             gsap.fromTo(
                 '.hero-el',
                 { y: 46, opacity: 0 },
@@ -250,27 +251,30 @@ const Home = () => {
                 ease: 'none',
                 scrollTrigger: { trigger: heroRef.current, start: 'top top', end: 'bottom top', scrub: true },
             });
+        }, heroRef);
 
-            /* Why-section illustrations drift at their own speed */
+        /* Why-section illustrations drift at their own speed */
+        const whyCtx = gsap.context(() => {
             gsap.to('.plx-dj', {
                 yPercent: -14,
                 ease: 'none',
-                scrollTrigger: { trigger: '.why-section', start: 'top bottom', end: 'bottom top', scrub: true },
+                scrollTrigger: { trigger: whyRef.current, start: 'top bottom', end: 'bottom top', scrub: true },
             });
             gsap.to('.plx-mic', {
                 yPercent: 22,
                 ease: 'none',
-                scrollTrigger: { trigger: '.why-section', start: 'top bottom', end: 'bottom top', scrub: true },
+                scrollTrigger: { trigger: whyRef.current, start: 'top bottom', end: 'bottom top', scrub: true },
             });
             gsap.to('.plx-phone', {
                 yPercent: 28,
                 ease: 'none',
-                scrollTrigger: { trigger: '.why-section', start: 'top bottom', end: 'bottom top', scrub: true },
+                scrollTrigger: { trigger: whyRef.current, start: 'top bottom', end: 'bottom top', scrub: true },
             });
-        }, heroRef);
+        }, whyRef);
 
         return () => {
-            ctx.revert();
+            heroCtx.revert();
+            whyCtx.revert();
             if (lenis) lenis.off('scroll', ScrollTrigger.update);
         };
     }, []);
@@ -331,7 +335,7 @@ const Home = () => {
                     <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-12">
                         {/* Left: thesis */}
                         <div className="lg:col-span-7">
-                            <span className="hero-el eyebrow inline-flex items-center gap-2.5 text-brand-lime">
+                            <span className="hero-el eyebrow inline-flex items-center gap-2.5 text-[11px] text-brand-lime">
                                 <Sparkle className="h-3.5 w-3.5" fill="currentColor" />
                                 Concerts · Festivals · Workshops — 40+ cities
                             </span>
@@ -403,7 +407,7 @@ const Home = () => {
 
                             {/* Quick pills */}
                             <div className="hero-el mt-5 flex flex-wrap items-center gap-2 text-[11px] font-bold">
-                                <span className="eyebrow mr-1 text-white/40">Popular:</span>
+                                <span className="eyebrow mr-1 text-[11px] text-white/40">Popular:</span>
                                 {['Concerts', 'Festivals', 'Workshops', 'Conferences', 'Sports', 'More'].map((tag) => (
                                     <button
                                         key={tag}
@@ -426,11 +430,11 @@ const Home = () => {
                                     <span className="font-display text-lg uppercase leading-none">30%</span>
                                 </div>
                             </div>
-                            <div className="hero-sticker sticker -left-5 top-16 z-20 rounded-[2rem] rounded-bl-md bg-brand-orange px-5 py-3 text-[11px] text-white animate-float-slow">
+                            <div className="hero-sticker sticker -left-5 top-16 z-20 rounded-[2rem] rounded-bl-md bg-brand-orange px-5 py-3 text-[11px] text-white shadow-[0_16px_36px_-14px_rgba(255,90,31,0.55)] animate-float-slow">
                                 <Sparkle className="mr-1.5 h-3.5 w-3.5 text-brand-lime" fill="currentColor" />
                                 Feel the vibe
                             </div>
-                            <div className="hero-sticker sticker -right-4 bottom-32 z-20 hidden rounded-[2rem] rounded-tr-md bg-brand-purple px-5 py-3 text-[11px] text-white animate-float lg:flex">
+                            <div className="hero-sticker sticker -right-4 bottom-32 z-20 hidden rounded-[2rem] rounded-tr-md bg-brand-purple px-5 py-3 text-[11px] text-white shadow-[0_16px_36px_-14px_rgba(186,40,226,0.55)] animate-float lg:flex">
                                 <Ticket className="mr-1.5 h-3.5 w-3.5 text-brand-lime" />
                                 Instant QR pass
                             </div>
@@ -465,7 +469,7 @@ const Home = () => {
                                                 className="plx-hero-img h-full w-full object-cover"
                                             />
                                             <div className="absolute inset-0 bg-gradient-to-t from-[#14141f] via-[#14141f]/20 to-black/20" />
-                                            <span className="absolute left-4 top-4 z-10 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-brand-orange via-brand-pink to-brand-purple px-3.5 py-1.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg">
+                                            <span className="absolute left-4 top-4 z-10 flex items-center gap-1.5 rounded-full bg-sunset px-3.5 py-1.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg">
                                                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
                                                 Featured
                                             </span>
@@ -478,7 +482,7 @@ const Home = () => {
                                         <div className="p-5 sm:p-6">
                                             <div className="flex items-start justify-between gap-3">
                                                 <div>
-                                                    <span className="eyebrow text-brand-lime">Pass · General admission</span>
+                                                    <span className="eyebrow text-[11px] text-brand-lime">Pass · General admission</span>
                                                     <h3 className="font-display mt-1.5 text-2xl uppercase leading-none tracking-wide text-white sm:text-[1.7rem]">
                                                         {featured?.title || 'Sunset Music Festival'}
                                                     </h3>
@@ -502,7 +506,7 @@ const Home = () => {
 
                                             {/* Countdown */}
                                             <div className="mt-5 flex flex-wrap items-center gap-4">
-                                                <span className="eyebrow text-white/45">Doors open in</span>
+                                                <span className="eyebrow text-[11px] text-white/45">Doors open in</span>
                                                 <Countdown target={validFeaturedDate.getTime()} />
                                             </div>
                                         </div>
@@ -571,7 +575,7 @@ const Home = () => {
                 <Reveal>
                     <div className="flex flex-wrap items-end justify-between gap-4">
                         <div>
-                            <span className="eyebrow text-brand-pink">Hand-picked this week</span>
+                            <span className="eyebrow text-[11px] text-brand-pink">Hand-picked this week</span>
                             <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
                                 Featured <span className="text-gradient-sunset">events</span>
                             </h2>
@@ -599,7 +603,7 @@ const Home = () => {
             <section className="border-y border-black/5 bg-white py-20 dark:border-white/5 dark:bg-dark-page">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal className="text-center">
-                        <span className="eyebrow text-brand-lime-deep">Six ways to spend a night out</span>
+                        <span className="eyebrow text-[11px] text-brand-lime-deep">Six ways to spend a night out</span>
                         <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
                             Pick your <span className="text-gradient-sunset">vibe</span>
                         </h2>
@@ -633,7 +637,7 @@ const Home = () => {
                 <Reveal>
                     <div className="flex flex-wrap items-end justify-between gap-4">
                         <div>
-                            <span className="eyebrow inline-flex items-center gap-2 text-brand-orange">
+                            <span className="eyebrow inline-flex items-center gap-2 text-[11px] text-brand-orange">
                                 <Flame className="h-3.5 w-3.5" fill="currentColor" /> Ranked by tickets sold
                             </span>
                             <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
@@ -667,7 +671,7 @@ const Home = () => {
                     <Reveal>
                         <div className="flex flex-wrap items-end justify-between gap-4">
                             <div>
-                                <span className="eyebrow text-brand-purple">What's on next, in order</span>
+                                <span className="eyebrow text-[11px] text-brand-purple">What's on next, in order</span>
                                 <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
                                     The <span className="text-gradient-sunset">lineup</span>
                                 </h2>
@@ -736,7 +740,7 @@ const Home = () => {
                                             </div>
                                             <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
                                                 <div
-                                                    className={`h-full rounded-full ${soldOut ? 'bg-red-500' : low ? 'bg-brand-orange' : 'bg-gradient-to-r from-brand-orange via-brand-pink to-brand-purple'}`}
+                                                    className={`h-full rounded-full ${soldOut ? 'bg-red-500' : low ? 'bg-brand-orange' : 'bg-sunset'}`}
                                                     style={{ width: `${Math.min(100, Math.max(5, pct))}%` }}
                                                 />
                                             </div>
@@ -761,7 +765,7 @@ const Home = () => {
             </section>
 
             {/* ═══════════ WHY EVENTRIX ═══════════ */}
-            <section className="why-section relative overflow-hidden py-24">
+            <section ref={whyRef} className="why-section relative overflow-hidden py-24">
                 <div className="pointer-events-none absolute inset-0" aria-hidden="true">
                     <div className="aurora-blob aurora-b -right-48 top-1/4 h-[480px] w-[480px]" />
                     <div className="aurora-blob aurora-c -left-40 bottom-0 h-[420px] w-[420px]" />
@@ -798,7 +802,7 @@ const Home = () => {
 
                 <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal className="text-center">
-                        <span className="eyebrow text-brand-lime-deep">Why Eventrix</span>
+                        <span className="eyebrow text-[11px] text-brand-lime-deep">Why Eventrix</span>
                         <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
                             Built for the <span className="text-gradient-sunset">night out</span>
                         </h2>
@@ -824,7 +828,7 @@ const Home = () => {
             <section className="border-y border-black/5 bg-white py-20 dark:border-white/5 dark:bg-dark-page">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal className="text-center">
-                        <span className="eyebrow text-brand-pink">From the crowd</span>
+                        <span className="eyebrow text-[11px] text-brand-pink">From the crowd</span>
                         <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
                             Loved by <span className="text-gradient-sunset">the crowd</span>
                         </h2>
@@ -865,7 +869,7 @@ const Home = () => {
                         <div className="pointer-events-none absolute inset-0 dots-bg opacity-25" aria-hidden="true" />
 
                         <div className="relative mx-auto max-w-xl">
-                            <span className="eyebrow inline-flex items-center gap-2 text-brand-lime-deep">
+                            <span className="eyebrow inline-flex items-center gap-2 text-[11px] text-brand-lime-deep">
                                 <Ticket className="h-3.5 w-3.5" /> Twice a month, no spam
                             </span>
                             <h2 className="font-display mt-3 text-4xl uppercase leading-[0.95] text-brand-dark sm:text-5xl dark:text-dark-ink">

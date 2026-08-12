@@ -64,10 +64,10 @@ const Login = () => {
                     </div>
 
                     <div className="relative z-10 space-y-5">
-                        <div className="hero-sticker sticker -left-4 top-10 bg-brand-lime px-4 py-2 text-[10px] text-brand-dark animate-float">
+                        <div className="hero-sticker sticker -left-4 top-10 bg-brand-lime px-4 py-2 text-[10px] text-brand-dark shadow-[0_12px_30px_-12px_rgba(13,13,17,0.3)] animate-float">
                             VIP access pass
                         </div>
-                        <div className="hero-sticker sticker -right-4 bottom-24 bg-brand-orange px-4 py-2 text-[10px] text-white animate-float-slow">
+                        <div className="hero-sticker sticker -right-4 bottom-24 bg-brand-orange px-4 py-2 text-[10px] text-white shadow-[0_12px_30px_-12px_rgba(13,13,17,0.3)] animate-float-slow">
                             <Music2 className="mr-1 inline h-3 w-3" /> Live tonight
                         </div>
 
