@@ -81,7 +81,7 @@ const Navbar = () => {
                                         className="relative rounded-full px-5 py-2 text-xs font-extrabold uppercase tracking-wider"
                                     >                        {active && (                                    <motion.span
                                         layoutId="nav-active-pill"
-                                        className="absolute inset-0 rounded-full bg-gradient-to-r from-brand-orange via-brand-pink to-brand-purple shadow-[0_8px_18px_-6px_rgba(255,45,122,0.5)]"
+                                        className="absolute inset-0 rounded-full bg-sunset shadow-[0_8px_18px_-6px_rgba(255,45,122,0.5)]"
                                         transition={{ type: 'spring', stiffness: 320, damping: 26 }}
                                     />
                         )}

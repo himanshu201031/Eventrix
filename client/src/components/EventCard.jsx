@@ -135,7 +135,7 @@ const EventCard = ({ event }) => {
                         </div>
                         <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
                             <div
-                                className={`h-full rounded-full transition-all duration-700 ${isSoldOut ? 'bg-red-500' : isLowSeats ? 'bg-brand-orange' : 'bg-gradient-to-r from-brand-orange via-brand-pink to-brand-purple'}`}
+                                className={`h-full rounded-full transition-all duration-700 ${isSoldOut ? 'bg-red-500' : isLowSeats ? 'bg-brand-orange' : 'bg-sunset'}`}
                                 style={{ width: `${Math.min(100, Math.max(5, percentRemaining))}%` }}
                             />
                         </div>

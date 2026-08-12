@@ -1,22 +1,41 @@
 @import "tailwindcss";
 
 /* ══════════════════════════════════════════════════════════════
-   EVENTRIX DESIGN SYSTEM — Flat · Light + Dark mode
-   Palette: Purple #BA28E2 · Pink #FF2D7A · Orange #FF5A1F
-            Lime #A6FF00 · Cyan #00E5FF · Dark #0D0D11
-   Typography: Anton (display) · Inter (body)
-   No gradients · No glassmorphism · Solid colors only
+   EVENTRIX DESIGN SYSTEM — Tailwind v4, CSS-first
+   ──────────────────────────────────────────────────────────────
+   Token hierarchy
+     Brand tokens   → @theme --color-brand-*  (palette, abstract)
+     Semantic tokens→ :root / .dark overrides (glass, outline, dots,
+                       aurora, skeleton — theme-dependent surfaces)
+     Component utils→ @utility  (btn-, glass-, text-, stickers…)
+
+   Palette  Purple #BA28E2 · Pink #FF2D7A · Orange #FF5A1F
+            Lime #A6FF00 · Cyan #00E5FF · Night #0B0B14
+   Type     Anton (display) · Space Grotesk (body) · Space Mono (data)
+   Dark-first: the .dark class on <html> flips semantic tokens.
    ══════════════════════════════════════════════════════════════ */
 
 /* Class-based dark mode (toggled on <html> by ThemeContext) */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Signature gradient (sunset: orange → pink → purple).
+   @theme inline keeps the brand-color references live. */
+@theme inline {
+  --gradient-sunset: linear-gradient(
+    92deg,
+    var(--color-brand-orange) 0%,
+    var(--color-brand-pink) 52%,
+    var(--color-brand-purple) 100%
+  );
+}
+
 @theme {
+  /* ---- Type ---- */
   --font-display: "Anton", "Arial Narrow", sans-serif;
   --font-sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "Space Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 
-  /* Brand palette */
+  /* ---- Brand palette ---- */
   --color-brand-purple: #ba28e2;
   --color-brand-purple-deep: #5b00ff;
   --color-brand-pink: #ff2d7a;
@@ -32,21 +51,21 @@
   --color-brand-gray-400: #8a8a98;
   --color-brand-light: #f8f8fb;
 
-  /* Dark mode palette */
+  /* ---- Dark palette ---- */
   --color-dark-page: #0d0d11;      /* page / section background */
   --color-dark-surface: #16161d;   /* cards, navbar, modals */
   --color-dark-surface-2: #1f1f2a; /* subtle fills, inputs, chips */
   --color-dark-ink: #f2f2f7;       /* primary text */
   --color-dark-muted: #a6a6b8;     /* secondary text */
   --color-dark-line: rgb(255 255 255 / 0.1);
-  --color-night: #0b0b14;       /* festival-night page tint */
+  --color-night: #0b0b14;          /* festival-night page tint */
 
-  /* Shadows */
+  /* ---- Shadows ---- */
   --shadow-soft: 0 16px 40px -20px rgb(13 13 17 / 0.14);
   --shadow-glow: 0 12px 30px -10px rgb(186 40 226 / 0.35);
   --shadow-glow-pink: 0 12px 30px -10px rgb(255 45 122 / 0.3);
 
-  /* Animations */
+  /* ---- Animation tokens (keyframes emitted when referenced) ---- */
   --animate-float: float 6s ease-in-out infinite;
   --animate-float-slow: float 9s ease-in-out infinite;
   --animate-spin-slow: spin 16s linear infinite;
@@ -98,15 +117,54 @@
   }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   BASE + SEMANTIC THEME TOKENS
+   Surfaces flip by overriding CSS variables under .dark —
+   utilities read the variables, so one class works in both themes.
+   ══════════════════════════════════════════════════════════════ */
 @layer base {
   :root {
     --bg-main: #f8f8fb;
     --text-dark: #0d0d11;
+
+    /* Glass surfaces (light) */
+    --glass-bg: rgb(255 255 255 / 0.62);
+    --glass-border: rgb(13 13 17 / 0.08);
+    --glass-strong-bg: rgb(255 255 255 / 0.82);
+    --glass-strong-border: rgb(13 13 17 / 0.08);
+
+    /* Editorial outline (used on the always-night hero) */
+    --outline-color: rgb(13 13 17 / 0.9);
+
+    /* Dotted pattern + skeleton */
+    --dots-color: rgb(13 13 17 / 0.1);
+    --skeleton-bg: #ececf2;
+    --skeleton-shine: rgb(255 255 255 / 0.6);
+
+    /* Aurora glows (light) — color-mix keeps brand as single source */
+    --aurora-a: radial-gradient(circle, color-mix(in oklab, var(--color-brand-purple) 22%, transparent), transparent 65%);
+    --aurora-b: radial-gradient(circle, color-mix(in oklab, var(--color-brand-pink) 18%, transparent), transparent 65%);
+    --aurora-c: radial-gradient(circle, color-mix(in oklab, var(--color-brand-orange) 16%, transparent), transparent 65%);
   }
 
   html.dark {
     --bg-main: #0d0d11;
     --text-dark: #f2f2f7;
+
+    --glass-bg: rgb(255 255 255 / 0.06);
+    --glass-border: rgb(255 255 255 / 0.12);
+    --glass-strong-bg: rgb(17 17 27 / 0.72);
+    --glass-strong-border: rgb(255 255 255 / 0.14);
+
+    --outline-color: rgb(255 255 255 / 0.9);
+
+    --dots-color: rgb(255 255 255 / 0.12);
+    --skeleton-bg: #1a1a22;
+    --skeleton-shine: rgb(255 255 255 / 0.07);
+
+    --aurora-a: radial-gradient(circle, color-mix(in oklab, var(--color-brand-purple) 50%, transparent), transparent 65%);
+    --aurora-b: radial-gradient(circle, color-mix(in oklab, var(--color-brand-pink) 42%, transparent), transparent 65%);
+    --aurora-c: radial-gradient(circle, color-mix(in oklab, var(--color-brand-orange) 34%, transparent), transparent 65%);
   }
 
   html {
@@ -145,9 +203,6 @@
   html.dark ::-webkit-scrollbar-track { background: #1a1a22; }
   html.dark ::-webkit-scrollbar-thumb { border-color: #1a1a22; }
 
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
   /* Visible keyboard focus — never invisible while tabbing */
   :focus-visible {
     outline: 2px solid #ff2d7a;
@@ -166,60 +221,95 @@
   }
 }
 
-/* ═══════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════════════
    LENIS SMOOTH SCROLL
-   ═══════════════════════════════════════════════ */
+   ══════════════════════════════════════════════════════════════ */
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 .lenis.lenis-stopped { overflow: hidden; }
 
-/* ═══════════════════════════════════════════════
-   FLAT DESIGN UTILITIES (solid colors only)
-   ═══════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   CUSTOM UTILITIES (@utility — variant-capable, cascade-safe)
+   ══════════════════════════════════════════════════════════════ */
 
-/* Solid accent text */
-.text-gradient-purple { color: #ba28e2; }
-.text-gradient-brand { color: #ba28e2; }
-.text-gradient-pink { color: #ff2d7a; }
-.text-gradient-orange { color: #ff5a1f; }
-.text-gradient-lime { color: #5cd200; }
-.text-gradient-cyan { color: #00b8d0; }
+/* ---- Type helpers ------------------------------------------- */
+@utility font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+}
 
-/* Sunset gradient button (purple → pink → orange, festival CTA) */
-.btn-gradient {
-  background-image: linear-gradient(92deg, #ff5a1f 0%, #ff2d7a 52%, #ba28e2 100%);
+/* Mono eyebrow / data label. Pair with a text-[size] for the scale. */
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* ---- Flat accent text (legacy across pages) ----------------- */
+@utility text-gradient-purple { color: var(--color-brand-purple); }
+@utility text-gradient-brand { color: var(--color-brand-purple); }
+@utility text-gradient-pink { color: var(--color-brand-pink); }
+@utility text-gradient-orange { color: var(--color-brand-orange); }
+@utility text-gradient-lime { color: var(--color-brand-lime-deep); }
+@utility text-gradient-cyan { color: #00b8d0; }
+
+/* ---- Sunset gradient (the signature) ------------------------ */
+@utility bg-sunset {
+  background-image: var(--gradient-sunset);
+}
+
+@utility text-gradient-sunset {
+  background-image: var(--gradient-sunset);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---- Buttons ------------------------------------------------- */
+@utility btn-gradient {
+  background-image: var(--gradient-sunset);
   background-size: 140% 140%;
   color: #fff;
-  box-shadow: 0 12px 30px -12px rgb(255 45 122 / 0.55);
+  box-shadow: 0 12px 30px -12px color-mix(in oklab, var(--color-brand-pink) 55%, transparent);
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background-position 0.4s ease, filter 0.25s ease;
+  &:hover {
+    transform: translateY(-2px);
+    background-position: 90% 50%;
+    box-shadow: 0 20px 42px -14px color-mix(in oklab, var(--color-brand-pink) 60%, transparent);
+    filter: brightness(1.07);
+  }
 }
-.btn-gradient:hover { transform: translateY(-2px); background-position: 90% 50%; box-shadow: 0 20px 42px -14px rgb(255 45 122 / 0.6); filter: brightness(1.07); }
 
-.btn-gradient-orange {
-  background-color: #ff5a1f;
+@utility btn-gradient-orange {
+  background-color: var(--color-brand-orange);
   color: #fff;
-  box-shadow: 0 10px 26px -10px rgb(255 90 31 / 0.45);
+  box-shadow: 0 10px 26px -10px color-mix(in oklab, var(--color-brand-orange) 45%, transparent);
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background-color 0.25s ease;
+  &:hover { transform: translateY(-2px); background-color: #e84c12; }
 }
-.btn-gradient-orange:hover { transform: translateY(-2px); background-color: #e84c12; }
 
-.btn-gradient-lime {
-  background-color: #a6ff00;
-  color: #0d0d11;
-  box-shadow: 0 10px 26px -10px rgb(166 255 0 / 0.45);
+@utility btn-gradient-lime {
+  background-color: var(--color-brand-lime);
+  color: var(--color-brand-dark);
+  box-shadow: 0 10px 26px -10px color-mix(in oklab, var(--color-brand-lime) 45%, transparent);
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background-color 0.25s ease;
+  &:hover { transform: translateY(-2px); background-color: #95e800; }
 }
-.btn-gradient-lime:hover { transform: translateY(-2px); background-color: #95e800; }
 
-.btn-outline-glow {
+@utility btn-outline-glow {
   border: 1.5px solid rgb(13 13 17 / 0.15);
   transition: all 0.25s ease;
+  &:hover {
+    border-color: var(--color-brand-purple);
+    color: var(--color-brand-purple);
+    background: #fff;
+  }
 }
-.btn-outline-glow:hover { border-color: #ba28e2; color: #ba28e2; background: #fff; }
 
-/* Festival sticker base */
-.sticker {
+/* ---- Festival sticker (floating badge) ----------------------- */
+@utility sticker {
   position: absolute;
   display: inline-flex;
   align-items: center;
@@ -228,134 +318,115 @@ html.lenis, html.lenis body { height: auto; }
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  box-shadow: 0 12px 30px -12px rgb(13 13 17 / 0.3);
   z-index: 5;
 }
 
-/* Noise overlay (pure SVG, no assets) */
-.noise::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.7'/%3E%3C/svg%3E");
+/* ---- Texture overlays ---------------------------------------- */
+@utility noise {
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.7'/%3E%3C/svg%3E");
+  }
 }
 
-/* Dotted pattern background */
-.dots-bg {
-  background-image: radial-gradient(rgb(13 13 17 / 0.1) 1px, transparent 1px);
+@utility dots-bg {
+  background-image: radial-gradient(var(--dots-color) 1px, transparent 1px);
   background-size: 22px 22px;
 }
-.dots-bg-light {
+
+@utility dots-bg-light {
   background-image: radial-gradient(rgb(255 255 255 / 0.16) 1px, transparent 1px);
   background-size: 22px 22px;
 }
-html.dark .dots-bg {
-  background-image: radial-gradient(rgb(255 255 255 / 0.12) 1px, transparent 1px);
-}
 
-/* Skeleton loading (solid pulse, no gradient) */
-.skeleton {
+/* ---- Skeleton loading ----------------------------------------- */
+@utility skeleton {
   position: relative;
   overflow: hidden;
-  background: #ececf2;
+  background: var(--skeleton-bg);
   border-radius: 1rem;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--skeleton-shine);
+    animation: skeletonPulse 1.4s ease-in-out infinite;
+  }
 }
-.skeleton::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgb(255 255 255 / 0.6);
-  animation: skeletonPulse 1.4s ease-in-out infinite;
-}
-html.dark .skeleton { background: #1a1a22; }
-html.dark .skeleton::after { background: rgb(255 255 255 / 0.07); }
+
 @keyframes skeletonPulse {
   0%, 100% { opacity: 0.25; }
   50% { opacity: 0.75; }
 }
 
-/* Card hover lift */
-.card-lift { transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease; }
-.card-lift:hover { transform: translateY(-6px); box-shadow: var(--shadow-soft); }
+/* ---- Card motion ---------------------------------------------- */
+@utility card-lift {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-soft);
+  }
+}
 
-/* Anton display helper */
-.font-display { font-family: var(--font-display); letter-spacing: 0.01em; }
-
-/* ══════════════════════════════════════════════════════════════
-   FESTIVAL NIGHT LAYER — gradients · glass · aurora
-   Dark-first art direction for the Eventrix landing page.
-   Light mode is a clean variant; every rule flips with .dark.
-   ══════════════════════════════════════════════════════════════ */
-
-/* ---- Glass surfaces -------------------------------------------------- */
-.glass {
-  background: rgb(255 255 255 / 0.06);
-  border: 1px solid rgb(255 255 255 / 0.12);
+/* ---- Glass surfaces (theme-flipping via semantic vars) -------- */
+@utility glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   backdrop-filter: blur(18px) saturate(1.35);
   -webkit-backdrop-filter: blur(18px) saturate(1.35);
 }
-html:not(.dark) .glass {
-  background: rgb(255 255 255 / 0.62);
-  border-color: rgb(13 13 17 / 0.08);
-}
 
-.glass-strong {
-  background: rgb(17 17 27 / 0.72);
-  border: 1px solid rgb(255 255 255 / 0.14);
+@utility glass-strong {
+  background: var(--glass-strong-bg);
+  border: 1px solid var(--glass-strong-border);
   backdrop-filter: blur(22px) saturate(1.4);
   -webkit-backdrop-filter: blur(22px) saturate(1.4);
 }
-html:not(.dark) .glass-strong {
-  background: rgb(255 255 255 / 0.82);
-  border-color: rgb(13 13 17 / 0.08);
-}
 
 /* Card that lifts + lights its border on hover */
-.glass-card {
+@utility glass-card {
   transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease, border-color 0.4s ease, background 0.4s ease;
-}
-.glass-card:hover {
-  transform: translateY(-6px);
-  border-color: rgb(255 45 122 / 0.45);
-  box-shadow: 0 30px 60px -24px rgb(186 40 226 / 0.45);
+  &:hover {
+    transform: translateY(-6px);
+    border-color: color-mix(in oklab, var(--color-brand-pink) 45%, transparent);
+    box-shadow: 0 30px 60px -24px color-mix(in oklab, var(--color-brand-purple) 45%, transparent);
+  }
 }
 
-/* ---- Sunset gradient text -------------------------------------------- */
-.text-gradient-sunset {
-  background-image: linear-gradient(92deg, #ff5a1f 0%, #ff2d7a 46%, #ba28e2 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
+/* ---- Editorial outline text ----------------------------------- */
+@utility text-outline {
   color: transparent;
+  -webkit-text-stroke: 2px var(--outline-color);
 }
 
-/* Outlined display word (editorial contrast against the gradient) */
-.text-outline {
-  color: transparent;
-  -webkit-text-stroke: 2px rgb(255 255 255 / 0.9);
-}
-html:not(.dark) .text-outline {
-  -webkit-text-stroke: 2px rgb(13 13 17 / 0.9);
-}
-
-/* ---- Hero aurora (dynamic gradient background) ------------------------ */
-.aurora-blob {
+/* ---- Hero aurora (dynamic gradient background) ---------------- */
+@utility aurora-blob {
   position: absolute;
   border-radius: 9999px;
   filter: blur(90px);
   will-change: transform;
   pointer-events: none;
 }
-.aurora-a { background: radial-gradient(circle, rgb(186 40 226 / 0.5), transparent 65%); animation: var(--animate-aurora-a); }
-.aurora-b { background: radial-gradient(circle, rgb(255 45 122 / 0.42), transparent 65%); animation: var(--animate-aurora-b); }
-.aurora-c { background: radial-gradient(circle, rgb(255 90 31 / 0.34), transparent 65%); animation: var(--animate-aurora-c); }
-html:not(.dark) .aurora-a { background: radial-gradient(circle, rgb(186 40 226 / 0.22), transparent 65%); }
-html:not(.dark) .aurora-b { background: radial-gradient(circle, rgb(255 45 122 / 0.18), transparent 65%); }
-html:not(.dark) .aurora-c { background: radial-gradient(circle, rgb(255 90 31 / 0.16), transparent 65%); }
 
-/* ---- Ticket pass ------------------------------------------------------ */
-.barcode {
+@utility aurora-a {
+  background: var(--aurora-a);
+  animation: var(--animate-aurora-a);
+}
+@utility aurora-b {
+  background: var(--aurora-b);
+  animation: var(--animate-aurora-b);
+}
+@utility aurora-c {
+  background: var(--aurora-c);
+  animation: var(--animate-aurora-c);
+}
+
+/* ---- Ticket pass ---------------------------------------------- */
+@utility barcode {
   height: 30px;
   background-image: repeating-linear-gradient(
     90deg,
@@ -367,31 +438,26 @@ html:not(.dark) .aurora-c { background: radial-gradient(circle, rgb(255 90 31 / 
 }
 
 /* Perforation notches: semicircle cut-outs at the card edges.
-   The hero stage is always night, so notches match #0b0b14 in both themes. */
-.ticket-notch {
+   The hero stage is always night, so notches match the night ink. */
+@utility ticket-notch {
   position: absolute;
   width: 26px;
   height: 26px;
   border-radius: 9999px;
-  background: #0b0b14;
+  background: var(--color-night);
   top: -13px;
   z-index: 2;
 }
 
-/* ---- Lineup / marquee band -------------------------------------------- */
-.marquee-band {
+/* ---- Marquee band (lives inside the always-night hero) -------- */
+@utility marquee-band {
   border-top: 1px solid rgb(255 255 255 / 0.09);
   border-bottom: 1px solid rgb(255 255 255 / 0.09);
 }
-html:not(.dark) .marquee-band {
-  border-color: rgb(13 13 17 / 0.09);
-}
 
-/* ---- Utility: mono eyebrows (data, labels) ---------------------------- */
-.eyebrow {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
+/* ---- Hide scrollbars (horizontal snap rows, etc.) ------------- */
+@utility no-scrollbar {
+  &::-webkit-scrollbar { display: none; }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
