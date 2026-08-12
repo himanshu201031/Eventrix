@@ -2,8 +2,12 @@ import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { AuthContext } from '../context/auth';
 import api from '../utils/axios';
 import { useNavigate } from 'react-router-dom';
-import { FaPlus, FaTrashAlt, FaCheck, FaTimes, FaChartLine, FaUsers, FaClock } from 'react-icons/fa';
-import { HiSparkles } from 'react-icons/hi2';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Reveal } from '../animations';
+import {
+    Plus, Trash2, Check, X, Users, Clock, Sparkle, CalendarDays,
+    Ticket, IndianRupee, XCircle,
+} from 'lucide-react';
 
 const AdminDashboard = () => {
     const { user } = useContext(AuthContext);
@@ -39,7 +43,8 @@ const AdminDashboard = () => {
             navigate('/login');
             return;
         }
-        fetchData();
+        const load = async () => { await fetchData(); };
+        load();
     }, [user, navigate, fetchData]);
 
     const handleCreateEvent = async (e) => {
@@ -75,7 +80,7 @@ const AdminDashboard = () => {
     };
 
     const handleCancelBooking = async (id) => {
-        if (window.confirm('Cancel this user\'s booking request?')) {
+        if (window.confirm("Cancel this user's booking request?")) {
             try {
                 await api.delete(`/bookings/${id}`);
                 fetchData();
@@ -86,207 +91,236 @@ const AdminDashboard = () => {
     };
 
     if (loading) {
-        return <div className="text-center py-28 font-bold text-gray-500">Loading admin suite...</div>;
+        return (
+            <div className="mx-auto max-w-7xl px-4 pt-28 pb-16 sm:px-6 sm:pt-32">
+                <div className="skeleton h-40 w-full rounded-[2rem]" />
+                <div className="mt-6 grid grid-cols-3 gap-4">
+                    {[1, 2, 3].map((n) => <div key={n} className="skeleton h-28 w-full" />)}
+                </div>
+                <div className="mt-6 skeleton h-96 w-full rounded-[2rem]" />
+            </div>
+        );
     }
 
-    const totalRevenue = bookings.reduce((sum, b) => b.paymentStatus === 'paid' && b.status === 'confirmed' ? sum + (b.amount || 0) : sum, 0);
-    const paidClientsCount = new Set(bookings.filter(b => b.paymentStatus === 'paid' && b.status === 'confirmed').map(b => b.userId?._id)).size;
-    const pendingRequestsCount = bookings.filter(b => b.status === 'pending').length;
+    const totalRevenue = bookings.reduce((sum, b) => (b.paymentStatus === 'paid' && b.status === 'confirmed' ? sum + (b.amount || 0) : sum), 0);
+    const paidClientsCount = new Set(bookings.filter((b) => b.paymentStatus === 'paid' && b.status === 'confirmed').map((b) => b.userId?._id)).size;
+    const pendingRequestsCount = bookings.filter((b) => b.status === 'pending').length;
+
+    const metrics = [
+        { label: 'Gross ticket revenue', value: `₹${totalRevenue}`, icon: IndianRupee, accent: 'bg-brand-purple' },
+        { label: 'Paid attendees', value: paidClientsCount, icon: Users, accent: 'bg-brand-pink' },
+        { label: 'Pending approvals', value: pendingRequestsCount, icon: Clock, accent: 'bg-brand-orange' },
+        { label: 'Live events', value: events.length, icon: CalendarDays, accent: 'bg-brand-cyan text-brand-dark' },
+    ];
+
+    const inputClass = 'w-full rounded-2xl border border-black/10 bg-brand-light p-3.5 text-sm font-semibold text-gray-900 outline-none transition-colors focus:border-brand-purple dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-ink dark:placeholder-dark-muted';
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-            {/* Header Banner */}
-            <div className="bg-[#0B0B0B] text-white p-6 sm:p-10 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
-                <div className="space-y-1 text-center md:text-left">
-                    <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-[#8522FF] text-white text-[10px] font-extrabold uppercase">
-                        <HiSparkles /> ADMIN CONSOLE
-                    </span>
-                    <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight">Eventrix Admin Suite</h1>
-                    <p className="text-xs text-gray-400 font-bold">Manage showcase events, approve gate access, and track gross revenues.</p>
-                </div>
-
-                <button
-                    onClick={() => setShowEventForm(!showEventForm)}
-                    className="bg-[#D2FF00] hover:bg-[#bce400] text-black font-extrabold py-3 px-6 rounded-full text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2"
-                >
-                    <FaPlus /> {showEventForm ? 'Close Form' : 'Publish New Event'}
-                </button>
-            </div>
-
-            {/* Metric Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-3xl border border-black/10 space-y-2 shadow-sm">
-                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider block">GROSS TICKET REVENUE</span>
-                    <div className="flex items-baseline justify-between">
-                        <span className="font-display font-black text-3xl text-black">₹{totalRevenue}</span>
-                        <FaChartLine className="text-[#8522FF] text-xl" />
-                    </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-3xl border border-black/10 space-y-2 shadow-sm">
-                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider block">PAID ATTENDEES</span>
-                    <div className="flex items-baseline justify-between">
-                        <span className="font-display font-black text-3xl text-black">{paidClientsCount}</span>
-                        <FaUsers className="text-[#8522FF] text-xl" />
-                    </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-3xl border border-black/10 space-y-2 shadow-sm">
-                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider block">PENDING APPROVALS</span>
-                    <div className="flex items-baseline justify-between">
-                        <span className="font-display font-black text-3xl text-black">{pendingRequestsCount}</span>
-                        <FaClock className="text-amber-500 text-xl" />
-                    </div>
-                </div>
-            </div>
-
-            {/* Event Creation Form */}
-            {showEventForm && (
-                <div className="bg-white p-8 rounded-3xl border border-black/10 space-y-6 shadow-xl animate-fadeIn">
-                    <div className="flex items-center justify-between border-b border-black/10 pb-4">
-                        <h2 className="font-display font-black text-xl text-black uppercase">Publish New Event Experience</h2>
-                        <button onClick={() => setShowEventForm(false)} className="text-gray-500 hover:text-black font-extrabold">✕</button>
-                    </div>
-
-                    <form onSubmit={handleCreateEvent} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                            <label className="text-xs font-extrabold text-gray-700 uppercase">Event Title</label>
-                            <input required type="text" placeholder="Title" className="w-full bg-gray-50 border border-black/10 rounded-2xl p-3 text-xs text-black font-bold focus:border-[#8522FF]" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} />
+        <div className="mx-auto max-w-7xl px-4 pt-24 pb-16 sm:px-6 sm:pt-28 lg:px-8">
+            {/* Header */}
+            <Reveal>
+                <div className="relative overflow-hidden rounded-[2rem] border border-black/10 bg-white p-8 sm:p-10 dark:border-dark-line dark:bg-dark-surface">
+                    <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-purple/10" />
+                    <div className="absolute -bottom-20 left-1/3 h-48 w-48 rounded-full bg-brand-pink/10" />
+                    <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                        <div className="space-y-2">
+                            <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-purple/20 bg-brand-purple/10 px-3.5 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-brand-purple">
+                                <Sparkle className="h-3 w-3" /> Admin console
+                            </span>
+                            <h1 className="font-display text-3xl uppercase leading-tight text-brand-dark sm:text-4xl dark:text-dark-ink">Eventrix admin suite</h1>
+                            <p className="text-sm text-gray-500 dark:text-dark-muted">Manage events, approve gate access and track gross revenues.</p>
                         </div>
-
-                        <div className="space-y-1">
-                            <label className="text-xs font-extrabold text-gray-700 uppercase">Category (Genre)</label>
-                            <input required type="text" placeholder="Music, Tech, Arts, Food, Gaming" className="w-full bg-gray-50 border border-black/10 rounded-2xl p-3 text-xs text-black font-bold focus:border-[#8522FF]" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} />
-                        </div>
-
-                        <div className="space-y-1">
-                            <label className="text-xs font-extrabold text-gray-700 uppercase">Event Date</label>
-                            <input required type="date" className="w-full bg-gray-50 border border-black/10 rounded-2xl p-3 text-xs text-black font-bold focus:border-[#8522FF]" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} />
-                        </div>
-
-                        <div className="space-y-1">
-                            <label className="text-xs font-extrabold text-gray-700 uppercase">Venue Location</label>
-                            <input required type="text" placeholder="Cyber Arena, Main Stage" className="w-full bg-gray-50 border border-black/10 rounded-2xl p-3 text-xs text-black font-bold focus:border-[#8522FF]" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} />
-                        </div>
-
-                        <div className="space-y-1">
-                            <label className="text-xs font-extrabold text-gray-700 uppercase">Total Seats</label>
-                            <input required type="number" placeholder="200" className="w-full bg-gray-50 border border-black/10 rounded-2xl p-3 text-xs text-black font-bold focus:border-[#8522FF]" value={formData.totalSeats} onChange={e => setFormData({ ...formData, totalSeats: e.target.value })} />
-                        </div>
-
-                        <div className="space-y-1">
-                            <label className="text-xs font-extrabold text-gray-700 uppercase">Ticket Price (₹, 0 for free)</label>
-                            <input required type="number" placeholder="1499" className="w-full bg-gray-50 border border-black/10 rounded-2xl p-3 text-xs text-black font-bold focus:border-[#8522FF]" value={formData.ticketPrice} onChange={e => setFormData({ ...formData, ticketPrice: e.target.value })} />
-                        </div>
-
-                        <div className="md:col-span-2 space-y-1">
-                            <label className="text-xs font-extrabold text-gray-700 uppercase">Cover Image Direct Link</label>
-                            <input type="text" placeholder="https://..." className="w-full bg-gray-50 border border-black/10 rounded-2xl p-3 text-xs text-black font-bold focus:border-[#8522FF]" value={formData.image} onChange={e => setFormData({ ...formData, image: e.target.value })} />
-                        </div>
-
-                        <div className="md:col-span-2 space-y-1">
-                            <label className="text-xs font-extrabold text-gray-700 uppercase">Event Description</label>
-                            <textarea required placeholder="Information about stages, hosts, agenda..." className="w-full bg-gray-50 border border-black/10 rounded-2xl p-3 text-xs text-black font-bold focus:border-[#8522FF] h-24" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
-                        </div>
-
-                        <button type="submit" className="md:col-span-2 bg-[#8522FF] text-white font-extrabold py-3.5 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md">
-                            Publish Event Experience
+                        <button
+                            onClick={() => setShowEventForm(!showEventForm)}
+                            className={`flex shrink-0 items-center gap-2 rounded-full px-7 py-3.5 text-xs font-extrabold uppercase tracking-wider transition-all ${
+                                showEventForm ? 'border border-black/10 bg-brand-light text-gray-600 dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-muted' : 'btn-gradient-lime text-brand-dark'
+                            }`}
+                        >
+                            <Plus className="h-4 w-4" /> {showEventForm ? 'Close form' : 'Publish new event'}
                         </button>
-                    </form>
+                    </div>
                 </div>
-            )}
+            </Reveal>
 
-            {/* Admin Tabs */}
-            <div className="flex items-center gap-2 border-b border-black/10 pb-4">
+            {/* Metrics */}
+            <div className="mt-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
+                {metrics.map((m, i) => (
+                    <Reveal key={m.label} delay={i * 0.06}>
+                        <div className="card-lift rounded-3xl border border-black/5 bg-white p-5 shadow-soft dark:border-dark-line dark:bg-dark-surface">
+                            <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${m.accent} shadow-lg`}>
+                                <m.icon className="h-5 w-5" />
+                            </div>
+                            <div className="mt-4 font-display text-3xl">{m.value}</div>
+                            <div className="text-[11px] font-black uppercase tracking-wider text-gray-400 dark:text-dark-muted">{m.label}</div>
+                        </div>
+                    </Reveal>
+                ))}
+            </div>
+
+            {/* Create event form */}
+            <AnimatePresence>
+                {showEventForm && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 16, height: 0 }}
+                        animate={{ opacity: 1, y: 0, height: 'auto' }}
+                        exit={{ opacity: 0, y: 16, height: 0 }}
+                        className="overflow-hidden"
+                    >
+                        <div className="mt-6 rounded-[2rem] border border-black/5 bg-white p-6 shadow-soft sm:p-8 dark:border-dark-line dark:bg-dark-surface">
+                            <div className="flex items-center justify-between border-b border-black/5 pb-4 dark:border-dark-line">
+                                <h2 className="font-display text-xl uppercase">Publish new event experience</h2>
+                                <button onClick={() => setShowEventForm(false)} className="text-gray-400 hover:text-black dark:text-dark-muted dark:hover:text-dark-ink">
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+                            <form onSubmit={handleCreateEvent} className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-black uppercase text-gray-500 dark:text-dark-muted">Event title</label>
+                                    <input required type="text" placeholder="Sunset Music Festival 2025" className={inputClass} value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-black uppercase text-gray-500 dark:text-dark-muted">Category (genre)</label>
+                                    <input required type="text" placeholder="Music, Tech, Arts, Food, Gaming" className={inputClass} value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-black uppercase text-gray-500 dark:text-dark-muted">Event date</label>
+                                    <input required type="date" className={inputClass} value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-black uppercase text-gray-500 dark:text-dark-muted">Venue location</label>
+                                    <input required type="text" placeholder="Goa, India" className={inputClass} value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-black uppercase text-gray-500 dark:text-dark-muted">Total seats</label>
+                                    <input required type="number" placeholder="200" className={inputClass} value={formData.totalSeats} onChange={(e) => setFormData({ ...formData, totalSeats: e.target.value })} />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-black uppercase text-gray-500 dark:text-dark-muted">Ticket price (₹, 0 for free)</label>
+                                    <input required type="number" placeholder="1499" className={inputClass} value={formData.ticketPrice} onChange={(e) => setFormData({ ...formData, ticketPrice: e.target.value })} />
+                                </div>
+                                <div className="space-y-1.5 md:col-span-2">
+                                    <label className="text-[11px] font-black uppercase text-gray-500 dark:text-dark-muted">Cover image direct link</label>
+                                    <input type="text" placeholder="https://..." className={inputClass} value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} />
+                                </div>
+                                <div className="space-y-1.5 md:col-span-2">
+                                    <label className="text-[11px] font-black uppercase text-gray-500 dark:text-dark-muted">Event description</label>
+                                    <textarea required placeholder="Information about stages, hosts, agenda..." className={`${inputClass} h-24 resize-none`} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+                                </div>
+                                <button type="submit" className="btn-gradient md:col-span-2 flex items-center justify-center gap-2 rounded-2xl py-4 text-xs font-extrabold uppercase tracking-wider text-white">
+                                    <Plus className="h-4 w-4" /> Publish event experience
+                                </button>
+                            </form>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Tabs */}
+            <div className="mt-8 flex items-center gap-2">
                 <button
                     onClick={() => setActiveTab('bookings')}
-                    className={`px-5 py-2.5 rounded-full text-xs font-extrabold uppercase transition-all ${activeTab === 'bookings' ? 'bg-[#8522FF] text-white shadow-md' : 'bg-white text-gray-700 border border-black/10'}`}
+                    className={`relative rounded-full px-6 py-2.5 text-xs font-extrabold uppercase tracking-wider transition-all ${activeTab === 'bookings' ? 'text-white' : 'border border-black/10 bg-white text-gray-600 dark:border-dark-line dark:bg-dark-surface dark:text-dark-muted'}`}
                 >
-                    Booking Approvals ({bookings.length})
+                    {activeTab === 'bookings' && (
+                        <motion.span layoutId="admin-tab" className="absolute inset-0 rounded-full bg-brand-purple" transition={{ type: 'spring', stiffness: 320, damping: 26 }} />
+                    )}
+                    <span className="relative z-10">Booking approvals ({bookings.length})</span>
                 </button>
                 <button
                     onClick={() => setActiveTab('events')}
-                    className={`px-5 py-2.5 rounded-full text-xs font-extrabold uppercase transition-all ${activeTab === 'events' ? 'bg-[#8522FF] text-white shadow-md' : 'bg-white text-gray-700 border border-black/10'}`}
+                    className={`relative rounded-full px-6 py-2.5 text-xs font-extrabold uppercase tracking-wider transition-all ${activeTab === 'events' ? 'text-white' : 'border border-black/10 bg-white text-gray-600 dark:border-dark-line dark:bg-dark-surface dark:text-dark-muted'}`}
                 >
-                    All Events ({events.length})
+                    {activeTab === 'events' && (
+                        <motion.span layoutId="admin-tab" className="absolute inset-0 rounded-full bg-brand-purple" transition={{ type: 'spring', stiffness: 320, damping: 26 }} />
+                    )}
+                    <span className="relative z-10">All events ({events.length})</span>
                 </button>
             </div>
 
-            {/* Tab 1: Bookings Management */}
+            {/* Bookings management */}
             {activeTab === 'bookings' && (
-                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-black/10 space-y-6 shadow-sm">
-                    <h2 className="font-display font-black text-xl text-black uppercase">Booking Requests</h2>
-                    <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                <div className="mt-6 rounded-[2rem] border border-black/5 bg-white p-6 shadow-soft sm:p-8 dark:border-dark-line dark:bg-dark-surface">
+                    <h2 className="font-display text-xl uppercase">Booking requests</h2>
+                    <div className="mt-5 max-h-[600px] space-y-4 overflow-y-auto pr-1" data-lenis-prevent>
                         {bookings.length === 0 ? (
-                            <p className="text-gray-500 font-bold text-xs text-center py-8">No booking requests submitted yet.</p>
+                            <p className="py-10 text-center text-sm font-bold text-gray-400 dark:text-dark-muted">No booking requests submitted yet.</p>
                         ) : (
                             bookings.map((booking) => (
-                                <div key={booking._id} className="bg-gray-50 p-5 rounded-2xl border border-black/10 space-y-4">
-                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                                <motion.div
+                                    key={booking._id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    className="rounded-2xl border border-black/5 bg-brand-light p-5 dark:border-dark-line dark:bg-dark-surface-2"
+                                >
+                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                         <div>
-                                            <h4 className="font-display font-black text-[#0A0A0C] text-base uppercase">{booking.eventId?.title || 'Deleted Event'}</h4>
-                                            <p className="text-xs font-bold text-gray-600">
-                                                User: <strong className="text-black">{booking.userId?.username || 'Guest'}</strong> ({booking.userId?.email})
+                                            <h4 className="font-display text-base uppercase">{booking.eventId?.title || 'Deleted event'}</h4>
+                                            <p className="mt-0.5 text-xs font-bold text-gray-600 dark:text-dark-muted">
+                                                User: <strong className="text-gray-900 dark:text-dark-ink">{booking.userId?.username || 'Guest'}</strong> ({booking.userId?.email}) · ₹{booking.amount || 0} · {booking.quantity || 1} ticket(s)
                                             </p>
                                         </div>
-                                        <span className={`px-2.5 py-0.5 text-[10px] font-black rounded-full uppercase ${booking.status === 'confirmed' ? 'bg-[#D2FF00] text-black' :
-                                            booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                                                'bg-amber-100 text-amber-800'
-                                            }`}>
+                                        <span className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-black uppercase ${booking.status === 'confirmed' ? 'bg-brand-lime/30 text-brand-lime-deep dark:bg-brand-lime/20' : booking.status === 'cancelled' ? 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'}`}>
                                             {booking.status}
                                         </span>
                                     </div>
 
                                     {booking.status === 'pending' && (
-                                        <div className="flex flex-wrap gap-2 pt-2 border-t border-black/10">
+                                        <div className="mt-4 flex flex-wrap gap-2 border-t border-black/5 pt-4 dark:border-dark-line">
                                             <button
                                                 onClick={() => handleConfirmBooking(booking._id, 'paid')}
-                                                className="bg-[#D2FF00] hover:bg-[#bce400] text-black text-xs font-extrabold py-2 px-4 rounded-xl transition-all flex items-center gap-1"
+                                                className="btn-gradient-lime flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-extrabold uppercase"
                                             >
-                                                <FaCheck /> Approve as Paid (₹{booking.amount})
+                                                <Check className="h-3.5 w-3.5" /> Approve as paid (₹{booking.amount})
                                             </button>
                                             <button
                                                 onClick={() => handleConfirmBooking(booking._id, 'not_paid')}
-                                                className="bg-gray-200 text-black text-xs font-extrabold py-2 px-4 rounded-xl transition-all"
+                                                className="rounded-xl border border-black/10 bg-white px-4 py-2.5 text-xs font-extrabold uppercase text-gray-700 transition-all hover:border-brand-purple dark:border-dark-line dark:bg-dark-surface dark:text-dark-muted"
                                             >
-                                                Approve Undecided
+                                                Approve undecided
                                             </button>
                                             <button
                                                 onClick={() => handleCancelBooking(booking._id)}
-                                                className="bg-red-100 hover:bg-red-200 text-red-700 text-xs font-extrabold py-2 px-4 rounded-xl transition-all flex items-center gap-1 ml-auto"
+                                                className="ml-auto flex items-center gap-1.5 rounded-xl bg-red-50 px-4 py-2.5 text-xs font-extrabold uppercase text-red-600 transition-all hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
                                             >
-                                                <FaTimes /> Reject
+                                                <XCircle className="h-3.5 w-3.5" /> Reject
                                             </button>
                                         </div>
                                     )}
-                                </div>
+                                </motion.div>
                             ))
                         )}
                     </div>
                 </div>
             )}
 
-            {/* Tab 2: Events Catalogue */}
+            {/* Events catalogue */}
             {activeTab === 'events' && (
-                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-black/10 space-y-6 shadow-sm">
-                    <h2 className="font-display font-black text-xl text-black uppercase">Live Event Catalogue</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="mt-6 rounded-[2rem] border border-black/5 bg-white p-6 shadow-soft sm:p-8 dark:border-dark-line dark:bg-dark-surface">
+                    <h2 className="font-display text-xl uppercase">Live event catalogue</h2>
+                    <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
                         {events.map((event) => (
-                            <div key={event._id} className="bg-gray-50 p-5 rounded-2xl border border-black/10 flex items-center justify-between gap-4">
-                                <div className="space-y-1">
-                                    <span className="text-[10px] font-black uppercase text-[#8522FF]">{event.category}</span>
-                                    <h4 className="font-display font-black text-black text-sm uppercase line-clamp-1">{event.title}</h4>
-                                    <p className="text-xs font-bold text-gray-500">{event.availableSeats} of {event.totalSeats} seats left</p>
+                            <div key={event._id} className="flex items-center justify-between gap-4 rounded-2xl border border-black/5 bg-brand-light p-5 transition-all hover:border-brand-purple/30 dark:border-dark-line dark:bg-dark-surface-2">
+                                <div className="min-w-0">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-brand-purple">{event.category}</span>
+                                    <h4 className="font-display mt-0.5 text-sm uppercase line-clamp-1">{event.title}</h4>
+                                    <p className="mt-1 flex items-center gap-2 text-xs font-bold text-gray-500 dark:text-dark-muted">
+                                        <Ticket className="h-3 w-3 text-brand-pink" />
+                                        {event.availableSeats} of {event.totalSeats} seats left · ₹{event.ticketPrice || 0}
+                                    </p>
                                 </div>
                                 <button
                                     onClick={() => handleDeleteEvent(event._id)}
-                                    className="w-9 h-9 rounded-xl bg-red-100 text-red-600 hover:bg-red-600 hover:text-white flex items-center justify-center transition-all shrink-0"
-                                    title="Delete Event"
+                                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-500 transition-all hover:bg-red-500 hover:text-white dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500 dark:hover:text-white"
+                                    title="Delete event"
                                 >
-                                    <FaTrashAlt className="text-xs" />
+                                    <Trash2 className="h-4 w-4" />
                                 </button>
                             </div>
                         ))}
+                        {events.length === 0 && (
+                            <p className="col-span-full py-10 text-center text-sm font-bold text-gray-400 dark:text-dark-muted">No events published yet.</p>
+                        )}
                     </div>
                 </div>
             )}

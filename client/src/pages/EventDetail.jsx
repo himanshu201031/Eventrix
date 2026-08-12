@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import api from '../utils/axios';
 import { AuthContext } from '../context/auth';
 import BookingModal from '../components/BookingModal';
-import { FaCalendarAlt, FaMapMarkerAlt, FaChair, FaClock, FaCheckCircle, FaQuestionCircle, FaShareAlt } from 'react-icons/fa';
-import { FaArrowUpRightFromSquare } from 'react-icons/fa6';
-import { HiSparkles, HiUserGroup, HiCheckCircle } from 'react-icons/hi2';
+import { Reveal } from '../animations';
+import {
+    CalendarDays, MapPin, Clock, Share2, ChevronRight, Minus, Plus, Star,
+    CheckCircle2, HelpCircle, Music2, Users, Ticket, ArrowUpRight, Home, Sparkle,
+} from 'lucide-react';
 
 const EventDetail = () => {
     const { id } = useParams();
@@ -17,6 +20,8 @@ const EventDetail = () => {
 
     const [activeTab, setActiveTab] = useState('overview');
     const [showBookingModal, setShowBookingModal] = useState(false);
+    const [quantity, setQuantity] = useState(1);
+    const [tier, setTier] = useState('general');
     const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
     useEffect(() => {
@@ -36,38 +41,53 @@ const EventDetail = () => {
     useEffect(() => {
         if (!event || !event.date) return;
         const targetDate = new Date(event.date).getTime();
-
         const timer = setInterval(() => {
             const now = new Date().getTime();
             const difference = targetDate - now;
-
             if (difference <= 0) {
                 clearInterval(timer);
                 setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
             } else {
-                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-                setTimeLeft({ days, hours, minutes, seconds });
+                setTimeLeft({
+                    days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                    hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+                    minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+                    seconds: Math.floor((difference % (1000 * 60)) / 1000),
+                });
             }
         }, 1000);
-
         return () => clearInterval(timer);
     }, [event]);
 
     if (loading) {
-        return <div className="text-center py-28 font-bold text-gray-500">Loading event details...</div>;
+        return (
+            <div className="mx-auto max-w-7xl px-4 pt-28 pb-16 sm:px-6 sm:pt-32">
+                <div className="skeleton h-[420px] w-full rounded-[2.5rem]" />
+                <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-12">
+                    <div className="lg:col-span-8 space-y-6">
+                        <div className="skeleton h-10 w-2/3" />
+                        <div className="skeleton h-6 w-1/3" />
+                        <div className="skeleton h-40 w-full" />
+                    </div>
+                    <div className="lg:col-span-4">
+                        <div className="skeleton h-80 w-full" />
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     if (error || !event) {
         return (
-            <div className="bg-white max-w-xl mx-auto p-12 text-center rounded-3xl border border-black/10 space-y-4 my-16">
-                <h3 className="font-display font-black text-2xl text-black">Event Not Found</h3>
-                <p className="text-red-500 text-xs font-bold">{error || 'This event does not exist.'}</p>
-                <Link to="/" className="inline-block bg-[#8522FF] text-white font-extrabold px-6 py-2.5 rounded-full text-xs uppercase">
-                    Return Home
-                </Link>
+            <div className="mx-auto max-w-xl px-4 pt-32 pb-16 text-center">
+                <div className="rounded-[2rem] border border-black/5 bg-white p-12 shadow-soft dark:border-dark-line dark:bg-dark-surface">
+                    <Ticket className="mx-auto h-12 w-12 text-brand-purple" />
+                    <h3 className="font-display mt-4 text-3xl uppercase">Event not found</h3>
+                    <p className="mt-2 text-sm text-gray-500 dark:text-dark-muted">{error || 'This event does not exist.'}</p>
+                    <Link to="/" className="btn-gradient mt-6 inline-flex items-center gap-2 rounded-full px-8 py-3 text-xs font-extrabold uppercase tracking-wider text-white">
+                        <Home className="h-4 w-4" /> Return home
+                    </Link>
+                </div>
             </div>
         );
     }
@@ -75,230 +95,364 @@ const EventDetail = () => {
     const availableSeats = event.availableSeats ?? event.totalSeats ?? 50;
     const totalSeats = event.totalSeats ?? 100;
     const isSoldOut = availableSeats <= 0;
+    const basePrice = event.ticketPrice || 0;
+
+    const tiers = [
+        { id: 'general', name: 'General Pass', price: basePrice, perks: 'Main stage access · standard seating' },
+        { id: 'vip', name: 'VIP Pass', price: Math.round(basePrice * 1.6), perks: 'Express lane · lounge · merch' },
+        { id: 'vvip', name: 'VVIP Pass', price: Math.round(basePrice * 2.4), perks: 'Front row · meet & greet · free flow' },
+    ];
+    const activeTier = tiers.find((t) => t.id === tier) || tiers[0];
+
+    const openBooking = () => {
+        if (!user) navigate('/login');
+        else setShowBookingModal(true);
+    };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
-            {/* Hero Image Banner */}
-            <div className="relative rounded-[2.5rem] overflow-hidden bg-gray-900 border border-black/10 shadow-xl h-[400px] sm:h-[480px]">
-                <img
-                    src={event.image || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1600&auto=format&fit=crop'}
-                    alt={event.title}
-                    className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
+        <div className="mx-auto max-w-7xl px-4 pt-24 pb-16 sm:px-6 sm:pt-28 lg:px-8">
+            {/* Breadcrumb */}
+            <nav className="flex items-center gap-2 text-xs font-bold text-gray-500 dark:text-dark-muted">
+                <Link to="/" className="flex items-center gap-1 transition-colors hover:text-brand-purple"><Home className="h-3.5 w-3.5" /> Home</Link>
+                <ChevronRight className="h-3.5 w-3.5 text-gray-300 dark:text-dark-muted" />
+                <Link to="/events" className="transition-colors hover:text-brand-purple">Events</Link>
+                <ChevronRight className="h-3.5 w-3.5 text-gray-300 dark:text-dark-muted" />
+                <span className="text-gray-900 line-clamp-1 dark:text-dark-ink">{event.title}</span>
+            </nav>
 
-                <div className="absolute top-6 left-6 right-6 flex justify-between items-center z-10">
-                    <span className="bg-[#8522FF] text-white text-xs font-black px-4 py-2 rounded-full uppercase tracking-wider shadow-lg">
-                        <HiSparkles className="inline mr-1" /> {event.category || 'SHOWCASE'}
-                    </span>
+            {/* Banner */}
+            <Reveal>
+                <div className="relative mt-6 h-[380px] overflow-hidden rounded-[2.5rem] bg-brand-gray-900 shadow-soft sm:h-[480px]">
+                    <img
+                        src={event.image || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1600&auto=format&fit=crop'}
+                        alt={event.title}
+                        className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/55" />
 
-                    <button
-                        onClick={() => navigator.clipboard?.writeText(window.location.href)}
-                        className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#8522FF] hover:text-white transition-all shadow-lg"
-                        title="Share Event Link"
-                    >
-                        <FaShareAlt className="text-sm" />
-                    </button>
-                </div>
-
-                <div className="absolute bottom-8 left-8 right-8 z-10 space-y-3">
-                    <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-gray-300">
-                        <span><FaCalendarAlt className="inline text-[#D2FF00]" /> {new Date(event.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</span>
-                        <span><FaMapMarkerAlt className="inline text-red-400" /> {event.location}</span>
+                    <div className="absolute left-6 top-6 right-6 z-10 flex items-start justify-between">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-purple px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-lg">
+                            <Sparkle className="h-3 w-3" /> {event.category || 'Showcase'}
+                        </span>
+                        <button
+                            onClick={() => navigator.clipboard?.writeText(window.location.href)}
+                            className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-brand-dark shadow-md transition-all hover:scale-110"
+                            title="Share event link"
+                        >
+                            <Share2 className="h-4 w-4" />
+                        </button>
                     </div>
 
-                    <h1 className="font-display font-black text-3xl sm:text-5xl text-white tracking-tight uppercase leading-tight max-w-4xl">
-                        {event.title}
-                    </h1>
-                </div>
-            </div>
-
-            {/* Countdown Box */}
-            <div className="bg-[#8522FF] text-white p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
-                <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-xl font-bold">
-                        <FaClock />
+                    {/* VIP pass graphic */}
+                    <div className="absolute right-6 top-16 z-10 hidden rotate-6 rounded-2xl bg-brand-purple px-5 py-3 text-white shadow-xl sm:block animate-float-slow">
+                        <Ticket className="mb-1 h-5 w-5" />
+                        <span className="block text-[10px] font-black uppercase tracking-[0.2em]">Festival</span>
+                        <span className="font-display text-lg uppercase leading-none">VIP Pass</span>
                     </div>
-                    <div>
-                        <span className="text-[10px] font-extrabold uppercase tracking-widest text-purple-200 block">LIVE SHOWCASE COUNTDOWN</span>
-                        <h4 className="font-display font-black text-base uppercase">EVENT STARTS IN:</h4>
-                    </div>
-                </div>
 
-                <div className="grid grid-cols-4 gap-3 text-center">
-                    {[
-                        { label: 'DAYS', val: timeLeft.days },
-                        { label: 'HOURS', val: timeLeft.hours },
-                        { label: 'MINS', val: timeLeft.minutes },
-                        { label: 'SECS', val: timeLeft.seconds }
-                    ].map((item, i) => (
-                        <div key={i} className="bg-black/30 border border-white/10 px-4 py-2 rounded-2xl min-w-[70px]">
-                            <span className="font-display font-black text-2xl block">{String(item.val).padStart(2, '0')}</span>
-                            <span className="text-[9px] font-extrabold uppercase text-purple-200">{item.label}</span>
+                    <div className="absolute inset-x-0 bottom-0 z-10 space-y-3 p-6 sm:p-10">
+                        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-bold text-white/75">
+                            <span className="flex items-center gap-1.5">
+                                <CalendarDays className="h-4 w-4 text-brand-lime" />
+                                {new Date(event.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                                <MapPin className="h-4 w-4 text-brand-orange" /> {event.location}
+                            </span>
+                            <span className="flex items-center gap-1.5 rounded-full bg-brand-lime/15 px-3 py-1 text-brand-lime">
+                                <Star className="h-3.5 w-3.5" fill="currentColor" /> 4.8 (2.4K)
+                            </span>
                         </div>
-                    ))}
+                        <h1 className="font-display max-w-4xl text-4xl uppercase leading-[0.95] text-white sm:text-6xl">
+                            {event.title}
+                        </h1>
+                    </div>
                 </div>
-            </div>
+            </Reveal>
 
-            {/* Main Content Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                {/* Left Side Tabs */}
-                <div className="lg:col-span-8 space-y-8">
-                    <div className="flex items-center gap-2 border-b border-black/10 pb-4 overflow-x-auto no-scrollbar">
+            {/* Countdown */}
+            <Reveal delay={0.1}>
+                <div className="mt-8 flex flex-col items-center justify-between gap-5 rounded-[2rem] border border-black/10 bg-white p-6 text-brand-dark sm:flex-row sm:p-7 dark:border-dark-line dark:bg-dark-surface dark:text-dark-ink">
+                    <div className="flex items-center gap-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-purple shadow-lg">
+                            <Clock className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                            <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-brand-purple">Event starts in</span>
+                            <h4 className="font-display text-lg uppercase">Hurry, seats are limited</h4>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-4 gap-3">
+                        {[
+                            { label: 'Days', val: timeLeft.days },
+                            { label: 'Hours', val: timeLeft.hours },
+                            { label: 'Mins', val: timeLeft.minutes },
+                            { label: 'Secs', val: timeLeft.seconds },
+                        ].map((item) => (
+                            <div key={item.label} className="min-w-[68px] rounded-2xl border border-black/10 bg-brand-light px-3 py-2.5 text-center dark:border-dark-line dark:bg-dark-surface-2">
+                                <span className="font-display block text-2xl text-brand-dark dark:text-dark-ink">{String(item.val).padStart(2, '0')}</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-dark-muted">{item.label}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </Reveal>
+
+            {/* Main content */}
+            <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-12">
+                {/* Left: tabs */}
+                <div className="lg:col-span-8">
+                    <div className="flex items-center gap-2 overflow-x-auto pb-4 no-scrollbar border-b border-black/5 dark:border-dark-line">
                         {[
                             { id: 'overview', name: 'Overview' },
-                            { id: 'schedule', name: 'Schedule Timeline' },
-                            { id: 'speakers', name: 'Speakers & Artists' },
-                            { id: 'venue', name: 'Venue Location' },
-                            { id: 'faq', name: 'FAQ' }
+                            { id: 'schedule', name: 'Schedule' },
+                            { id: 'speakers', name: 'Artists' },
+                            { id: 'venue', name: 'Venue' },
+                            { id: 'faq', name: 'FAQ' },
                         ].map((tab) => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`px-5 py-2.5 rounded-full text-xs font-extrabold uppercase tracking-wider shrink-0 transition-all ${activeTab === tab.id ? 'bg-[#8522FF] text-white shadow-md' : 'bg-white text-gray-700 hover:text-black border border-black/10'}`}
+                                className={`relative shrink-0 rounded-full px-5 py-2.5 text-xs font-extrabold uppercase tracking-wider transition-all ${
+                                    activeTab === tab.id ? 'text-white' : 'border border-black/10 bg-white text-gray-600 hover:text-black dark:border-dark-line dark:bg-dark-surface dark:text-dark-muted dark:hover:text-dark-ink'
+                                }`}
                             >
-                                {tab.name}
+                                {activeTab === tab.id && (
+                                    <motion.span
+                                        layoutId="detail-tab"
+                                        className="absolute inset-0 rounded-full bg-brand-purple"
+                                        transition={{ type: 'spring', stiffness: 320, damping: 26 }}
+                                    />
+                                )}
+                                <span className="relative z-10">{tab.name}</span>
                             </button>
                         ))}
                     </div>
 
-                    {activeTab === 'overview' && (
-                        <div className="bg-white p-8 rounded-3xl border border-black/10 space-y-6 shadow-sm">
-                            <h3 className="font-display font-black text-2xl text-black uppercase">About This Showcase</h3>
-                            <p className="text-gray-700 text-sm leading-relaxed font-normal whitespace-pre-line">
-                                {event.description || 'Join us for an extraordinary showcase experience featuring keynotes, stage access, live networking, and exclusive digital passes.'}
-                            </p>
-
-                            <div className="pt-6 border-t border-black/10 space-y-4">
-                                <h4 className="font-display font-black text-lg text-black uppercase">What's Included</h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-bold text-gray-700">
-                                    <div className="flex items-center gap-2"><HiCheckCircle className="text-[#8522FF] text-base" /> Full Access Pass to Stages</div>
-                                    <div className="flex items-center gap-2"><HiCheckCircle className="text-[#8522FF] text-base" /> Verified QR Ticket Pass</div>
-                                    <div className="flex items-center gap-2"><HiCheckCircle className="text-[#8522FF] text-base" /> Exclusive VIP Networking Lounge</div>
+                    <motion.div
+                        key={activeTab}
+                        initial={{ opacity: 0, y: 14 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.35 }}
+                        className="mt-6"
+                    >
+                        {activeTab === 'overview' && (
+                            <div className="space-y-6 rounded-[2rem] border border-black/5 bg-white p-7 shadow-soft sm:p-9 dark:border-dark-line dark:bg-dark-surface">
+                                <h3 className="font-display text-2xl uppercase">About this event</h3>
+                                <p className="whitespace-pre-line text-sm leading-relaxed text-gray-600 dark:text-dark-muted">
+                                    {event.description || 'Join us for an extraordinary showcase experience featuring keynotes, stage access, live networking, and exclusive digital passes.'}
+                                </p>
+                                <div className="space-y-4 border-t border-black/5 pt-6">
+                                    <h4 className="font-display text-lg uppercase">What's included</h4>
+                                    <div className="grid grid-cols-1 gap-3 text-xs font-bold text-gray-700 sm:grid-cols-2 dark:text-dark-muted">
+                                        <div className="flex items-center gap-2.5 rounded-2xl bg-brand-purple/5 px-4 py-3.5 dark:bg-brand-purple/10"><CheckCircle2 className="h-4 w-4 shrink-0 text-brand-purple" /> Full access pass to stages</div>
+                                        <div className="flex items-center gap-2.5 rounded-2xl bg-brand-purple/5 px-4 py-3.5 dark:bg-brand-purple/10"><CheckCircle2 className="h-4 w-4 shrink-0 text-brand-purple" /> Verified QR ticket pass</div>
+                                        <div className="flex items-center gap-2.5 rounded-2xl bg-brand-purple/5 px-4 py-3.5 dark:bg-brand-purple/10"><CheckCircle2 className="h-4 w-4 shrink-0 text-brand-purple" /> Exclusive VIP networking lounge</div>
+                                        <div className="flex items-center gap-2.5 rounded-2xl bg-brand-purple/5 px-4 py-3.5 dark:bg-brand-purple/10"><CheckCircle2 className="h-4 w-4 shrink-0 text-brand-purple" /> Free merch & goodie bag</div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {activeTab === 'schedule' && (
-                        <div className="bg-white p-8 rounded-3xl border border-black/10 space-y-6">
-                            <h3 className="font-display font-black text-2xl text-black uppercase">Timeline Agenda</h3>
-                            <div className="space-y-4 relative border-l-2 border-[#8522FF] pl-6 ml-2">
+                        {activeTab === 'schedule' && (
+                            <div className="space-y-6 rounded-[2rem] border border-black/5 bg-white p-7 shadow-soft sm:p-9 dark:border-dark-line dark:bg-dark-surface">
+                                <h3 className="font-display text-2xl uppercase">Timeline agenda</h3>
+                                <div className="relative ml-2 space-y-6 border-l-2 border-brand-purple pl-7">
+                                    {[
+                                        { time: '09:00 AM', title: 'Doors open & check-in', desc: 'Scan QR pass & welcome badge.' },
+                                        { time: '10:30 AM', title: 'Keynote & main stage showcase', desc: 'Opening session by lead hosts.' },
+                                        { time: '01:00 PM', title: 'Networking lunch & VIP lounge', desc: 'Gourmet lounge catering.' },
+                                        { time: '04:00 PM', title: 'Award ceremony & performances', desc: 'Live performances & trophy announcements.' },
+                                    ].map((item, idx) => (
+                                        <motion.div
+                                            key={idx}
+                                            initial={{ opacity: 0, x: -12 }}
+                                            whileInView={{ opacity: 1, x: 0 }}
+                                            viewport={{ once: true }}
+                                            transition={{ delay: idx * 0.08 }}
+                                            className="relative"
+                                        >
+                                            <div className="absolute -left-[35px] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white">
+                                                <div className="h-3 w-3 rounded-full bg-brand-purple" />
+                                            </div>
+                                            <span className="font-mono text-xs font-black text-brand-purple">{item.time}</span>
+                                            <h4 className="font-display mt-0.5 text-base uppercase">{item.title}</h4>
+                                            <p className="mt-0.5 text-xs text-gray-500 dark:text-dark-muted">{item.desc}</p>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'speakers' && (
+                            <div className="space-y-6 rounded-[2rem] border border-black/5 bg-white p-7 shadow-soft sm:p-9 dark:border-dark-line dark:bg-dark-surface">
+                                <h3 className="font-display text-2xl uppercase">Featured artists & hosts</h3>
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    {[
+                                        { name: 'Dr. Elena Rostova', role: 'Main stage host', icon: Music2 },
+                                        { name: 'Marcus Vance', role: 'Keynote speaker', icon: Users },
+                                    ].map((sp, i) => (
+                                        <div key={i} className="flex items-center gap-4 rounded-2xl border border-black/5 bg-brand-light p-5 transition-all hover:border-brand-purple/30 dark:border-dark-line dark:bg-dark-surface-2">
+                                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-purple text-xl font-black text-white shadow-lg">
+                                                {sp.name.charAt(0)}
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-black">{sp.name}</h4>
+                                                <p className="text-xs font-bold text-brand-purple">{sp.role}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'venue' && (
+                            <div className="space-y-6 rounded-[2rem] border border-black/5 bg-white p-7 shadow-soft sm:p-9 dark:border-dark-line dark:bg-dark-surface">
+                                <h3 className="font-display text-2xl uppercase">Location</h3>
+                                <p className="flex items-center gap-2 text-sm font-black">
+                                    <MapPin className="h-4 w-4 text-brand-orange" /> {event.location}
+                                </p>
+                                <div className="relative flex h-64 items-center justify-center overflow-hidden rounded-3xl border border-black/10 bg-brand-light dark:border-dark-line dark:bg-dark-surface-2">
+                                    <div className="absolute inset-0 dots-bg opacity-40" />
+                                    <div className="relative z-10 flex flex-col items-center gap-3 rounded-2xl border border-black/10 bg-white px-8 py-6 text-center dark:border-dark-line dark:bg-dark-surface">
+                                        <MapPin className="h-8 w-8 text-brand-orange" />
+                                        <span className="text-sm font-black text-brand-dark dark:text-dark-ink">Interactive venue map</span>
+                                        <span className="text-xs text-gray-500 dark:text-dark-muted">{event.location}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'faq' && (
+                            <div className="space-y-4 rounded-[2rem] border border-black/5 bg-white p-7 shadow-soft sm:p-9 dark:border-dark-line dark:bg-dark-surface">
+                                <h3 className="font-display text-2xl uppercase">FAQ</h3>
                                 {[
-                                    { time: '09:00 AM', title: 'Doors Open & Check-In', desc: 'Scan QR pass & welcome badge.' },
-                                    { time: '10:30 AM', title: 'Keynote & Main Stage Showcase', desc: 'Opening session by lead hosts.' },
-                                    { time: '01:00 PM', title: 'Networking Lunch & VIP Lounge', desc: 'Gourmet lounge catering.' },
-                                    { time: '04:00 PM', title: 'Award Ceremony & Performances', desc: 'Live performances & trophy announcements.' }
-                                ].map((item, idx) => (
-                                    <div key={idx} className="relative space-y-1">
-                                        <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-[#8522FF] border-4 border-white"></div>
-                                        <span className="text-xs font-mono font-bold text-[#8522FF]">{item.time}</span>
-                                        <h4 className="font-display font-black text-base text-black uppercase">{item.title}</h4>
-                                        <p className="text-xs text-gray-500 font-medium">{item.desc}</p>
+                                    { q: 'How do I receive my pass?', a: 'Your digital QR ticket pass is generated instantly in your user dashboard upon booking.' },
+                                    { q: 'Is 2FA verification mandatory?', a: 'Yes, a 6-digit OTP code is sent to your email to verify identity.' },
+                                ].map((faq, i) => (
+                                    <div key={i} className="rounded-2xl border border-black/5 bg-brand-light p-5 dark:border-dark-line dark:bg-dark-surface-2">
+                                        <h4 className="flex items-center gap-2 text-xs font-black">
+                                            <HelpCircle className="h-4 w-4 shrink-0 text-brand-purple" /> {faq.q}
+                                        </h4>
+                                        <p className="mt-1.5 pl-6 text-xs text-gray-500 dark:text-dark-muted">{faq.a}</p>
                                     </div>
                                 ))}
                             </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'speakers' && (
-                        <div className="bg-white p-8 rounded-3xl border border-black/10 space-y-6">
-                            <h3 className="font-display font-black text-2xl text-black uppercase">Featured Speakers & Hosts</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {[
-                                    { name: 'Dr. Elena Rostova', role: 'Main Stage Host', org: 'World Game Awards' },
-                                    { name: 'Marcus Vance', role: 'Keynote Speaker', org: 'Eventrix Labs' }
-                                ].map((sp, i) => (
-                                    <div key={i} className="bg-gray-50 p-4 rounded-2xl border border-black/10 flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-full bg-[#8522FF] text-white font-black flex items-center justify-center text-lg uppercase">
-                                            {sp.name.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-black text-sm">{sp.name}</h4>
-                                            <p className="text-xs text-[#8522FF] font-bold">{sp.role}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'venue' && (
-                        <div className="bg-white p-8 rounded-3xl border border-black/10 space-y-6">
-                            <h3 className="font-display font-black text-2xl text-black uppercase">Location</h3>
-                            <p className="text-sm font-bold text-black flex items-center gap-2">
-                                <FaMapMarkerAlt className="text-red-500" /> {event.location}
-                            </p>
-                            <div className="h-64 rounded-2xl bg-gray-100 border border-black/10 flex items-center justify-center text-gray-500 font-bold text-sm">
-                                📍 [Interactive Venue Map Preview - {event.location}]
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'faq' && (
-                        <div className="bg-white p-8 rounded-3xl border border-black/10 space-y-4">
-                            <h3 className="font-display font-black text-2xl text-black uppercase mb-4">FAQ</h3>
-                            {[
-                                { q: 'How do I receive my pass?', a: 'Your digital QR ticket pass is generated instantly in your User Dashboard upon booking.' },
-                                { q: 'Is 2FA verification mandatory?', a: 'Yes, a 6-digit OTP code is sent to your email to verify identity.' }
-                            ].map((faq, i) => (
-                                <div key={i} className="bg-gray-50 p-4 rounded-2xl border border-black/10 space-y-1">
-                                    <h4 className="text-xs font-bold text-black flex items-center gap-2">
-                                        <FaQuestionCircle className="text-[#8522FF]" /> {faq.q}
-                                    </h4>
-                                    <p className="text-xs text-gray-500 pl-6">{faq.a}</p>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                        )}
+                    </motion.div>
                 </div>
 
-                {/* Right Side Booking Widget */}
+                {/* Right: booking widget */}
                 <div className="lg:col-span-4">
-                    <div className="bg-white p-6 sm:p-8 rounded-3xl border border-black/10 space-y-6 sticky top-28 shadow-xl">
-                        <div className="space-y-1 border-b border-black/10 pb-4">
-                            <span className="text-[10px] font-black uppercase text-[#8522FF] tracking-wider block">Pass Price</span>
-                            <div className="flex items-baseline justify-between pt-1">
-                                <span className="font-display font-black text-3xl text-black">
-                                    {event.ticketPrice === 0 || !event.ticketPrice ? <span className="text-[#8522FF]">FREE</span> : `₹${event.ticketPrice}`}
-                                </span>
-                                <span className="text-xs text-gray-500 font-bold">per entry pass</span>
+                    <div className="space-y-6 rounded-[2rem] border border-black/5 bg-white p-6 shadow-soft sm:p-7 lg:sticky lg:top-24 dark:border-dark-line dark:bg-dark-surface">
+                        <div className="flex items-baseline justify-between border-b border-black/5 pb-5">
+                            <div>
+                                <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-brand-purple">Starting from</span>
+                                <span className="font-display text-4xl">{basePrice === 0 ? 'Free' : `₹${basePrice}`}</span>
+                            </div>
+                            <span className="text-xs font-bold text-gray-500 dark:text-dark-muted">per pass</span>
+                        </div>
+
+                        {/* Seats */}
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between text-xs font-bold text-gray-600 dark:text-dark-muted">
+                                <span>Seats remaining</span>
+                                <span className="font-black text-gray-900 dark:text-dark-ink">{availableSeats} / {totalSeats}</span>
+                            </div>
+                            <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
+                                <div
+                                    className={`h-full rounded-full transition-all duration-700 ${isSoldOut ? 'bg-red-500' : 'bg-brand-purple'}`}
+                                    style={{ width: `${Math.min(100, (availableSeats / totalSeats) * 100)}%` }}
+                                />
                             </div>
                         </div>
 
-                        <div className="space-y-4 text-xs font-bold">
-                            <div className="flex items-center justify-between text-gray-600">
-                                <span>Seats Remaining</span>
-                                <span className="text-black font-black">{availableSeats} / {totalSeats}</span>
+                        {/* Tier selector */}
+                        <div className="space-y-3">
+                            <h4 className="text-xs font-black uppercase tracking-wider text-gray-500 dark:text-dark-muted">Select pass tier</h4>
+                            {tiers.map((t) => (
+                                <button
+                                    key={t.id}
+                                    onClick={() => setTier(t.id)}
+                                    className={`flex w-full items-center justify-between rounded-2xl border p-4 text-left transition-all ${
+                                        tier === t.id
+                                            ? 'border-brand-purple bg-brand-purple/10'
+                                            : 'border-black/5 bg-brand-light hover:border-black/15 dark:border-dark-line dark:bg-dark-surface-2 dark:hover:border-white/25'
+                                    }`}
+                                >
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-black">{t.name}</span>
+                                            {t.id === 'vvip' && <span className="rounded-full bg-brand-orange px-2 py-0.5 text-[9px] font-black uppercase text-white">Best</span>}
+                                        </div>
+                                        <p className="mt-0.5 text-[11px] text-gray-500 dark:text-dark-muted">{t.perks}</p>
+                                    </div>
+                                    <span className="shrink-0 font-black">{t.price === 0 ? 'FREE' : `₹${t.price}`}</span>
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Quantity */}
+                        <div className="flex items-center justify-between rounded-2xl border border-black/5 bg-brand-light p-4 dark:border-dark-line dark:bg-dark-surface-2">
+                            <span className="text-xs font-black uppercase tracking-wider text-gray-500 dark:text-dark-muted">Quantity</span>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/10 bg-white text-gray-700 transition-all hover:border-brand-purple hover:text-brand-purple dark:border-dark-line dark:bg-dark-surface dark:text-dark-muted dark:hover:text-brand-purple"
+                                >
+                                    <Minus className="h-4 w-4" />
+                                </button>
+                                <span className="w-6 text-center text-lg font-black">{quantity}</span>
+                                <button
+                                    onClick={() => setQuantity(Math.min(5, quantity + 1))}
+                                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/10 bg-white text-gray-700 transition-all hover:border-brand-purple hover:text-brand-purple dark:border-dark-line dark:bg-dark-surface dark:text-dark-muted dark:hover:text-brand-purple"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                </button>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                                <div className="bg-[#8522FF] h-2 rounded-full" style={{ width: `${(availableSeats / totalSeats) * 100}%` }}></div>
-                            </div>
-                            <div className="flex items-center justify-between text-gray-600">
-                                <span>Date</span>
-                                <span className="text-black">{new Date(event.date).toLocaleDateString()}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-gray-600">
-                                <span>Location</span>
-                                <span className="text-black max-w-[140px] truncate">{event.location}</span>
-                            </div>
+                        </div>
+
+                        {/* Total */}
+                        <div className="flex items-center justify-between border-t border-black/5 pt-4">
+                            <span className="text-xs font-black uppercase tracking-wider text-gray-500 dark:text-dark-muted">Total</span>
+                            <span className="font-display text-2xl text-brand-purple">
+                                ₹{activeTier.price * quantity}
+                            </span>
                         </div>
 
                         <button
-                            onClick={() => {
-                                if (!user) navigate('/login');
-                                else setShowBookingModal(true);
-                            }}
+                            onClick={openBooking}
                             disabled={isSoldOut}
-                            className={`w-full py-4 px-6 rounded-2xl font-extrabold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-1.5 ${isSoldOut
-                                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                                : 'bg-[#0A0A0C] hover:bg-[#8522FF] text-white shadow-black/20'
-                                }`}
+                            className={`flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-xs font-extrabold uppercase tracking-wider transition-all ${
+                                isSoldOut
+                                    ? 'cursor-not-allowed bg-gray-100 text-gray-400 dark:bg-white/10 dark:text-dark-muted'
+                                    : 'btn-gradient text-white'
+                            }`}
                         >
-                            <span>{isSoldOut ? 'Sold Out' : (user ? 'Reserve Pass' : 'Sign In to Book')}</span>
-                            {!isSoldOut && <FaArrowUpRightFromSquare className="text-[10px]" />}
+                            {isSoldOut ? 'Sold out' : (user ? 'Book now' : 'Sign in to book')}
+                            {!isSoldOut && <ArrowUpRight className="h-4 w-4" />}
                         </button>
+                        <p className="text-center text-[11px] font-semibold text-gray-400 dark:text-dark-muted">
+                            Secure OTP checkout · Instant QR pass
+                        </p>
                     </div>
+                </div>
+            </div>
+
+            {/* Mobile sticky booking bar */}
+            <div className="fixed bottom-16 left-0 right-0 z-30 px-4 md:hidden">
+                <div className="flex items-center justify-between gap-3 rounded-full border border-black/10 bg-white p-3 pl-6 shadow-2xl dark:border-dark-line dark:bg-dark-surface">
+                    <div>
+                        <span className="block text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-dark-muted">From</span>
+                        <span className="font-display text-lg text-brand-dark dark:text-dark-ink">{basePrice === 0 ? 'FREE' : `₹${basePrice}`}</span>
+                    </div>
+                    <button
+                        onClick={openBooking}
+                        disabled={isSoldOut}
+                        className={`rounded-full px-6 py-3 text-xs font-extrabold uppercase tracking-wider text-white ${isSoldOut ? 'bg-gray-600' : 'btn-gradient'}`}
+                    >
+                        {isSoldOut ? 'Sold out' : 'Book now'}
+                    </button>
                 </div>
             </div>
 
@@ -307,7 +461,7 @@ const EventDetail = () => {
                     event={event}
                     onClose={() => setShowBookingModal(false)}
                     onSuccess={() => {
-                        api.get(`/events/${id}`).then(res => setEvent(res.data)).catch(() => { });
+                        api.get(`/events/${id}`).then((res) => setEvent(res.data)).catch(() => {});
                     }}
                 />
             )}

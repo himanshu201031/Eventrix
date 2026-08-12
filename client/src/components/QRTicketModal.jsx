@@ -1,14 +1,20 @@
-import React from 'react';
-import { FaTicketAlt, FaCalendarAlt, FaMapMarkerAlt, FaDownload, FaTimes, FaQrcode, FaCheckCircle } from 'react-icons/fa';
-import { HiSparkles } from 'react-icons/hi2';
+import React, { useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Ticket, CalendarDays, MapPin, Download, X, CheckCircle2, Sparkle } from 'lucide-react';
+import { stopScroll, startScroll } from '../utils/smoothScroll';
 
 const QRTicketModal = ({ booking, onClose }) => {
+    useEffect(() => {
+        stopScroll();
+        return () => startScroll();
+    }, []);
+
     if (!booking) return null;
 
     const event = booking.eventId || {};
     const bookingId = booking._id ? booking._id.slice(-8).toUpperCase() : 'EVTX-9982';
 
-    // Simple SVG QR code matrix renderer for self-contained, clean UI
+    // Simple SVG QR code matrix renderer (self-contained, decorative)
     const qrMatrix = [
         [1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1],
         [1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1],
@@ -36,84 +42,110 @@ const QRTicketModal = ({ booking, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
-            <div className="relative w-full max-w-md bg-[#0f172a] rounded-3xl border border-purple-500/30 shadow-2xl overflow-hidden text-white">
-                {/* Header Banner */}
-                <div className="bg-gradient-to-r from-purple-900 via-purple-700 to-pink-600 p-6 text-center relative">
-                    <button
-                        onClick={onClose}
-                        className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/30 flex items-center justify-center text-white/80 hover:text-white hover:bg-black/50 transition-all"
-                    >
-                        <FaTimes />
-                    </button>
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-extrabold uppercase tracking-widest text-white mb-2">
-                        <HiSparkles className="text-yellow-300" /> Official VIP Pass
-                    </div>
-                    <h3 className="text-2xl font-black text-white tracking-tight">{event.title || 'Eventrix Ticket'}</h3>
-                    <p className="text-purple-200 text-xs mt-1 font-medium">Pass Ref: #{bookingId}</p>
-                </div>
-
-                {/* Ticket Details Body */}
-                <div className="p-6 space-y-6">
-                    {/* QR Code Container */}
-                    <div className="bg-white p-6 rounded-2xl flex flex-col items-center justify-center shadow-inner border border-purple-200">
-                        <svg className="w-48 h-48" viewBox="0 0 19 19">
-                            {qrMatrix.map((row, rIdx) =>
-                                row.map((cell, cIdx) =>
-                                    cell ? <rect key={`${rIdx}-${cIdx}`} x={cIdx} y={rIdx} width="1" height="1" fill="#0f172a" /> : null
-                                )
-                            )}
-                        </svg>
-                        <p className="text-gray-500 text-[10px] font-mono tracking-widest uppercase mt-3">Scan at venue entrance</p>
-                    </div>
-
-                    {/* Booking Attributes */}
-                    <div className="grid grid-cols-2 gap-4 bg-white/5 p-4 rounded-2xl border border-white/10 text-xs">
-                        <div>
-                            <span className="text-gray-400 text-[10px] uppercase font-bold block mb-1">Status</span>
-                            <span className="inline-flex items-center gap-1 font-bold text-emerald-400">
-                                <FaCheckCircle /> {booking.status?.toUpperCase() || 'CONFIRMED'}
-                            </span>
-                        </div>
-                        <div>
-                            <span className="text-gray-400 text-[10px] uppercase font-bold block mb-1">Payment</span>
-                            <span className="font-bold text-purple-300">
-                                {booking.paymentStatus === 'paid' ? 'PAID IN FULL' : 'PAY AT DOOR / VERIFIED'}
-                            </span>
-                        </div>
-                        <div>
-                            <span className="text-gray-400 text-[10px] uppercase font-bold block mb-1">Date & Time</span>
-                            <span className="font-bold text-white flex items-center gap-1">
-                                <FaCalendarAlt className="text-purple-400" />
-                                {event.date ? new Date(event.date).toLocaleDateString() : 'Upcoming'}
-                            </span>
-                        </div>
-                        <div>
-                            <span className="text-gray-400 text-[10px] uppercase font-bold block mb-1">Venue</span>
-                            <span className="font-bold text-white flex items-center gap-1 truncate">
-                                <FaMapMarkerAlt className="text-pink-400 shrink-0" />
-                                <span className="truncate">{event.location || 'Main Hall'}</span>
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Footer Actions */}
-                    <div className="flex gap-3">
-                        <button
-                            onClick={handlePrint}
-                            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25"
-                        >
-                            <FaDownload /> Download / Save Pass
-                        </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <motion.div
+                initial={{ opacity: 0, y: 40, rotate: -2, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, rotate: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 40, scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 240, damping: 22 }}
+                className="relative w-full max-w-md"
+            >
+                {/* Ticket */}
+                <div className="overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-2xl dark:border-dark-line dark:bg-dark-surface">
+                    {/* Header */}
+                    <div className="relative bg-brand-purple p-6 text-center text-white">
                         <button
                             onClick={onClose}
-                            className="px-4 bg-white/10 hover:bg-white/20 text-gray-300 font-bold rounded-xl text-xs transition-all border border-white/10"
+                            className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-all hover:bg-white/35"
                         >
-                            Close
+                            <X className="h-4 w-4" />
                         </button>
+                        <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-white">
+                            <Sparkle className="h-3 w-3 text-brand-lime" fill="currentColor" /> Official pass
+                        </div>
+                        <h3 className="font-display relative mt-3 text-2xl uppercase leading-tight tracking-wide">
+                            {event.title || 'Eventrix Ticket'}
+                        </h3>
+                        <p className="relative mt-1 font-mono text-[11px] font-bold text-white/85">Pass Ref: #{bookingId}</p>
+                    </div>
+
+                    {/* Body */}
+                    <div className="space-y-5 p-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-dark-ink">
+                                <CalendarDays className="h-4 w-4 text-brand-purple" />
+                                {event.date ? new Date(event.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : 'Upcoming'}
+                            </div>
+                            <div className="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-dark-ink">
+                                <MapPin className="h-4 w-4 text-brand-orange" />
+                                <span className="max-w-[150px] truncate">{event.location || 'Main Hall'}</span>
+                            </div>
+                        </div>
+
+                        {/* QR */}
+                        <div className="rounded-2xl border-2 border-dashed border-brand-purple/30 bg-brand-light p-5 dark:bg-dark-surface-2">
+                            <svg className="mx-auto h-44 w-44" viewBox="0 0 19 19">
+                                {qrMatrix.map((row, rIdx) =>
+                                    row.map((cell, cIdx) =>
+                                        cell ? <rect key={`${rIdx}-${cIdx}`} x={cIdx} y={rIdx} width="1" height="1" fill="#0d0d11" /> : null
+                                    )
+                                )}
+                            </svg>
+                            <p className="mt-2 text-center font-mono text-[10px] uppercase tracking-widest text-gray-500 dark:text-dark-muted">
+                                Scan at venue entrance
+                            </p>
+                        </div>
+
+                        {/* Status chips */}
+                        <div className="grid grid-cols-2 gap-3 text-xs">
+                            <div className="rounded-2xl bg-brand-lime/20 px-4 py-3">
+                                <span className="block text-[10px] font-black uppercase tracking-wider text-gray-500 dark:text-dark-muted">Status</span>
+                                <span className="flex items-center gap-1 font-black text-brand-lime-deep">
+                                    <CheckCircle2 className="h-3.5 w-3.5" /> {booking.status?.toUpperCase() || 'CONFIRMED'}
+                                </span>
+                            </div>
+                            <div className="rounded-2xl bg-brand-purple/10 px-4 py-3">
+                                <span className="block text-[10px] font-black uppercase tracking-wider text-gray-500 dark:text-dark-muted">Payment</span>
+                                <span className="font-black text-brand-purple">
+                                    {booking.paymentStatus === 'paid' ? 'PAID IN FULL' : 'PAY AT DOOR'}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Stub */}
+                        <div className="relative flex items-center justify-between rounded-2xl border border-black/10 bg-brand-light p-4 dark:border-dark-line dark:bg-dark-surface-2">
+                            <div className="space-y-0.5 pr-6">
+                                <span className="block text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-dark-muted">Gate</span>
+                                <span className="font-mono text-lg font-black text-brand-dark dark:text-dark-ink">02</span>
+                            </div>
+                            <div className="space-y-0.5 border-x border-dashed border-black/20 px-6 text-center dark:border-white/20">
+                                <span className="block text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-dark-muted">Row</span>
+                                <span className="font-mono text-lg font-black text-brand-dark dark:text-dark-ink">A</span>
+                            </div>
+                            <div className="space-y-0.5 pl-6">
+                                <span className="block text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-dark-muted">Seat</span>
+                                <span className="font-mono text-lg font-black text-brand-dark dark:text-dark-ink">25</span>
+                            </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-3">
+                            <button
+                                onClick={handlePrint}
+                                className="btn-gradient flex flex-1 items-center justify-center gap-2 rounded-2xl py-3.5 text-xs font-extrabold uppercase tracking-wider text-white"
+                            >
+                                <Download className="h-4 w-4" /> Download / save pass
+                            </button>
+                            <button
+                                onClick={onClose}
+                                className="rounded-2xl border border-black/10 bg-white px-5 text-xs font-extrabold uppercase tracking-wider text-gray-700 transition-all hover:border-brand-purple hover:text-brand-purple dark:border-dark-line dark:bg-dark-surface dark:text-dark-muted"
+                            >
+                                Close
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 };
