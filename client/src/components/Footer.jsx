@@ -1,126 +1,126 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaTwitter, FaInstagram, FaDiscord, FaGithub, FaPlay } from 'react-icons/fa6';
-import { HiSparkles } from 'react-icons/hi2';
+import { Sparkle, AtSign, Camera, Play, Globe } from 'lucide-react';
+import { Reveal } from '../animations';
+
+const socials = [
+    { icon: Camera, label: 'Instagram' },
+    { icon: AtSign, label: 'Twitter / X' },
+    { icon: Play, label: 'YouTube' },
+    { icon: Globe, label: 'Website' },
+];
 
 const Footer = () => {
-    // Countdown timer matching reference image footer widget
-    const [timeLeft, setTimeLeft] = useState({ days: '02', hours: '22', mins: '48', secs: '55' });
-
-    useEffect(() => {
-        const timer = setInterval(() => {
-            const now = new Date();
-            const secs = String(59 - now.getSeconds()).padStart(2, '0');
-            const mins = String(59 - now.getMinutes()).padStart(2, '0');
-            const hours = String((23 - now.getHours()) % 24).padStart(2, '0');
-            setTimeLeft({ days: '02', hours, mins, secs });
-        }, 1000);
-        return () => clearInterval(timer);
-    }, []);
-
     return (
-        <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            {/* Electric Purple Container Box (Exact match to reference image bottom section) */}
-            <div className="bg-[#8522FF] text-white rounded-[2.5rem] p-8 sm:p-12 lg:p-14 relative overflow-hidden shadow-2xl space-y-12">
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 border-b border-white/20 pb-10">
+        <footer className="px-4 sm:px-6 lg:px-8 pb-6 pt-4">
+            <Reveal y={48}>
+                <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] border border-black/10 bg-white dark:border-dark-line dark:bg-dark-surface">
+                    {/* Solid accent top edge */}
+                    <div className="absolute inset-x-0 top-0 h-1.5 bg-brand-purple" />
+                    <div className="absolute -top-24 right-10 h-64 w-64 rounded-full bg-brand-purple/10" />
+                    <div className="absolute bottom-0 -left-16 h-56 w-56 rounded-full bg-brand-pink/10" />
 
-                    {/* Left Brand Identity */}
-                    <div className="space-y-4 max-w-sm">
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-2xl bg-white text-[#8522FF] font-black text-2xl flex items-center justify-center shadow-lg">
-                                ⌘
-                            </div>
-                            <div>
-                                <h3 className="font-display font-black text-2xl tracking-tighter uppercase leading-none">
-                                    WORLD GAME AWARDS®
-                                </h3>
-                                <span className="text-[10px] font-bold tracking-widest text-purple-200 uppercase">
-                                    EVENTRIX SHOWCASE 2026
+                    <div className="relative grid grid-cols-1 gap-12 p-8 sm:p-12 lg:p-16 lg:grid-cols-12">
+                        {/* Brand */}
+                        <div className="lg:col-span-5 space-y-6">
+                            <Link to="/" className="flex items-center gap-3">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-purple shadow-[0_8px_22px_-8px_rgba(186,40,226,0.5)]">
+                                    <Sparkle className="h-6 w-6 text-white" fill="white" />
+                                </div>
+                                <div className="leading-none">
+                                    <span className="font-display text-3xl tracking-wide text-brand-dark uppercase dark:text-dark-ink">eventrix</span>
+                                    <span className="mt-1 block text-[9px] font-black uppercase tracking-[0.28em] text-brand-gray-400">
+                                        Good vibes only
+                                    </span>
+                                </div>
+                            </Link>
+                            <p className="max-w-sm text-sm leading-relaxed text-gray-500 dark:text-dark-muted">
+                                Discover epic events, book your tickets and create unforgettable memories.
+                                Concerts, festivals, workshops and conferences — all in one place.
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                                <span className="rounded-full bg-brand-purple px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-white">
+                                    10K+ Events
+                                </span>
+                                <span className="rounded-full bg-brand-lime px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-brand-dark">
+                                    500K+ Users
+                                </span>
+                                <span className="rounded-full bg-brand-light border border-black/10 px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-brand-gray-700 dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-muted">
+                                    98% Happy
                                 </span>
                             </div>
                         </div>
-                        <p className="text-purple-100 text-xs leading-relaxed font-normal">
-                            Connecting music festivals, tech summit showcases, developer awards, and gaming communities worldwide.
-                        </p>
-                    </div>
 
-                    {/* Footer Navigation Columns */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 text-xs">
-                        <div className="space-y-3">
-                            <h4 className="font-extrabold uppercase tracking-wider text-purple-200">Main Menu</h4>
-                            <ul className="space-y-2 font-semibold">
-                                <li><Link to="/" className="hover:underline">Home</Link></li>
-                                <li><Link to="/events" className="hover:underline">Categories & Events</Link></li>
-                                <li><Link to="/events?category=Music" className="hover:underline">Music Festivals</Link></li>
-                                <li><Link to="/events?category=Tech" className="hover:underline">Tech Summits</Link></li>
-                            </ul>
+                        {/* Link columns */}
+                        <div className="lg:col-span-4 grid grid-cols-2 gap-8 text-sm">
+                            <div className="space-y-3">
+                                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-brand-gray-400 dark:text-dark-muted">Explore</h4>
+                                <ul className="space-y-2.5 font-semibold text-brand-gray-700 dark:text-dark-muted">
+                                    <li><Link to="/" className="transition-colors hover:text-brand-purple">Home</Link></li>
+                                    <li><Link to="/events" className="transition-colors hover:text-brand-purple">All Events</Link></li>
+                                    <li><Link to="/events?category=Music" className="transition-colors hover:text-brand-purple">Music</Link></li>
+                                    <li><Link to="/events?category=Tech" className="transition-colors hover:text-brand-purple">Conferences</Link></li>
+                                </ul>
+                            </div>
+                            <div className="space-y-3">
+                                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-brand-gray-400 dark:text-dark-muted">Account</h4>
+                                <ul className="space-y-2.5 font-semibold text-brand-gray-700 dark:text-dark-muted">
+                                    <li><Link to="/dashboard" className="transition-colors hover:text-brand-purple">My Tickets</Link></li>
+                                    <li><Link to="/dashboard" className="transition-colors hover:text-brand-purple">Invoices</Link></li>
+                                    <li><Link to="/register" className="transition-colors hover:text-brand-purple">Sign Up</Link></li>
+                                    <li><Link to="/login" className="transition-colors hover:text-brand-purple">Log In</Link></li>
+                                </ul>
+                            </div>
                         </div>
 
-                        <div className="space-y-3">
-                            <h4 className="font-extrabold uppercase tracking-wider text-purple-200">Results</h4>
-                            <ul className="space-y-2 font-semibold">
-                                <li><Link to="/events?category=Gaming" className="hover:underline">Main Stage</Link></li>
-                                <li><Link to="/events" className="hover:underline">Award Categories</Link></li>
-                                <li><Link to="/dashboard" className="hover:underline">User Dashboard</Link></li>
-                                <li><Link to="/admin" className="hover:underline">Admin Console</Link></li>
-                            </ul>
-                        </div>
-
-                        <div className="space-y-3 col-span-2 sm:col-span-1">
-                            <h4 className="font-extrabold uppercase tracking-wider text-purple-200">Live Widget</h4>
-                            {/* Inline Countdown Box */}
-                            <div className="bg-black/30 backdrop-blur-md p-3.5 rounded-2xl space-y-2 border border-white/10">
-                                <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-purple-200">
-                                    <span>LIVE STREAM</span>
-                                    <span className="bg-[#D2FF00] text-black px-2 py-0.5 rounded-full font-black text-[9px] flex items-center gap-1">
-                                        JOIN NOW <FaPlay className="text-[7px]" />
-                                    </span>
-                                </div>
-                                <div className="font-display font-black text-sm tracking-wider text-white">
-                                    {timeLeft.days} : {timeLeft.hours} : {timeLeft.mins} : {timeLeft.secs}
-                                </div>
+                        {/* Newsletter + socials */}
+                        <div className="lg:col-span-3 space-y-5">
+                            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-brand-gray-400 dark:text-dark-muted">Stay in the loop</h4>
+                            <p className="text-sm text-gray-500 dark:text-dark-muted">Get early-bird drops and festival news first.</p>
+                            <form
+                                onSubmit={(e) => e.preventDefault()}
+                                className="space-y-3"
+                            >
+                                <input
+                                    type="email"
+                                    placeholder="your@email.com"
+                                    className="w-full rounded-2xl border border-black/10 bg-brand-light px-4 py-3 text-sm text-brand-dark placeholder-gray-400 outline-none transition-colors focus:border-brand-purple dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-ink dark:placeholder-dark-muted"
+                                />
+                                <button className="btn-gradient w-full rounded-2xl py-3 text-xs font-extrabold uppercase tracking-wider text-white">
+                                    Subscribe
+                                </button>
+                            </form>
+                            <div className="flex gap-2.5">
+                                {socials.map(({ icon: Icon, label }) => (
+                                    <a
+                                        key={label}
+                                        href="#"
+                                        onClick={(e) => e.preventDefault()}
+                                        title={label}
+                                        className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-light border border-black/10 text-brand-gray-700 transition-all hover:bg-brand-purple hover:text-white dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-muted"
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                    </a>
+                                ))}
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Bottom Row: Pill Badges Left, Copyright & Social Icons Right */}
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-
-                    {/* Pill Badges (Matched from reference image) */}
-                    <div className="flex flex-wrap items-center gap-2">
-                        <span className="px-3.5 py-1.5 rounded-full bg-white text-black font-extrabold text-[10px] uppercase tracking-wider">
-                            140+ EVENTS
-                        </span>
-                        <span className="px-3.5 py-1.5 rounded-full bg-[#D2FF00] text-black font-extrabold text-[10px] uppercase tracking-wider">
-                            20K+ ATTENDEES
-                        </span>
-                        <span className="px-3.5 py-1.5 rounded-full bg-black/40 text-white font-extrabold text-[10px] uppercase tracking-wider border border-white/20">
-                            75+ HOSTS
-                        </span>
-                    </div>
-
-                    {/* Copyright & Social Media Icons */}
-                    <div className="flex flex-col sm:flex-row items-center gap-4 text-xs font-bold text-purple-200">
-                        <span>&copy; {new Date().getFullYear()} EVENTRIX SHOWCASE. ALL RIGHTS RESERVED.</span>
-
-                        <div className="flex items-center gap-2">
-                            <a href="#twitter" className="w-8 h-8 rounded-full bg-white/10 hover:bg-white hover:text-[#8522FF] flex items-center justify-center transition-all">
-                                <FaTwitter className="text-xs" />
-                            </a>
-                            <a href="#instagram" className="w-8 h-8 rounded-full bg-white/10 hover:bg-white hover:text-[#8522FF] flex items-center justify-center transition-all">
-                                <FaInstagram className="text-xs" />
-                            </a>
-                            <a href="#discord" className="w-8 h-8 rounded-full bg-white/10 hover:bg-white hover:text-[#8522FF] flex items-center justify-center transition-all">
-                                <FaDiscord className="text-xs" />
-                            </a>
-                            <a href="#github" className="w-8 h-8 rounded-full bg-white/10 hover:bg-white hover:text-[#8522FF] flex items-center justify-center transition-all">
-                                <FaGithub className="text-xs" />
-                            </a>
+                    {/* Bottom bar */}
+                    <div className="relative border-t border-black/10 px-8 sm:px-12 lg:px-16 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 dark:border-dark-line">
+                        <p className="text-xs font-semibold text-brand-gray-400 dark:text-dark-muted">
+                            © {new Date().getFullYear()} Eventrix. All rights reserved.
+                        </p>
+                        <div className="flex items-center gap-5 text-xs font-semibold text-brand-gray-400 dark:text-dark-muted">
+                            <span className="transition-colors hover:text-brand-dark cursor-pointer dark:hover:text-dark-ink">Privacy</span>
+                            <span className="transition-colors hover:text-brand-dark cursor-pointer dark:hover:text-dark-ink">Terms</span>
+                            <span className="flex items-center gap-1.5 text-brand-purple font-black uppercase">
+                                <span className="h-1.5 w-1.5 rounded-full bg-brand-lime animate-pulse" /> Good vibes only
+                            </span>
                         </div>
                     </div>
                 </div>
-            </div>
+            </Reveal>
         </footer>
     );
 };

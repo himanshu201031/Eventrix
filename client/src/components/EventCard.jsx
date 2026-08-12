@@ -1,7 +1,31 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaCalendarDays, FaLocationDot, FaBookmark, FaRegBookmark, FaArrowUpRightFromSquare, FaTicket } from 'react-icons/fa6';
-import { HiSparkles, HiUserGroup } from 'react-icons/hi2';
+import { motion } from 'framer-motion';
+import { CalendarDays, MapPin, Bookmark, BookmarkCheck, ArrowUpRight, Users, Ticket } from 'lucide-react';
+import { Tilt } from '../animations';
+
+const categoryStyles = {
+    Music: { bg: 'bg-brand-pink', text: 'text-brand-pink' },
+    Festivals: { bg: 'bg-brand-purple', text: 'text-brand-purple' },
+    Workshops: { bg: 'bg-brand-lime text-brand-dark', text: 'text-brand-lime-deep' },
+    Conferences: { bg: 'bg-brand-orange', text: 'text-brand-orange' },
+    Sports: { bg: 'bg-brand-cyan text-brand-dark', text: 'text-brand-cyan' },
+    Tech: { bg: 'bg-brand-purple-deep', text: 'text-brand-purple' },
+    Arts: { bg: 'bg-brand-pink-soft text-brand-dark', text: 'text-brand-pink' },
+    Food: { bg: 'bg-brand-orange-soft', text: 'text-brand-orange' },
+    Gaming: { bg: 'bg-brand-gray-700', text: 'text-brand-purple' },
+    Business: { bg: 'bg-brand-cyan text-brand-dark', text: 'text-brand-cyan' },
+};
+
+const defaultImages = {
+    Music: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1000&auto=format&fit=crop',
+    Tech: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1000&auto=format&fit=crop',
+    Arts: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=1000&auto=format&fit=crop',
+    Food: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1000&auto=format&fit=crop',
+    Gaming: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=1000&auto=format&fit=crop',
+    Festivals: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=1000&auto=format&fit=crop',
+    Sports: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=1000&auto=format&fit=crop',
+};
 
 const EventCard = ({ event }) => {
     const [bookmarked, setBookmarked] = useState(false);
@@ -14,115 +38,119 @@ const EventCard = ({ event }) => {
     const isLowSeats = availableSeats > 0 && availableSeats <= 15;
     const isSoldOut = availableSeats <= 0;
 
-    const defaultImages = {
-        Music: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1000&auto=format&fit=crop',
-        Tech: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1000&auto=format&fit=crop',
-        Arts: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=1000&auto=format&fit=crop',
-        Food: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1000&auto=format&fit=crop',
-        Gaming: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=1000&auto=format&fit=crop'
-    };
+    const category = event.category || 'Music';
+    const style = categoryStyles[category] || categoryStyles.Music;
 
-    const imageUrl = event.image || defaultImages[event.category] || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1000&auto=format&fit=crop';
+    const imageUrl =
+        event.image ||
+        defaultImages[category] ||
+        'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1000&auto=format&fit=crop';
+
+    const formatDate = (d) =>
+        new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 
     return (
-        <div className="brutalist-card brutalist-card-hover rounded-3xl overflow-hidden flex flex-col justify-between relative group border border-black/10 bg-white">
-            {/* Top Image Banner */}
-            <div className="relative h-56 w-full overflow-hidden bg-gray-100">
-                <img
-                    src={imageUrl}
-                    alt={event.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    onError={(e) => {
-                        e.target.src = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1000&auto=format&fit=crop';
-                    }}
-                />
+        <Tilt max={5}>
+            <motion.div
+                whileHover={{ y: -6 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                className="relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-black/5 bg-white shadow-[0_10px_40px_-18px_rgba(13,13,17,0.25)] dark:border-dark-line dark:bg-dark-surface"
+            >
+                {/* Image */}
+                <div className="relative h-52 w-full overflow-hidden bg-gray-100 dark:bg-dark-surface-2">
+                    <img
+                        src={imageUrl}
+                        alt={event.title}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                        onError={(e) => {
+                            e.target.src = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1000&auto=format&fit=crop';
+                        }}
+                    />
+                    {/* Solid scrim overlay */}
+                    <div className="absolute inset-0 bg-black/35" />
 
-                {/* Dark Gradient Overlay for text contrast */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
-
-                {/* Electric Purple Category Badge (Top Left) */}
-                <div className="absolute top-4 left-4 z-10">
-                    <span className="bg-[#8522FF] text-white text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-wider shadow-md flex items-center gap-1">
-                        <HiSparkles /> {event.category || 'SHOWCASE'}
+                    {/* Category badge */}
+                    <span className={`absolute left-4 top-4 z-10 rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg ${style.bg}`}>
+                        {category}
                     </span>
-                </div>
 
-                {/* Bookmark Button (Top Right) */}
-                <button
-                    onClick={(e) => {
-                        e.preventDefault();
-                        setBookmarked(!bookmarked);
-                    }}
-                    className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-white text-black border border-black/10 flex items-center justify-center hover:bg-[#8522FF] hover:text-white transition-all shadow-md"
-                >
-                    {bookmarked ? <FaBookmark className="text-[#8522FF]" /> : <FaRegBookmark />}
-                </button>
+                    {/* Bookmark */}
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            setBookmarked(!bookmarked);
+                        }}
+                        aria-label="Bookmark event"
+                        className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white text-brand-dark shadow-md transition-all hover:scale-110 dark:bg-dark-surface-2 dark:text-dark-ink"
+                    >
+                        {bookmarked ? (
+                            <BookmarkCheck className="h-4 w-4 text-brand-lime" />
+                        ) : (
+                            <Bookmark className="h-4 w-4" />
+                        )}
+                    </button>
 
-                {/* Acid Lime Price Tag (Bottom Right) */}
-                <div className="absolute bottom-4 right-4 z-10">
-                    <div className="bg-[#D2FF00] text-black px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-md border border-black/10">
-                        {event.ticketPrice === 0 || !event.ticketPrice ? 'FREE ENTRY' : `₹${event.ticketPrice}`}
-                    </div>
-                </div>
-            </div>
-
-            {/* Content Body */}
-            <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                    {/* Date & Location tags */}
-                    <div className="flex items-center justify-between text-xs font-bold text-gray-500">
-                        <span className="flex items-center gap-1">
-                            <FaCalendarDays className="text-[#8522FF]" />
-                            {new Date(event.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </span>
-                        <span className="flex items-center gap-1 truncate max-w-[130px]">
-                            <FaLocationDot className="text-red-500 shrink-0" />
-                            <span className="truncate">{event.location || 'Main Stage'}</span>
-                        </span>
+                    {/* Date chip */}
+                    <div className="absolute bottom-4 left-4 z-10 flex items-center gap-1.5 rounded-full bg-black/50 px-3.5 py-1.5 text-[11px] font-bold text-white">
+                        <CalendarDays className="h-3.5 w-3.5 text-brand-lime" />
+                        {formatDate(event.date)}
                     </div>
 
-                    {/* Title */}
-                    <h3 className="font-display font-black text-lg text-[#0A0A0C] group-hover:text-[#8522FF] transition-colors leading-snug uppercase tracking-tight line-clamp-2">
-                        {event.title}
-                    </h3>
-
-                    {/* Description */}
-                    {event.description && (
-                        <p className="text-gray-600 text-xs line-clamp-2 font-normal">
-                            {event.description}
-                        </p>
-                    )}
+                    {/* Price tag */}
+                    <div className="absolute bottom-4 right-4 z-10">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-brand-lime px-3.5 py-1.5 text-xs font-black uppercase tracking-wide text-brand-dark shadow-lg">
+                            <Ticket className="h-3.5 w-3.5" />
+                            {event.ticketPrice === 0 || !event.ticketPrice ? 'Free' : `₹${event.ticketPrice}`}
+                        </span>
+                    </div>
                 </div>
 
-                {/* Capacity & Register CTA */}
-                <div className="pt-3 border-t border-black/10 space-y-3">
-                    <div className="space-y-1">
+                {/* Body */}
+                <div className="flex flex-1 flex-col gap-4 p-5">
+                    <div>
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 dark:text-dark-muted">
+                            <MapPin className="h-3.5 w-3.5 shrink-0 text-brand-orange" />
+                            <span className="truncate">{event.location || 'Venue TBA'}</span>
+                        </div>
+                        <h3 className="mt-2 font-display text-lg uppercase leading-tight tracking-wide text-black line-clamp-2 dark:text-dark-ink">
+                            {event.title}
+                        </h3>
+                        {event.description && (
+                            <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-gray-500 dark:text-dark-muted">
+                                {event.description}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Capacity */}
+                    <div className="mt-auto space-y-2 border-t border-black/5 pt-3 dark:border-dark-line">
                         <div className="flex items-center justify-between text-[11px] font-bold">
-                            <span className="text-gray-500 flex items-center gap-1">
-                                <HiUserGroup className="text-[#8522FF]" /> Capacity
+                            <span className="flex items-center gap-1.5 text-gray-500 dark:text-dark-muted">
+                                <Users className="h-3.5 w-3.5" /> Capacity
                             </span>
-                            <span className={isSoldOut ? 'text-red-600 font-extrabold' : isLowSeats ? 'text-amber-600 font-extrabold' : 'text-[#8522FF] font-extrabold'}>
-                                {isSoldOut ? 'SOLD OUT' : `${availableSeats} of ${totalSeats} Left`}
+                            <span className={isSoldOut ? 'font-extrabold text-red-500' : isLowSeats ? 'font-extrabold text-brand-orange' : `font-extrabold ${style.text}`}>
+                                {isSoldOut ? 'Sold out' : `${availableSeats} of ${totalSeats} left`}
                             </span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
                             <div
-                                className={`h-full rounded-full transition-all duration-500 ${isSoldOut ? 'bg-red-600' : isLowSeats ? 'bg-amber-500' : 'bg-[#8522FF]'}`}
+                                className={`h-full rounded-full transition-all duration-700 ${isSoldOut ? 'bg-red-500' : isLowSeats ? 'bg-brand-orange' : 'bg-brand-purple'}`}
                                 style={{ width: `${Math.min(100, Math.max(5, percentRemaining))}%` }}
-                            ></div>
+                            />
                         </div>
                     </div>
 
+                    {/* CTA */}
                     <Link
                         to={`/events/${event._id}`}
-                        className="w-full bg-[#0A0A0C] hover:bg-[#8522FF] text-white font-extrabold py-3 rounded-2xl text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 shadow-sm"
+                        className="btn-gradient flex items-center justify-center gap-2 rounded-2xl py-3 text-xs font-extrabold uppercase tracking-wider text-white"
                     >
-                        <span>View Details</span>
-                        <FaArrowUpRightFromSquare className="text-[10px]" />
+                        Book now <ArrowUpRight className="h-4 w-4" />
                     </Link>
                 </div>
-            </div>
-        </div>
+            </motion.div>
+        </Tilt>
     );
 };
 
