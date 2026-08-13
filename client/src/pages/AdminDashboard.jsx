@@ -29,8 +29,8 @@ const AdminDashboard = () => {
                 api.get('/events'),
                 api.get('/bookings/my')
             ]);
-            setEvents(eventsRes.data);
-            setBookings(bookingsRes.data);
+            setEvents(eventsRes.data.items ?? []);
+            setBookings(bookingsRes.data.items ?? []);
         } catch (error) {
             console.error('Error fetching admin data', error);
         } finally {

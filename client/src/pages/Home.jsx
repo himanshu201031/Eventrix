@@ -208,7 +208,7 @@ const Home = () => {
     const fetchEvents = useCallback(async () => {
         try {
             const { data } = await api.get(`/events?search=${search}`);
-            setEvents(data);
+            setEvents(data.items ?? []);
         } catch (error) {
             console.error('Error fetching events:', error);
         } finally {
