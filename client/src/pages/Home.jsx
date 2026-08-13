@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import api from '../utils/axios';
 import { getLenis } from '../utils/smoothScroll';
 import EventCard from '../components/EventCard';
+import { DirectionalTransition, TransitionLink, push } from '../components/Transitions';
 import { Reveal, Counter, Magnetic, Tilt, Marquee } from '../animations';
 import crowdImg from '../assets/crowd.png';
 import djImg from '../assets/dj.png';
@@ -226,6 +227,15 @@ const Home = () => {
         const lenis = getLenis();
         if (lenis) lenis.on('scroll', ScrollTrigger.update);
 
+        /* Reduced motion: content renders in its final, static state — no
+           entrance choreography and no scroll-driven parallax (the CSS guard
+           can't stop GSAP, so we gate it here). */
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            return () => {
+                if (lenis) lenis.off('scroll', ScrollTrigger.update);
+            };
+        }
+
         const heroCtx = gsap.context(() => {
             gsap.fromTo(
                 '.hero-el',
@@ -306,7 +316,7 @@ const Home = () => {
         if (heroCategory) params.set('category', heroCategory);
         if (heroLocation) params.set('location', heroLocation);
         const qs = params.toString();
-        navigate(qs ? `/events?${qs}` : '/events');
+        push(navigate, qs ? `/events?${qs}` : '/events');
     };
 
     const subscribe = (e) => {
@@ -319,6 +329,7 @@ const Home = () => {
         new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 
     return (
+        <DirectionalTransition>
         <div>
             {/* ═══════════ STAGE · HERO (always night) ═══════════ */}
             <section ref={heroRef} className="relative overflow-hidden bg-[#0b0b14] text-white">
@@ -411,7 +422,7 @@ const Home = () => {
                                 {['Concerts', 'Festivals', 'Workshops', 'Conferences', 'Sports', 'More'].map((tag) => (
                                     <button
                                         key={tag}
-                                        onClick={() => navigate(`/events?category=${tag === 'More' ? 'Tech' : tag}`)}
+                                        onClick={() => push(navigate, `/events?category=${tag === 'More' ? 'Tech' : tag}`)}
                                         className="rounded-full border border-white/15 bg-white/[0.06] px-3.5 py-1.5 text-white/70 transition-all hover:border-brand-lime/70 hover:text-brand-lime"
                                     >
                                         {tag}
@@ -519,12 +530,12 @@ const Home = () => {
 
                                         {/* Stub */}
                                         <div className="flex items-center justify-between gap-4 p-5 sm:p-6">
-                                            <Link
+                                            <TransitionLink
                                                 to={featured ? `/events/${featured._id}` : '/events'}
                                                 className="btn-gradient flex shrink-0 items-center gap-2 rounded-full px-6 py-3 text-xs font-extrabold uppercase tracking-wider text-white"
                                             >
                                                 Book tickets <ArrowUpRight className="h-3.5 w-3.5" />
-                                            </Link>
+                                            </TransitionLink>
                                             <div className="flex items-center gap-4">
                                                 <div className="barcode hidden w-36 text-white/60 sm:block" aria-hidden="true" />
                                                 <div className="text-right">
@@ -581,12 +592,12 @@ const Home = () => {
                             </h2>
                             <p className="mt-3 text-sm text-gray-500 dark:text-dark-muted">The shows the crowd is talking about right now.</p>
                         </div>
-                        <Link
+                        <TransitionLink
                             to="/events"
                             className="group inline-flex items-center gap-2 rounded-full border-[1.5px] border-black/15 px-6 py-3 text-xs font-extrabold uppercase tracking-wider text-gray-700 transition-all hover:border-brand-pink hover:text-brand-pink dark:border-white/20 dark:text-dark-muted dark:hover:border-brand-pink dark:hover:text-brand-pink"
                         >
                             View all events <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                        </Link>
+                        </TransitionLink>
                     </div>
                 </Reveal>
 
@@ -615,7 +626,7 @@ const Home = () => {
                                 <motion.button
                                     whileHover={{ y: -6, rotate: i % 2 === 0 ? -1 : 1 }}
                                     transition={{ type: 'spring', stiffness: 300, damping: 18 }}
-                                    onClick={() => navigate(`/events?category=${cat.name}`)}
+                                    onClick={() => push(navigate, `/events?category=${cat.name}`)}
                                     className="glass-card group flex w-full flex-col items-center gap-3 rounded-3xl border border-black/5 bg-brand-light p-6 text-center dark:border-white/10 dark:bg-white/[0.04]"
                                 >
                                     <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${cat.tint} shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6`}>
@@ -677,12 +688,12 @@ const Home = () => {
                                 </h2>
                                 <p className="mt-3 text-sm text-gray-500 dark:text-dark-muted">Dates, venues and live seat counts — grab yours before the meter empties.</p>
                             </div>
-                            <Link
+                            <TransitionLink
                                 to="/events"
                                 className="group inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-gray-600 transition-colors hover:text-brand-purple dark:text-dark-muted dark:hover:text-brand-purple"
                             >
                                 View all events <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                            </Link>
+                            </TransitionLink>
                         </div>
                     </Reveal>
 
@@ -705,7 +716,7 @@ const Home = () => {
                                 const low = available > 0 && available <= 15;
                                 const soldOut = available <= 0;
                                 return (
-                                    <Link
+                                    <TransitionLink
                                         key={ev._id}
                                         to={`/events/${ev._id}`}
                                         className={`group grid grid-cols-[auto_1fr] items-center gap-x-5 gap-y-2 px-5 py-5 transition-colors hover:bg-black/[0.03] sm:grid-cols-[120px_1fr_120px_auto] sm:gap-x-8 sm:px-8 dark:hover:bg-white/[0.05] ${i !== 0 ? 'border-t border-black/5 dark:border-white/10' : ''}`}
@@ -756,7 +767,7 @@ const Home = () => {
                                                 <ArrowUpRight className="h-4 w-4" />
                                             </span>
                                         </div>
-                                    </Link>
+                                    </TransitionLink>
                                 );
                             })
                         )}
@@ -909,6 +920,7 @@ const Home = () => {
 
             {/* Footer lives in App.jsx */}
         </div>
+        </DirectionalTransition>
     );
 };
 

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../utils/axios';
 import EventCard from '../components/EventCard';
+import { DirectionalTransition, TransitionLink } from '../components/Transitions';
 import { Reveal } from '../animations';
 import { Search, SlidersHorizontal, LayoutGrid, List, CalendarDays, MapPin, Ticket, ArrowUpRight, Sparkle } from 'lucide-react';
 
@@ -75,6 +76,7 @@ const Events = () => {
     };
 
     return (
+        <DirectionalTransition>
         <div className="mx-auto max-w-7xl px-4 pt-28 pb-16 sm:px-6 sm:pt-32 lg:px-8">
             {/* Header */}
             <Reveal>
@@ -142,13 +144,15 @@ const Events = () => {
                         {/* View toggle */}
                         <div className="flex items-center gap-1 rounded-2xl border border-black/5 bg-brand-light p-1 dark:border-dark-line dark:bg-dark-surface-2">
                             <button
-                                onClick={() => setViewMode('grid')}                                                className={`rounded-xl p-2 transition-all ${viewMode === 'grid' ? 'bg-brand-purple text-white' : 'text-gray-500 hover:text-black dark:text-dark-muted dark:hover:text-dark-ink'}`}
+                                onClick={() => setViewMode('grid')}                                                className={`rounded-xl p-2.5 transition-all ${viewMode === 'grid' ? 'bg-brand-purple text-white' : 'text-gray-500 hover:text-black dark:text-dark-muted dark:hover:text-dark-ink'}`}
+                                aria-label="Grid view"
                                 title="Grid view"
                             >
                                 <LayoutGrid className="h-4 w-4" />
                             </button>
                             <button
-                                onClick={() => setViewMode('list')}                                                className={`rounded-xl p-2 transition-all ${viewMode === 'list' ? 'bg-brand-purple text-white' : 'text-gray-500 hover:text-black dark:text-dark-muted dark:hover:text-dark-ink'}`}
+                                onClick={() => setViewMode('list')}                                                className={`rounded-xl p-2.5 transition-all ${viewMode === 'list' ? 'bg-brand-purple text-white' : 'text-gray-500 hover:text-black dark:text-dark-muted dark:hover:text-dark-ink'}`}
+                                aria-label="List view"
                                 title="List view"
                             >
                                 <List className="h-4 w-4" />
@@ -233,7 +237,7 @@ const Events = () => {
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {filteredEvents.map((event, i) => (
                             <Reveal key={event._id} delay={(i % 3) * 0.06}>
-                                <EventCard event={event} />
+                                <EventCard event={event} morphName={`event-cover-${event._id}`} />
                             </Reveal>
                         ))}
                     </div>
@@ -275,12 +279,12 @@ const Events = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <Link
+                                    <TransitionLink
                                         to={`/events/${event._id}`}
                                         className="btn-gradient flex shrink-0 items-center justify-center gap-2 rounded-2xl px-6 py-3 text-xs font-extrabold uppercase tracking-wider text-white sm:self-center"
                                     >
                                         Details <ArrowUpRight className="h-4 w-4" />
-                                    </Link>
+                                    </TransitionLink>
                                 </motion.div>
                             ))}
                         </div>
@@ -288,6 +292,7 @@ const Events = () => {
                 )}
             </div>
         </div>
+        </DirectionalTransition>
     );
 };
 

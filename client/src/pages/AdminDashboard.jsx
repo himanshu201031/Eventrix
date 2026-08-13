@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { AuthContext } from '../context/auth';
 import api from '../utils/axios';
 import { useNavigate } from 'react-router-dom';
+import { DirectionalTransition, push } from '../components/Transitions';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Reveal } from '../animations';
 import {
@@ -40,7 +41,7 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         if (!user || user.role !== 'admin') {
-            navigate('/login');
+            push(navigate, '/login');
             return;
         }
         const load = async () => { await fetchData(); };
@@ -116,6 +117,7 @@ const AdminDashboard = () => {
     const inputClass = 'w-full rounded-2xl border border-black/10 bg-brand-light p-3.5 text-sm font-semibold text-gray-900 outline-none transition-colors focus:border-brand-purple dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-ink dark:placeholder-dark-muted';
 
     return (
+        <DirectionalTransition>
         <div className="mx-auto max-w-7xl px-4 pt-24 pb-16 sm:px-6 sm:pt-28 lg:px-8">
             {/* Header */}
             <Reveal>
@@ -325,6 +327,7 @@ const AdminDashboard = () => {
                 </div>
             )}
         </div>
+        </DirectionalTransition>
     );
 };
 

@@ -1,8 +1,9 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../context/auth';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Lock, Mail, ShieldCheck, ArrowUpRight, Sparkle, Ticket, Music2 } from 'lucide-react';
+import { DirectionalTransition, TransitionLink, push } from '../components/Transitions';
+import { Lock, Mail, ShieldCheck, ArrowUpRight, Sparkle, Ticket, Music2, Eye, EyeOff } from 'lucide-react';
 import { Blobs } from '../animations';
 
 const Login = () => {
@@ -10,6 +11,7 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [otp, setOtp] = useState('');
     const [showOTP, setShowOTP] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -23,12 +25,12 @@ const Login = () => {
         try {
             if (!showOTP) {
                 const data = await login(email, password);
-                if (data.role === 'admin') navigate('/admin');
-                else navigate('/dashboard');
+                if (data.role === 'admin') push(navigate, '/admin');
+                else push(navigate, '/dashboard');
             } else {
                 const data = await verifyOTP(email, otp);
-                if (data.role === 'admin') navigate('/admin');
-                else navigate('/dashboard');
+                if (data.role === 'admin') push(navigate, '/admin');
+                else push(navigate, '/dashboard');
             }
         } catch (err) {
             if (err.needsVerification) {
@@ -43,6 +45,7 @@ const Login = () => {
     };
 
     return (
+        <DirectionalTransition>
         <div className="flex min-h-screen items-center justify-center px-4 py-10 pt-28 sm:pt-24">
             <motion.div
                 initial={{ opacity: 0, y: 24, scale: 0.98 }}
@@ -55,12 +58,12 @@ const Login = () => {
                     <Blobs />
 
                     <div className="relative z-10">
-                        <Link to="/" className="flex items-center gap-2.5">
+                        <TransitionLink to="/" className="flex items-center gap-2.5">
                             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-purple shadow-[0_8px_22px_-8px_rgba(186,40,226,0.5)]">
                                 <Sparkle className="h-5 w-5 text-white" fill="white" />
                             </div>
                             <span className="font-display text-2xl uppercase tracking-wide text-brand-dark dark:text-dark-ink">eventrix</span>
-                        </Link>
+                        </TransitionLink>
                     </div>
 
                     <div className="relative z-10 space-y-5">
@@ -114,6 +117,7 @@ const Login = () => {
                                         <input
                                             type="email"
                                             required
+                                            autoComplete="email"
                                             placeholder="you@domain.com"
                                             className="w-full rounded-2xl border border-black/10 bg-brand-light py-3.5 pl-11 pr-4 text-sm font-semibold outline-none transition-colors focus:border-brand-purple dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-ink dark:placeholder-dark-muted"
                                             value={email}
@@ -127,13 +131,23 @@ const Login = () => {
                                     <div className="relative">
                                         <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                                         <input
-                                            type="password"
+                                            type={showPassword ? 'text' : 'password'}
                                             required
+                                            autoComplete="current-password"
                                             placeholder="••••••••"
-                                            className="w-full rounded-2xl border border-black/10 bg-brand-light py-3.5 pl-11 pr-4 text-sm font-semibold outline-none transition-colors focus:border-brand-purple dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-ink dark:placeholder-dark-muted"
+                                            className="w-full rounded-2xl border border-black/10 bg-brand-light py-3.5 pl-11 pr-12 text-sm font-semibold outline-none transition-colors focus:border-brand-purple dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-ink dark:placeholder-dark-muted"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword((v) => !v)}
+                                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                            title={showPassword ? 'Hide password' : 'Show password'}
+                                            className="absolute right-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-gray-400 transition-colors hover:text-brand-purple dark:text-dark-muted dark:hover:text-brand-purple"
+                                        >
+                                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </button>
                                     </div>
                                 </div>
                             </>
@@ -146,6 +160,9 @@ const Login = () => {
                                     type="text"
                                     required
                                     maxLength="6"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    autoComplete="one-time-code"
                                     placeholder="000000"
                                     className="w-full rounded-2xl border-2 border-brand-purple/40 bg-brand-light py-3.5 text-center font-mono text-2xl font-black tracking-[0.5em] outline-none transition-colors focus:border-brand-purple dark:bg-dark-surface-2 dark:text-dark-ink"
                                     value={otp}
@@ -166,13 +183,14 @@ const Login = () => {
 
                     <p className="mt-6 border-t border-black/5 pt-5 text-center text-sm font-semibold text-gray-600 dark:border-dark-line dark:text-dark-muted">
                         Don't have an account?{' '}
-                        <Link to="/register" className="font-black uppercase text-brand-purple transition-colors hover:text-brand-pink">
+                        <TransitionLink to="/register" className="font-black uppercase text-brand-purple transition-colors hover:text-brand-pink">
                             Register free
-                        </Link>
+                        </TransitionLink>
                     </p>
                 </div>
             </motion.div>
         </div>
+        </DirectionalTransition>
     );
 };
 
