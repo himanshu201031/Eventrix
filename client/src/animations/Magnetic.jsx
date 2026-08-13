@@ -1,15 +1,21 @@
 import { useRef } from 'react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useReducedMotion } from 'framer-motion';
 
 /**
  * Magnetic hover — the wrapped element gently follows the cursor.
+ * Respects prefers-reduced-motion by rendering without the effect.
  */
 export default function Magnetic({ children, strength = 0.35, className = '' }) {
   const ref = useRef(null);
+  const reduce = useReducedMotion();
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const sx = useSpring(x, { stiffness: 220, damping: 16, mass: 0.4 });
   const sy = useSpring(y, { stiffness: 220, damping: 16, mass: 0.4 });
+
+  if (reduce) {
+    return <div className={className}>{children}</div>;
+  }
 
   const onMouseMove = (e) => {
     const el = ref.current;

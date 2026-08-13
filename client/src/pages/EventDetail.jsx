@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { ViewTransition } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import api from '../utils/axios';
 import { AuthContext } from '../context/auth';
 import BookingModal from '../components/BookingModal';
+import { DirectionalTransition, TransitionLink, push } from '../components/Transitions';
 import { Reveal } from '../animations';
 import {
     CalendarDays, MapPin, Clock, Share2, ChevronRight, Minus, Plus, Star,
@@ -84,9 +86,9 @@ const EventDetail = () => {
                     <Ticket className="mx-auto h-12 w-12 text-brand-purple" />
                     <h3 className="font-display mt-4 text-3xl uppercase">Event not found</h3>
                     <p className="mt-2 text-sm text-gray-500 dark:text-dark-muted">{error || 'This event does not exist.'}</p>
-                    <Link to="/" className="btn-gradient mt-6 inline-flex items-center gap-2 rounded-full px-8 py-3 text-xs font-extrabold uppercase tracking-wider text-white">
+                    <TransitionLink to="/" direction="nav-back" className="btn-gradient mt-6 inline-flex items-center gap-2 rounded-full px-8 py-3 text-xs font-extrabold uppercase tracking-wider text-white">
                         <Home className="h-4 w-4" /> Return home
-                    </Link>
+                    </TransitionLink>
                 </div>
             </div>
         );
@@ -105,17 +107,18 @@ const EventDetail = () => {
     const activeTier = tiers.find((t) => t.id === tier) || tiers[0];
 
     const openBooking = () => {
-        if (!user) navigate('/login');
+        if (!user) push(navigate, '/login');
         else setShowBookingModal(true);
     };
 
     return (
+        <DirectionalTransition>
         <div className="mx-auto max-w-7xl px-4 pt-24 pb-16 sm:px-6 sm:pt-28 lg:px-8">
             {/* Breadcrumb */}
             <nav className="flex items-center gap-2 text-xs font-bold text-gray-500 dark:text-dark-muted">
-                <Link to="/" className="flex items-center gap-1 transition-colors hover:text-brand-purple"><Home className="h-3.5 w-3.5" /> Home</Link>
+                <TransitionLink to="/" direction="nav-back" className="flex items-center gap-1 transition-colors hover:text-brand-purple"><Home className="h-3.5 w-3.5" /> Home</TransitionLink>
                 <ChevronRight className="h-3.5 w-3.5 text-gray-300 dark:text-dark-muted" />
-                <Link to="/events" className="transition-colors hover:text-brand-purple">Events</Link>
+                <TransitionLink to="/events" direction="nav-back" className="transition-colors hover:text-brand-purple">Events</TransitionLink>
                 <ChevronRight className="h-3.5 w-3.5 text-gray-300 dark:text-dark-muted" />
                 <span className="text-gray-900 line-clamp-1 dark:text-dark-ink">{event.title}</span>
             </nav>
@@ -123,11 +126,15 @@ const EventDetail = () => {
             {/* Banner */}
             <Reveal>
                 <div className="relative mt-6 h-[380px] overflow-hidden rounded-[2.5rem] bg-brand-gray-900 shadow-soft sm:h-[480px]">
-                    <img
-                        src={event.image || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1600&auto=format&fit=crop'}
-                        alt={event.title}
-                        className="h-full w-full object-cover"
-                    />
+                    {/* Destination half of the event-cover shared-element morph
+                        (paired with the grid card image on /events). */}
+                    <ViewTransition name={`event-cover-${event._id}`} share="morph" default="none" className="block h-full w-full">
+                        <img
+                            src={event.image || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1600&auto=format&fit=crop'}
+                            alt={event.title}
+                            className="h-full w-full object-cover"
+                        />
+                    </ViewTransition>
                     <div className="absolute inset-0 bg-black/55" />
 
                     <div className="absolute left-6 top-6 right-6 z-10 flex items-start justify-between">
@@ -398,14 +405,16 @@ const EventDetail = () => {
                             <div className="flex items-center gap-3">
                                 <button
                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/10 bg-white text-gray-700 transition-all hover:border-brand-purple hover:text-brand-purple dark:border-dark-line dark:bg-dark-surface dark:text-dark-muted dark:hover:text-brand-purple"
+                                    aria-label="Decrease quantity"
+                                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-white text-gray-700 transition-all hover:border-brand-purple hover:text-brand-purple dark:border-dark-line dark:bg-dark-surface dark:text-dark-muted dark:hover:text-brand-purple"
                                 >
                                     <Minus className="h-4 w-4" />
                                 </button>
                                 <span className="w-6 text-center text-lg font-black">{quantity}</span>
                                 <button
                                     onClick={() => setQuantity(Math.min(5, quantity + 1))}
-                                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/10 bg-white text-gray-700 transition-all hover:border-brand-purple hover:text-brand-purple dark:border-dark-line dark:bg-dark-surface dark:text-dark-muted dark:hover:text-brand-purple"
+                                    aria-label="Increase quantity"
+                                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-white text-gray-700 transition-all hover:border-brand-purple hover:text-brand-purple dark:border-dark-line dark:bg-dark-surface dark:text-dark-muted dark:hover:text-brand-purple"
                                 >
                                     <Plus className="h-4 w-4" />
                                 </button>
@@ -466,6 +475,7 @@ const EventDetail = () => {
                 />
             )}
         </div>
+        </DirectionalTransition>
     );
 };
 
