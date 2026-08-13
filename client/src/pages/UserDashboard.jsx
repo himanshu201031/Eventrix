@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { AuthContext } from '../context/auth';
 import api from '../utils/axios';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { DirectionalTransition, TransitionLink, push } from '../components/Transitions';
 import { motion } from 'framer-motion';
 import QRTicketModal from '../components/QRTicketModal';
 import { Reveal } from '../animations';
@@ -42,7 +43,7 @@ const UserDashboard = () => {
 
     useEffect(() => {
         if (!user) {
-            navigate('/login');
+            push(navigate, '/login');
             return;
         }
         const load = async () => { await fetchBookings(); };
@@ -100,6 +101,7 @@ const UserDashboard = () => {
         .sort((a, b) => new Date(a.eventId?.date || 0) - new Date(b.eventId?.date || 0));
 
     return (
+        <DirectionalTransition>
         <div className="mx-auto max-w-7xl px-4 pt-24 pb-16 sm:px-6 sm:pt-28 lg:px-8">
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
                 {/* Sidebar */}
@@ -141,9 +143,9 @@ const UserDashboard = () => {
                             ))}
                         </nav>
 
-                        <Link to="/events" className="btn-gradient mt-4 flex items-center justify-center gap-2 rounded-2xl py-3 text-xs font-extrabold uppercase tracking-wider text-white">
+                        <TransitionLink to="/events" className="btn-gradient mt-4 flex items-center justify-center gap-2 rounded-2xl py-3 text-xs font-extrabold uppercase tracking-wider text-white">
                             Explore events <ArrowUpRight className="h-4 w-4" />
-                        </Link>
+                        </TransitionLink>
                     </div>
                 </aside>
 
@@ -201,7 +203,7 @@ const UserDashboard = () => {
                             <div className="rounded-[2rem] border border-black/5 bg-white p-6 shadow-soft sm:p-8 dark:border-dark-line dark:bg-dark-surface">
                                 <div className="flex items-center justify-between">
                                     <h3 className="font-display text-xl uppercase">Upcoming events</h3>
-                                    <Link to="/events" className="text-xs font-extrabold uppercase text-brand-purple hover:underline">View all</Link>
+                                    <TransitionLink to="/events" className="text-xs font-extrabold uppercase text-brand-purple hover:underline">View all</TransitionLink>
                                 </div>
 
                                 {upcomingBookings.length === 0 ? (
@@ -209,9 +211,9 @@ const UserDashboard = () => {
                                         <Ticket className="mx-auto h-10 w-10 text-brand-purple" />
                                         <h4 className="font-display mt-3 text-xl uppercase">No tickets yet</h4>
                                         <p className="mt-1 text-sm text-gray-500 dark:text-dark-muted">You haven't reserved passes for any events. Let's fix that!</p>
-                                        <Link to="/events" className="btn-gradient mt-5 inline-flex items-center gap-2 rounded-full px-7 py-3 text-xs font-extrabold uppercase tracking-wider text-white">
+                                        <TransitionLink to="/events" className="btn-gradient mt-5 inline-flex items-center gap-2 rounded-full px-7 py-3 text-xs font-extrabold uppercase tracking-wider text-white">
                                             Browse events <ArrowUpRight className="h-4 w-4" />
-                                        </Link>
+                                        </TransitionLink>
                                     </div>
                                 ) : (
                                     <div className="mt-6 space-y-3">
@@ -256,7 +258,7 @@ const UserDashboard = () => {
                                                                     </button>
                                                                     <button
                                                                         onClick={() => cancelBooking(booking._id)}
-                                                                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/10 bg-white text-red-500 transition-all hover:bg-red-50 dark:border-dark-line dark:bg-dark-surface dark:hover:bg-red-500/10"
+                                                                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-white text-red-500 transition-all hover:bg-red-50 dark:border-dark-line dark:bg-dark-surface dark:hover:bg-red-500/10"
                                                                         title="Cancel booking"
                                                                     >
                                                                         <XCircle className="h-4 w-4" />
@@ -367,9 +369,9 @@ const UserDashboard = () => {
                                     : 'Booking updates, reminders and festival news will show up here.'}
                             </p>
                             {activeTab === 'wishlist' && (
-                                <Link to="/events" className="btn-gradient mt-6 inline-flex items-center gap-2 rounded-full px-7 py-3 text-xs font-extrabold uppercase tracking-wider text-white">
+                                <TransitionLink to="/events" className="btn-gradient mt-6 inline-flex items-center gap-2 rounded-full px-7 py-3 text-xs font-extrabold uppercase tracking-wider text-white">
                                     Explore events <ArrowUpRight className="h-4 w-4" />
-                                </Link>
+                                </TransitionLink>
                             )}
                         </div>
                     )}
@@ -383,6 +385,7 @@ const UserDashboard = () => {
                 />
             )}
         </div>
+        </DirectionalTransition>
     );
 };
 

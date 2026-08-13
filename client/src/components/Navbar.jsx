@@ -1,8 +1,9 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../context/auth';
 import { useTheme } from '../context/ThemeContext';
+import { TransitionLink, push } from './Transitions';
 import { Sparkle, Menu, X, LogOut, Compass, LayoutGrid, UserRound, Sun, Moon } from 'lucide-react';
 import Magnetic from '../animations/Magnetic';
 
@@ -28,7 +29,7 @@ const Navbar = () => {
 
     const handleLogout = () => {
         logout();
-        navigate('/login');
+        push(navigate, '/login');
     };
 
     const isActive = (path) => location.pathname === path;
@@ -42,7 +43,9 @@ const Navbar = () => {
 
     return (
         <>
-            <header className="fixed top-0 left-0 right-0 z-50">
+            {/* viewTransitionName pulls the fixed header out of route-transition
+                snapshots so it stays static (see ::view-transition-* in index.css) */}
+            <header className="fixed top-0 left-0 right-0 z-50" style={{ viewTransitionName: 'site-header' }}>
                 <div className={`mx-auto max-w-7xl px-4 sm:px-6 transition-all duration-500 ${scrolled ? 'pt-3' : 'pt-4 sm:pt-5'}`}>
                     <nav
                         className={`flex items-center justify-between gap-3 rounded-full px-4 sm:px-5 transition-all duration-500 ${
@@ -52,7 +55,7 @@ const Navbar = () => {
                         }`}
                     >
                         {/* Brand */}
-                        <Link to="/" className="flex items-center gap-2.5 group shrink-0">
+                        <TransitionLink to="/" className="flex items-center gap-2.5 group shrink-0">
                             <motion.div
                                 whileHover={{ rotate: 90, scale: 1.08 }}
                                 transition={{ type: 'spring', stiffness: 300, damping: 15 }}
@@ -68,14 +71,14 @@ const Navbar = () => {
                                     Live experiences
                                 </span>
                             </div>
-                        </Link>
+                        </TransitionLink>
 
                         {/* Center links */}
                         <nav className="hidden md:flex items-center gap-1">
                             {links.map((l) => {
                                 const active = isActive(l.to);
                                 return (
-                                    <Link
+                                    <TransitionLink
                                         key={l.to}
                                         to={l.to}
                                         className="relative rounded-full px-5 py-2 text-xs font-extrabold uppercase tracking-wider"
@@ -88,7 +91,7 @@ const Navbar = () => {
                                         <span className={`relative z-10 transition-colors ${active ? 'text-white' : 'text-gray-700 hover:text-black dark:text-dark-muted dark:hover:text-dark-ink'}`}>
                                             {l.label}
                                         </span>
-                                    </Link>
+                                    </TransitionLink>
                                 );
                             })}
                         </nav>
@@ -114,13 +117,13 @@ const Navbar = () => {
 
                             {user ? (
                                 <>
-                                    <Link
+                                    <TransitionLink
                                         to={dashPath}
                                         className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-brand-purple text-white font-black text-sm uppercase shadow-[0_8px_18px_-6px_rgba(186,40,226,0.5)]"
                                         title={user.username}
                                     >
                                         {user.username ? user.username.charAt(0).toUpperCase() : 'U'}
-                                    </Link>
+                                    </TransitionLink>
                                     <Magnetic strength={0.3}>
                                         <button
                                             onClick={handleLogout}
@@ -132,19 +135,19 @@ const Navbar = () => {
                                 </>
                             ) : (
                                 <>
-                                    <Link
+                                    <TransitionLink
                                         to="/login"
                                         className="hidden sm:inline-flex items-center rounded-full border-[1.5px] border-black/15 px-6 py-2.5 text-xs font-extrabold uppercase tracking-wider text-black transition-all hover:border-brand-purple hover:text-brand-purple dark:border-white/20 dark:text-dark-ink dark:hover:border-brand-purple dark:hover:text-brand-purple"
                                     >
                                         Log in
-                                    </Link>
+                                    </TransitionLink>
                                     <Magnetic strength={0.3}>
-                                        <Link
+                                        <TransitionLink
                                             to="/register"
                                             className="btn-gradient inline-flex items-center gap-1.5 rounded-full px-6 py-2.5 text-xs font-extrabold uppercase tracking-wider text-white"
                                         >
                                             Sign up
-                                        </Link>
+                                        </TransitionLink>
                                     </Magnetic>
                                 </>
                             )}
@@ -173,14 +176,14 @@ const Navbar = () => {
                         >
                             <div className="space-y-1">
                                 {[{ label: 'Home', to: '/' }, { label: 'Events', to: '/events' }, ...(user ? [{ label: 'Dashboard', to: dashPath }] : [])].map((l) => (
-                                    <Link
+                                    <TransitionLink
                                         key={l.to}
                                         to={l.to}
                                         onClick={() => setMobileOpen(false)}
                                         className={`block rounded-2xl px-4 py-3 text-sm font-extrabold uppercase tracking-wider ${isActive(l.to) ? 'bg-brand-purple text-white' : 'text-gray-800 hover:bg-gray-100 dark:text-dark-ink dark:hover:bg-dark-surface-2'}`}
                                     >
                                         {l.label}
-                                    </Link>
+                                    </TransitionLink>
                                 ))}
                             </div>
                             <div className="mt-3 border-t border-black/5 pt-3 space-y-1">
@@ -193,12 +196,12 @@ const Navbar = () => {
                                     </button>
                                 ) : (
                                     <div className="grid grid-cols-2 gap-3">
-                                        <Link to="/login" className="rounded-full border border-black/15 py-3 text-center text-xs font-extrabold uppercase text-black dark:border-white/20 dark:text-dark-ink">
+                                        <TransitionLink to="/login" className="rounded-full border border-black/15 py-3 text-center text-xs font-extrabold uppercase text-black dark:border-white/20 dark:text-dark-ink">
                                             Log in
-                                        </Link>
-                                        <Link to="/register" className="btn-gradient rounded-full py-3 text-center text-xs font-extrabold uppercase text-white">
+                                        </TransitionLink>
+                                        <TransitionLink to="/register" className="btn-gradient rounded-full py-3 text-center text-xs font-extrabold uppercase text-white">
                                             Sign up
-                                        </Link>
+                                        </TransitionLink>
                                     </div>
                                 )}
                             </div>
@@ -208,19 +211,19 @@ const Navbar = () => {
             </header>
 
             {/* Mobile bottom navigation */}
-            <div className="glass-strong md:hidden fixed bottom-0 left-0 right-0 z-40 border-t px-8 py-2.5 flex items-center justify-between">
-                <Link to="/" className={`flex flex-col items-center gap-0.5 text-[10px] font-extrabold uppercase ${isActive('/') ? 'text-brand-purple' : 'text-gray-500 dark:text-dark-muted'}`}>
+            <div className="glass-strong md:hidden fixed bottom-0 left-0 right-0 z-40 border-t px-8 py-2.5 flex items-center justify-between" style={{ viewTransitionName: 'site-bottom-nav' }}>
+                <TransitionLink to="/" className={`flex flex-col items-center gap-0.5 text-[10px] font-extrabold uppercase ${isActive('/') ? 'text-brand-purple' : 'text-gray-500 dark:text-dark-muted'}`}>
                     <Compass className="h-5 w-5" />
                     Home
-                </Link>
-                <Link to="/events" className={`flex flex-col items-center gap-0.5 text-[10px] font-extrabold uppercase ${isActive('/events') ? 'text-brand-purple' : 'text-gray-500 dark:text-dark-muted'}`}>
+                </TransitionLink>
+                <TransitionLink to="/events" className={`flex flex-col items-center gap-0.5 text-[10px] font-extrabold uppercase ${isActive('/events') ? 'text-brand-purple' : 'text-gray-500 dark:text-dark-muted'}`}>
                     <LayoutGrid className="h-5 w-5" />
                     Events
-                </Link>
-                <Link to={user ? dashPath : '/login'} className={`flex flex-col items-center gap-0.5 text-[10px] font-extrabold uppercase ${isActive(dashPath) ? 'text-brand-purple' : 'text-gray-500 dark:text-dark-muted'}`}>
+                </TransitionLink>
+                <TransitionLink to={user ? dashPath : '/login'} className={`flex flex-col items-center gap-0.5 text-[10px] font-extrabold uppercase ${isActive(dashPath) ? 'text-brand-purple' : 'text-gray-500 dark:text-dark-muted'}`}>
                     <UserRound className="h-5 w-5" />
                     Account
-                </Link>
+                </TransitionLink>
             </div>
         </>
     );

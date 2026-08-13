@@ -1,7 +1,7 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Sparkle, AtSign, Camera, Play, Globe } from 'lucide-react';
 import { Reveal } from '../animations';
+import { TransitionLink } from './Transitions';
 
 const socials = [
     { icon: Camera, label: 'Instagram' },
@@ -23,7 +23,7 @@ const Footer = () => {
                     <div className="relative grid grid-cols-1 gap-12 p-8 sm:p-12 lg:p-16 lg:grid-cols-12">
                         {/* Brand */}
                         <div className="lg:col-span-5 space-y-6">
-                            <Link to="/" className="flex items-center gap-3">
+                            <TransitionLink to="/" className="flex items-center gap-3">
                                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-purple shadow-[0_8px_22px_-8px_rgba(186,40,226,0.5)]">
                                     <Sparkle className="h-6 w-6 text-white" fill="white" />
                                 </div>
@@ -33,7 +33,7 @@ const Footer = () => {
                                         Good vibes only
                                     </span>
                                 </div>
-                            </Link>
+                            </TransitionLink>
                             <p className="max-w-sm text-sm leading-relaxed text-gray-500 dark:text-dark-muted">
                                 Discover epic events, book your tickets and create unforgettable memories.
                                 Concerts, festivals, workshops and conferences — all in one place.
@@ -56,19 +56,19 @@ const Footer = () => {
                             <div className="space-y-3">
                                 <h4 className="text-xs font-black uppercase tracking-[0.2em] text-brand-gray-400 dark:text-dark-muted">Explore</h4>
                                 <ul className="space-y-2.5 font-semibold text-brand-gray-700 dark:text-dark-muted">
-                                    <li><Link to="/" className="transition-colors hover:text-brand-purple">Home</Link></li>
-                                    <li><Link to="/events" className="transition-colors hover:text-brand-purple">All Events</Link></li>
-                                    <li><Link to="/events?category=Music" className="transition-colors hover:text-brand-purple">Music</Link></li>
-                                    <li><Link to="/events?category=Tech" className="transition-colors hover:text-brand-purple">Conferences</Link></li>
+                                    <li><TransitionLink to="/" className="transition-colors hover:text-brand-purple">Home</TransitionLink></li>
+                                    <li><TransitionLink to="/events" className="transition-colors hover:text-brand-purple">All Events</TransitionLink></li>
+                                    <li><TransitionLink to="/events?category=Music" className="transition-colors hover:text-brand-purple">Music</TransitionLink></li>
+                                    <li><TransitionLink to="/events?category=Tech" className="transition-colors hover:text-brand-purple">Conferences</TransitionLink></li>
                                 </ul>
                             </div>
                             <div className="space-y-3">
                                 <h4 className="text-xs font-black uppercase tracking-[0.2em] text-brand-gray-400 dark:text-dark-muted">Account</h4>
                                 <ul className="space-y-2.5 font-semibold text-brand-gray-700 dark:text-dark-muted">
-                                    <li><Link to="/dashboard" className="transition-colors hover:text-brand-purple">My Tickets</Link></li>
-                                    <li><Link to="/dashboard" className="transition-colors hover:text-brand-purple">Invoices</Link></li>
-                                    <li><Link to="/register" className="transition-colors hover:text-brand-purple">Sign Up</Link></li>
-                                    <li><Link to="/login" className="transition-colors hover:text-brand-purple">Log In</Link></li>
+                                    <li><TransitionLink to="/dashboard" className="transition-colors hover:text-brand-purple">My Tickets</TransitionLink></li>
+                                    <li><TransitionLink to="/dashboard" className="transition-colors hover:text-brand-purple">Invoices</TransitionLink></li>
+                                    <li><TransitionLink to="/register" className="transition-colors hover:text-brand-purple">Sign Up</TransitionLink></li>
+                                    <li><TransitionLink to="/login" className="transition-colors hover:text-brand-purple">Log In</TransitionLink></li>
                                 </ul>
                             </div>
                         </div>
@@ -84,6 +84,7 @@ const Footer = () => {
                                 <input
                                     type="email"
                                     placeholder="your@email.com"
+                                    aria-label="Email address for newsletter"
                                     className="w-full rounded-2xl border border-black/10 bg-brand-light px-4 py-3 text-sm text-brand-dark placeholder-gray-400 outline-none transition-colors focus:border-brand-purple dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-ink dark:placeholder-dark-muted"
                                 />
                                 <button className="btn-gradient w-full rounded-2xl py-3 text-xs font-extrabold uppercase tracking-wider text-white">

@@ -54,7 +54,7 @@ const QRTicketModal = ({ booking, onClose }) => {
                         <DialogClose asChild>
                             <button
                                 aria-label="Close pass"
-                                className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-all hover:bg-white/35"
+                                className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white transition-all hover:bg-white/35"
                             >
                                 <X className="h-4 w-4" />
                             </button>
