@@ -1,19 +1,17 @@
 import { useState } from 'react';
 import api from '../utils/axios';
 import { AuthContext } from './auth';
+import { authStorage } from '../utils/storage';
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(() => {
-        const userInfo = localStorage.getItem('userInfo');
-        return userInfo ? JSON.parse(userInfo) : null;
-    });
+    const [user, setUser] = useState(() => authStorage.getUser());
 
     const login = async (email, password) => {
         try {
             const { data } = await api.post('/auth/login', { email, password });
             setUser(data.user);
-            localStorage.setItem('userInfo', JSON.stringify(data.user));
-            localStorage.setItem('token', data.user.token);
+            authStorage.setUser(data.user);
+            authStorage.setToken(data.user.token);
             return data.user;
         } catch (error) {
             if (error.response?.data?.needsVerification) throw error.response.data;
@@ -34,8 +32,8 @@ export const AuthProvider = ({ children }) => {
         try {
             const { data } = await api.post('/auth/verify-otp', { email, otp });
             setUser(data.user);
-            localStorage.setItem('userInfo', JSON.stringify(data.user));
-            localStorage.setItem('token', data.user.token);
+            authStorage.setUser(data.user);
+            authStorage.setToken(data.user.token);
             return data.user;
         } catch (error) {
             throw error.response?.data?.message || 'OTP verification failed';
@@ -44,8 +42,8 @@ export const AuthProvider = ({ children }) => {
 
     const logout = () => {
         setUser(null);
-        localStorage.removeItem('userInfo');
-        localStorage.removeItem('token');
+        authStorage.clearUser();
+        authStorage.clearToken();
     };
 
     return (
