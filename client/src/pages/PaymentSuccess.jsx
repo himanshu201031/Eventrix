@@ -1,10 +1,11 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { DirectionalTransition, TransitionLink } from '../components/Transitions';
 import { CheckCircle2, ArrowRight, Sparkle, Ticket } from 'lucide-react';
 
 const PaymentSuccess = () => {
     return (
+        <DirectionalTransition>
         <div className="flex min-h-screen flex-col items-center justify-center px-4 pt-28 pb-16">
             <motion.div
                 initial={{ opacity: 0, y: 30, scale: 0.95 }}
@@ -51,16 +52,17 @@ const PaymentSuccess = () => {
                     </div>
 
                     <div className="mt-7 space-y-3">
-                        <Link to="/dashboard" className="btn-gradient flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-xs font-extrabold uppercase tracking-wider text-white">
+                        <TransitionLink to="/dashboard" className="btn-gradient flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-xs font-extrabold uppercase tracking-wider text-white">
                             View my tickets <ArrowRight className="h-4 w-4" />
-                        </Link>
-                        <Link to="/" className="block w-full rounded-2xl border border-black/10 py-4 text-xs font-extrabold uppercase tracking-wider text-gray-700 transition-all hover:border-brand-purple hover:text-brand-purple dark:border-dark-line dark:text-dark-muted dark:hover:border-brand-purple dark:hover:text-brand-purple">
+                        </TransitionLink>
+                        <TransitionLink to="/" className="block w-full rounded-2xl border border-black/10 py-4 text-xs font-extrabold uppercase tracking-wider text-gray-700 transition-all hover:border-brand-purple hover:text-brand-purple dark:border-dark-line dark:text-dark-muted dark:hover:border-brand-purple dark:hover:text-brand-purple">
                             Discover more events
-                        </Link>
+                        </TransitionLink>
                     </div>
                 </div>
             </motion.div>
         </div>
+        </DirectionalTransition>
     );
 };
 
