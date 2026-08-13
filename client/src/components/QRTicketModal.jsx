@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Ticket, CalendarDays, MapPin, Download, X, CheckCircle2, Sparkle } from 'lucide-react';
+import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { CalendarDays, MapPin, Download, X, CheckCircle2, Sparkle } from 'lucide-react';
 import { stopScroll, startScroll } from '../utils/smoothScroll';
 
 const QRTicketModal = ({ booking, onClose }) => {
@@ -42,24 +42,23 @@ const QRTicketModal = ({ booking, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <motion.div
-                initial={{ opacity: 0, y: 40, rotate: -2, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, rotate: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 40, scale: 0.95 }}
-                transition={{ type: 'spring', stiffness: 240, damping: 22 }}
-                className="relative w-full max-w-md"
-            >
-                {/* Ticket */}
+        <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+            <DialogContent hideCloseButton className="max-w-md gap-0 overflow-hidden p-0">
+                <DialogTitle className="sr-only">
+                    {event.title || 'Eventrix Ticket'} — official pass
+                </DialogTitle>
+
                 <div className="overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-2xl dark:border-dark-line dark:bg-dark-surface">
                     {/* Header */}
                     <div className="relative bg-brand-purple p-6 text-center text-white">
-                        <button
-                            onClick={onClose}
-                            className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-all hover:bg-white/35"
-                        >
-                            <X className="h-4 w-4" />
-                        </button>
+                        <DialogClose asChild>
+                            <button
+                                aria-label="Close pass"
+                                className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-all hover:bg-white/35"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </DialogClose>
                         <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-white">
                             <Sparkle className="h-3 w-3 text-brand-lime" fill="currentColor" /> Official pass
                         </div>
@@ -136,17 +135,16 @@ const QRTicketModal = ({ booking, onClose }) => {
                             >
                                 <Download className="h-4 w-4" /> Download / save pass
                             </button>
-                            <button
-                                onClick={onClose}
-                                className="rounded-2xl border border-black/10 bg-white px-5 text-xs font-extrabold uppercase tracking-wider text-gray-700 transition-all hover:border-brand-purple hover:text-brand-purple dark:border-dark-line dark:bg-dark-surface dark:text-dark-muted"
-                            >
-                                Close
-                            </button>
+                            <DialogClose asChild>
+                                <button className="rounded-2xl border border-black/10 bg-white px-5 text-xs font-extrabold uppercase tracking-wider text-gray-700 transition-all hover:border-brand-purple hover:text-brand-purple dark:border-dark-line dark:bg-dark-surface dark:text-dark-muted">
+                                    Close
+                                </button>
+                            </DialogClose>
                         </div>
                     </div>
                 </div>
-            </motion.div>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 };
 
