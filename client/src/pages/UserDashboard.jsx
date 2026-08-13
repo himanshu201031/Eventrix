@@ -32,7 +32,7 @@ const UserDashboard = () => {
     const fetchBookings = useCallback(async () => {
         try {
             const { data } = await api.get('/bookings/my');
-            setBookings(data);
+            setBookings(data.items ?? []);
         } catch (error) {
             console.error('Error fetching bookings', error);
         } finally {
