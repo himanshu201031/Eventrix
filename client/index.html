@@ -10,7 +10,8 @@
     <script>
       (function () {
         try {
-          var t = localStorage.getItem('eventrix-theme');
+          var t = localStorage.getItem('evx:theme');
+          if (t === null) t = localStorage.getItem('eventrix-theme');
           if (t !== 'light') document.documentElement.classList.add('dark');
         } catch (e) {}
       })();
