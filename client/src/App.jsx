@@ -1,41 +1,60 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import React, { lazy, Suspense, useEffect } from 'react';
+import { ViewTransition } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigationType } from 'react-router-dom';
+import { motion, MotionConfig } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import Home from './pages/Home';
-import Events from './pages/Events';
-import EventDetail from './pages/EventDetail';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import UserDashboard from './pages/UserDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import PaymentSuccess from './pages/PaymentSuccess';
-import PaymentFailed from './pages/PaymentFailed';
 import { initSmoothScroll, destroySmoothScroll, scrollToTop } from './utils/smoothScroll';
 import { Compass } from 'lucide-react';
 
-/* Scroll to top on every route change (uses Lenis when available) */
+/* Route-level code splitting: each page is its own chunk, so /login, /events,
+   /dashboard etc. never download each other's code (GSAP stays with Home, the
+   dashboards carry their modals, and so on). */
+const Home = lazy(() => import('./pages/Home'));
+const Events = lazy(() => import('./pages/Events'));
+const EventDetail = lazy(() => import('./pages/EventDetail'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const UserDashboard = lazy(() => import('./pages/UserDashboard'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess'));
+const PaymentFailed = lazy(() => import('./pages/PaymentFailed'));
+
+/* Quiet fallback while a route chunk loads — pages render their own skeletons,
+   so this just holds the layout steady during the fetch. */
+const RouteFallback = () => (
+    <div className="flex min-h-[70vh] items-center justify-center" role="status" aria-label="Loading page">
+        <span className="font-display animate-pulse text-lg uppercase tracking-widest text-brand-gray-400 dark:text-dark-muted">
+            eventrix
+        </span>
+    </div>
+);
+
+/* Scroll to top on forward navigation, but NOT on browser back (POP) —
+   restoring a previous page must preserve its scroll position. */
 const ScrollToTop = () => {
     const { pathname } = useLocation();
+    const navType = useNavigationType();
     useEffect(() => {
-        scrollToTop(true);
-    }, [pathname]);
+        if (navType !== 'POP') scrollToTop(true);
+    }, [pathname, navType]);
     return null;
 };
 
-/* Animated route transitions */
+/* Routes with native view transitions. Page-level directional slides come
+   from each page's own <DirectionalTransition>; this boundary handles the
+   Suspense reveal (fallback → content, vertical slide) for lazy chunks. */
 const AnimatedRoutes = () => {
     const location = useLocation();
     return (
-        <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-                key={location.pathname}
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -14 }}
-                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-            >
+        <Suspense
+            fallback={
+                <ViewTransition exit="slide-down" default="none">
+                    <RouteFallback />
+                </ViewTransition>
+            }
+        >
+            <ViewTransition enter="slide-up" default="none">
                 <Routes location={location}>
                     <Route path="/" element={<Home />} />
                     <Route path="/events" element={<Events />} />
@@ -73,8 +92,8 @@ const AnimatedRoutes = () => {
                         }
                     />
                 </Routes>
-            </motion.div>
-        </AnimatePresence>
+            </ViewTransition>
+        </Suspense>
     );
 };
 
@@ -87,13 +106,21 @@ function App() {
     return (
         <Router>
             <ScrollToTop />
-            <div className="flex min-h-screen flex-col bg-brand-light text-brand-dark selection:bg-brand-purple selection:text-white dark:bg-dark-page dark:text-dark-ink">
-                <Navbar />
-                <main className="flex-grow pb-16 md:pb-0">
-                    <AnimatedRoutes />
-                </main>
-                <Footer />
-            </div>
+            {/* reducedMotion="user" makes framer-motion micro-interactions honour
+                the OS prefers-reduced-motion setting; native view transitions have
+                their own reduced-motion CSS in index.css. */}
+            <MotionConfig reducedMotion="user">
+                <a href="#main-content" className="skip-link">
+                    Skip to content
+                </a>
+                <div className="flex min-h-screen flex-col bg-brand-light text-brand-dark selection:bg-brand-purple selection:text-white dark:bg-dark-page dark:text-dark-ink">
+                    <Navbar />
+                    <main id="main-content" className="flex-grow pb-16 md:pb-0">
+                        <AnimatedRoutes />
+                    </main>
+                    <Footer />
+                </div>
+            </MotionConfig>
         </Router>
     );
 }

@@ -27,6 +27,35 @@
     var(--color-brand-pink) 52%,
     var(--color-brand-purple) 100%
   );
+
+  /* shadcn/ui semantic tokens → Eventrix palette.
+     bg-primary, text-muted-foreground, border-border, ring-ring etc.
+     resolve through these, so every component picks up the brand. */
+  --color-background: var(--bg-main);
+  --color-foreground: var(--text-dark);
+  --color-card: var(--surface-bg);
+  --color-card-foreground: var(--surface-fg);
+  --color-popover: var(--surface-bg);
+  --color-popover-foreground: var(--surface-fg);
+  --color-primary: var(--color-brand-purple);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--surface-bg);
+  --color-secondary-foreground: var(--surface-fg);
+  --color-muted: var(--muted-bg);
+  --color-muted-foreground: var(--muted-fg);
+  --color-accent: var(--accent-bg);
+  --color-accent-foreground: var(--surface-fg);
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+  --color-border: var(--border-color);
+  --color-input: var(--border-color);
+  --color-ring: var(--color-brand-pink);
+
+  /* Radius scale derived from --radius */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
 @theme {
@@ -50,6 +79,12 @@
   --color-brand-gray-700: #2a2a35;
   --color-brand-gray-400: #8a8a98;
   --color-brand-light: #f8f8fb;
+
+  /* Light-mode muted text/icon contrast fix.
+     Tailwind's default gray-400 (#9ca3af) is ~2.6:1 on white — fails 4.5:1.
+     Remap it to gray-500's value so every text-gray-400 caption passes AA.
+     (Only text/icon usages exist — no gray-400 borders in the app.) */
+  --color-gray-400: #6b7280;
 
   /* ---- Dark palette ---- */
   --color-dark-page: #0d0d11;      /* page / section background */
@@ -78,7 +113,29 @@
   --animate-aurora-a: auroraA 24s ease-in-out infinite;
   --animate-aurora-b: auroraB 28s ease-in-out infinite;
   --animate-aurora-c: auroraC 20s ease-in-out infinite;
+  --animate-fade-in: fadeIn 0.2s ease-out;
+  --animate-fade-out: fadeOut 0.15s ease-in;
+  --animate-dialog-in: dialogIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-dialog-out: dialogOut 0.2s ease-in;
 
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  /* Scale-only: the panel is centered via Tailwind's `translate` property,
+     which composes with `transform` without double-shifting. */
+  @keyframes dialogIn {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes dialogOut {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.96); }
+  }
   @keyframes auroraA {
     0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
     50% { transform: translate3d(70px, 46px, 0) scale(1.18); }
@@ -126,6 +183,15 @@
   :root {
     --bg-main: #f8f8fb;
     --text-dark: #0d0d11;
+    --radius: 1rem; /* base radius feeding the shadcn scale */
+
+    /* Surfaces + borders (light) for shadcn semantic tokens */
+    --surface-bg: #ffffff;
+    --surface-fg: #0d0d11;
+    --muted-bg: rgb(13 13 17 / 0.05);
+    --muted-fg: #6b7280;
+    --accent-bg: rgb(186 40 226 / 0.08);
+    --border-color: rgb(13 13 17 / 0.12);
 
     /* Glass surfaces (light) */
     --glass-bg: rgb(255 255 255 / 0.62);
@@ -150,6 +216,13 @@
   html.dark {
     --bg-main: #0d0d11;
     --text-dark: #f2f2f7;
+
+    --surface-bg: var(--color-dark-surface);
+    --surface-fg: var(--color-dark-ink);
+    --muted-bg: rgb(255 255 255 / 0.06);
+    --muted-fg: var(--color-dark-muted);
+    --accent-bg: rgb(186 40 226 / 0.14);
+    --border-color: rgb(255 255 255 / 0.12);
 
     --glass-bg: rgb(255 255 255 / 0.06);
     --glass-border: rgb(255 255 255 / 0.12);
@@ -218,6 +291,47 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+  }
+
+  /* Tailwind v4 preflight leaves buttons at cursor:default — restore pointer
+     so every clickable control signals interactivity (disabled stays default). */
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  select:not(:disabled),
+  [type="submit"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  /* Skip-to-content: off-screen until focused, then pinned above the navbar */
+  .skip-link {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 100;
+    transform: translateY(-250%);
+    border-radius: 9999px;
+    background: var(--color-brand-purple);
+    color: #fff;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    box-shadow: 0 12px 30px -10px rgb(186 40 226 / 0.5);
+    transition: transform 0.2s ease-out;
+  }
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
+}
+
+/* iOS auto-zooms into any <16px input on focus — bump form fields to 16px on
+   small screens only (desktop keeps the designed 14px density). */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
   }
 }
 
@@ -460,4 +574,145 @@ html.lenis, html.lenis body { height: auto; }
   &::-webkit-scrollbar { display: none; }
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   VIEW TRANSITIONS (React <ViewTransition>)
+   Recipes from the Vercel view-transitions skill — do not edit the
+   animation CSS; only the timing variables below are tunable.
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  --duration-exit: 150ms;
+  --duration-enter: 210ms;
+  --duration-move: 400ms;
+}
+
+@keyframes vt-fade {
+  from { filter: blur(3px); opacity: 0; }
+  to { filter: blur(0); opacity: 1; }
+}
+
+@keyframes vt-slide {
+  from { translate: var(--slide-offset); }
+  to { translate: 0; }
+}
+
+@keyframes vt-slide-y {
+  from { transform: translateY(var(--slide-y-offset, 10px)); }
+  to { transform: translateY(0); }
+}
+
+/* ---- Fade ---- */
+::view-transition-old(.fade-out) {
+  animation: var(--duration-exit) ease-in vt-fade reverse;
+}
+::view-transition-new(.fade-in) {
+  animation: var(--duration-enter) ease-out var(--duration-exit) both vt-fade;
+}
+
+/* ---- Slide (vertical) ---- */
+::view-transition-old(.slide-down) {
+  animation:
+    var(--duration-exit) ease-out both vt-fade reverse,
+    var(--duration-exit) ease-out both vt-slide-y reverse;
+}
+::view-transition-new(.slide-up) {
+  animation:
+    var(--duration-enter) ease-in var(--duration-exit) both vt-fade,
+    var(--duration-move) ease-in both vt-slide-y;
+}
+
+/* ---- Directional navigation (single-class: nav-forward / nav-back) ---- */
+::view-transition-old(.nav-forward) {
+  --slide-offset: -60px;
+  animation:
+    var(--duration-exit) ease-in both vt-fade reverse,
+    var(--duration-move) ease-in-out both vt-slide reverse;
+}
+::view-transition-new(.nav-forward) {
+  --slide-offset: 60px;
+  animation:
+    var(--duration-enter) ease-out var(--duration-exit) both vt-fade,
+    var(--duration-move) ease-in-out both vt-slide;
+}
+
+::view-transition-old(.nav-back) {
+  --slide-offset: 60px;
+  animation:
+    var(--duration-exit) ease-in both vt-fade reverse,
+    var(--duration-move) ease-in-out both vt-slide reverse;
+}
+::view-transition-new(.nav-back) {
+  --slide-offset: -60px;
+  animation:
+    var(--duration-enter) ease-out var(--duration-exit) both vt-fade,
+    var(--duration-move) ease-in-out both vt-slide;
+}
+
+/* ---- Shared element morph ---- */
+::view-transition-group(.morph) {
+  animation-duration: var(--duration-move);
+}
+::view-transition-image-pair(.morph) {
+  animation-name: vt-via-blur;
+}
+@keyframes vt-via-blur {
+  30% { filter: blur(3px); }
+}
+
+/* ---- Text morph (avoids raster ghosting on text shared elements) ---- */
+::view-transition-group(.text-morph) {
+  animation-duration: var(--duration-move);
+}
+::view-transition-old(.text-morph) {
+  display: none;
+}
+::view-transition-new(.text-morph) {
+  animation: none;
+  object-fit: none;
+  object-position: left top;
+}
+
+/* ---- Scale ---- */
+::view-transition-old(.scale-out) {
+  animation: var(--duration-exit) ease-in vt-scale-down;
+}
+::view-transition-new(.scale-in) {
+  animation: var(--duration-enter) ease-out var(--duration-exit) both vt-scale-up;
+}
+@keyframes vt-scale-down {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.85); opacity: 0; }
+}
+@keyframes vt-scale-up {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ---- Persistent element isolation (fixed navbar / bottom nav) ----
+   The navbar uses backdrop-blur glass, so hide its old snapshot to
+   avoid a blurred flash over the transitioning page. */
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header) {
+  display: none;
+}
+::view-transition-new(site-header) {
+  animation: none;
+}
+::view-transition-group(site-bottom-nav) {
+  animation: none;
+}
+
+/* ---- Reduced motion: view transitions snap, never animate ---- */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
 }
