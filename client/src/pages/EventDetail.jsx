@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { ViewTransition } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import api from '../utils/axios';
@@ -126,15 +125,11 @@ const EventDetail = () => {
             {/* Banner */}
             <Reveal>
                 <div className="relative mt-6 h-[380px] overflow-hidden rounded-[2.5rem] bg-brand-gray-900 shadow-soft sm:h-[480px]">
-                    {/* Destination half of the event-cover shared-element morph
-                        (paired with the grid card image on /events). */}
-                    <ViewTransition name={`event-cover-${event._id}`} share="morph" default="none" className="block h-full w-full">
-                        <img
-                            src={event.image || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1600&auto=format&fit=crop'}
-                            alt={event.title}
-                            className="h-full w-full object-cover"
-                        />
-                    </ViewTransition>
+                    <img
+                        src={event.image || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1600&auto=format&fit=crop'}
+                        alt={event.title}
+                        className="h-full w-full object-cover"
+                    />
                     <div className="absolute inset-0 bg-black/55" />
 
                     <div className="absolute left-6 top-6 right-6 z-10 flex items-start justify-between">
