@@ -18,17 +18,7 @@
 /* Class-based dark mode (toggled on <html> by ThemeContext) */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Signature gradient (sunset: orange → pink → purple).
-   @theme inline keeps the brand-color references live. */
-@theme inline {
-  --gradient-sunset: linear-gradient(
-    92deg,
-    var(--color-brand-orange) 0%,
-    var(--color-brand-pink) 52%,
-    var(--color-brand-purple) 100%
-  );
-
-  /* shadcn/ui semantic tokens → Eventrix palette.
+/* shadcn/ui semantic tokens → Eventrix palette.
      bg-primary, text-muted-foreground, border-border, ring-ring etc.
      resolve through these, so every component picks up the brand. */
   --color-background: var(--bg-main);
@@ -193,11 +183,11 @@
     --accent-bg: rgb(186 40 226 / 0.08);
     --border-color: rgb(13 13 17 / 0.12);
 
-    /* Glass surfaces (light) */
-    --glass-bg: rgb(255 255 255 / 0.62);
-    --glass-border: rgb(13 13 17 / 0.08);
-    --glass-strong-bg: rgb(255 255 255 / 0.82);
-    --glass-strong-border: rgb(13 13 17 / 0.08);
+    /* Solid surfaces (formerly glass — no backdrop blur) */
+    --glass-bg: rgb(255 255 255 / 0.92);
+    --glass-border: rgb(13 13 17 / 0.1);
+    --glass-strong-bg: #ffffff;
+    --glass-strong-border: rgb(13 13 17 / 0.1);
 
     /* Editorial outline (used on the always-night hero) */
     --outline-color: rgb(13 13 17 / 0.9);
@@ -207,10 +197,10 @@
     --skeleton-bg: #ececf2;
     --skeleton-shine: rgb(255 255 255 / 0.6);
 
-    /* Aurora glows (light) — color-mix keeps brand as single source */
-    --aurora-a: radial-gradient(circle, color-mix(in oklab, var(--color-brand-purple) 22%, transparent), transparent 65%);
-    --aurora-b: radial-gradient(circle, color-mix(in oklab, var(--color-brand-pink) 18%, transparent), transparent 65%);
-    --aurora-c: radial-gradient(circle, color-mix(in oklab, var(--color-brand-orange) 16%, transparent), transparent 65%);
+    /* Ambient tint circles (flat colors, blurred for softness — no gradients) */
+    --aurora-a: rgb(186 40 226 / 0.14);
+    --aurora-b: rgb(255 45 122 / 0.12);
+    --aurora-c: rgb(255 90 31 / 0.1);
   }
 
   html.dark {
@@ -224,9 +214,9 @@
     --accent-bg: rgb(186 40 226 / 0.14);
     --border-color: rgb(255 255 255 / 0.12);
 
-    --glass-bg: rgb(255 255 255 / 0.06);
+    --glass-bg: rgb(23 23 32 / 0.94);
     --glass-border: rgb(255 255 255 / 0.12);
-    --glass-strong-bg: rgb(17 17 27 / 0.72);
+    --glass-strong-bg: #16161d;
     --glass-strong-border: rgb(255 255 255 / 0.14);
 
     --outline-color: rgb(255 255 255 / 0.9);
@@ -235,9 +225,9 @@
     --skeleton-bg: #1a1a22;
     --skeleton-shine: rgb(255 255 255 / 0.07);
 
-    --aurora-a: radial-gradient(circle, color-mix(in oklab, var(--color-brand-purple) 50%, transparent), transparent 65%);
-    --aurora-b: radial-gradient(circle, color-mix(in oklab, var(--color-brand-pink) 42%, transparent), transparent 65%);
-    --aurora-c: radial-gradient(circle, color-mix(in oklab, var(--color-brand-orange) 34%, transparent), transparent 65%);
+    --aurora-a: rgb(186 40 226 / 0.22);
+    --aurora-b: rgb(255 45 122 / 0.18);
+    --aurora-c: rgb(255 90 31 / 0.15);
   }
 
   html {
@@ -369,30 +359,26 @@ html.lenis, html.lenis body { height: auto; }
 @utility text-gradient-lime { color: var(--color-brand-lime-deep); }
 @utility text-gradient-cyan { color: #00b8d0; }
 
-/* ---- Sunset gradient (the signature) ------------------------ */
+/* ---- Flat accent (formerly the sunset gradient) ------------- */
 @utility bg-sunset {
-  background-image: var(--gradient-sunset);
+  background-color: var(--color-brand-purple);
 }
 
 @utility text-gradient-sunset {
-  background-image: var(--gradient-sunset);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--color-brand-purple);
 }
 
 /* ---- Buttons ------------------------------------------------- */
 @utility btn-gradient {
-  background-image: var(--gradient-sunset);
-  background-size: 140% 140%;
+  background-color: var(--color-brand-purple);
   color: #fff;
-  box-shadow: 0 12px 30px -12px color-mix(in oklab, var(--color-brand-pink) 55%, transparent);
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background-position 0.4s ease, filter 0.25s ease;
+  box-shadow: 0 12px 30px -12px color-mix(in oklab, var(--color-brand-purple) 55%, transparent);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background-color 0.25s ease, filter 0.25s ease;
   &:hover {
     transform: translateY(-2px);
-    background-position: 90% 50%;
-    box-shadow: 0 20px 42px -14px color-mix(in oklab, var(--color-brand-pink) 60%, transparent);
-    filter: brightness(1.07);
+    background-color: color-mix(in oklab, var(--color-brand-purple) 88%, #ffffff);
+    box-shadow: 0 20px 42px -14px color-mix(in oklab, var(--color-brand-purple) 60%, transparent);
+    filter: brightness(1.05);
   }
 }
 
@@ -486,19 +472,15 @@ html.lenis, html.lenis body { height: auto; }
   }
 }
 
-/* ---- Glass surfaces (theme-flipping via semantic vars) -------- */
+/* ---- Solid surfaces (formerly glass — no backdrop blur) ------ */
 @utility glass {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
-  backdrop-filter: blur(18px) saturate(1.35);
-  -webkit-backdrop-filter: blur(18px) saturate(1.35);
 }
 
 @utility glass-strong {
   background: var(--glass-strong-bg);
   border: 1px solid var(--glass-strong-border);
-  backdrop-filter: blur(22px) saturate(1.4);
-  -webkit-backdrop-filter: blur(22px) saturate(1.4);
 }
 
 /* Card that lifts + lights its border on hover */
@@ -517,7 +499,7 @@ html.lenis, html.lenis body { height: auto; }
   -webkit-text-stroke: 2px var(--outline-color);
 }
 
-/* ---- Hero aurora (dynamic gradient background) ---------------- */
+/* ---- Hero ambient tint circles (flat colors, no gradients) ---- */
 @utility aurora-blob {
   position: absolute;
   border-radius: 9999px;
