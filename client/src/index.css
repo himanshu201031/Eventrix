@@ -21,6 +21,7 @@
 /* shadcn/ui semantic tokens → Eventrix palette.
      bg-primary, text-muted-foreground, border-border, ring-ring etc.
      resolve through these, so every component picks up the brand. */
+@theme inline {
   --color-background: var(--bg-main);
   --color-foreground: var(--text-dark);
   --color-card: var(--surface-bg);
@@ -408,6 +409,21 @@ html.lenis, html.lenis body { height: auto; }
   }
 }
 
+/* Button-in-Button: the trailing arrow of a primary CTA lives inside its own
+   circular pocket, flush with the button's inner padding, instead of sitting
+   naked next to the label. Paired with `group-hover:translate-*` on the chip. */
+@utility btn-icon-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.75rem;
+  width: 1.75rem;
+  margin-left: 0.5rem;
+  border-radius: 9999px;
+  background-color: rgb(255 255 255 / 0.2);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), background-color 0.3s ease;
+}
+
 /* ---- Festival sticker (floating badge) ----------------------- */
 @utility sticker {
   position: absolute;
@@ -558,143 +574,3 @@ html.lenis, html.lenis body { height: auto; }
   scrollbar-width: none;
 }
 
-/* ══════════════════════════════════════════════════════════════
-   VIEW TRANSITIONS (React <ViewTransition>)
-   Recipes from the Vercel view-transitions skill — do not edit the
-   animation CSS; only the timing variables below are tunable.
-   ══════════════════════════════════════════════════════════════ */
-
-:root {
-  --duration-exit: 150ms;
-  --duration-enter: 210ms;
-  --duration-move: 400ms;
-}
-
-@keyframes vt-fade {
-  from { filter: blur(3px); opacity: 0; }
-  to { filter: blur(0); opacity: 1; }
-}
-
-@keyframes vt-slide {
-  from { translate: var(--slide-offset); }
-  to { translate: 0; }
-}
-
-@keyframes vt-slide-y {
-  from { transform: translateY(var(--slide-y-offset, 10px)); }
-  to { transform: translateY(0); }
-}
-
-/* ---- Fade ---- */
-::view-transition-old(.fade-out) {
-  animation: var(--duration-exit) ease-in vt-fade reverse;
-}
-::view-transition-new(.fade-in) {
-  animation: var(--duration-enter) ease-out var(--duration-exit) both vt-fade;
-}
-
-/* ---- Slide (vertical) ---- */
-::view-transition-old(.slide-down) {
-  animation:
-    var(--duration-exit) ease-out both vt-fade reverse,
-    var(--duration-exit) ease-out both vt-slide-y reverse;
-}
-::view-transition-new(.slide-up) {
-  animation:
-    var(--duration-enter) ease-in var(--duration-exit) both vt-fade,
-    var(--duration-move) ease-in both vt-slide-y;
-}
-
-/* ---- Directional navigation (single-class: nav-forward / nav-back) ---- */
-::view-transition-old(.nav-forward) {
-  --slide-offset: -60px;
-  animation:
-    var(--duration-exit) ease-in both vt-fade reverse,
-    var(--duration-move) ease-in-out both vt-slide reverse;
-}
-::view-transition-new(.nav-forward) {
-  --slide-offset: 60px;
-  animation:
-    var(--duration-enter) ease-out var(--duration-exit) both vt-fade,
-    var(--duration-move) ease-in-out both vt-slide;
-}
-
-::view-transition-old(.nav-back) {
-  --slide-offset: 60px;
-  animation:
-    var(--duration-exit) ease-in both vt-fade reverse,
-    var(--duration-move) ease-in-out both vt-slide reverse;
-}
-::view-transition-new(.nav-back) {
-  --slide-offset: -60px;
-  animation:
-    var(--duration-enter) ease-out var(--duration-exit) both vt-fade,
-    var(--duration-move) ease-in-out both vt-slide;
-}
-
-/* ---- Shared element morph ---- */
-::view-transition-group(.morph) {
-  animation-duration: var(--duration-move);
-}
-::view-transition-image-pair(.morph) {
-  animation-name: vt-via-blur;
-}
-@keyframes vt-via-blur {
-  30% { filter: blur(3px); }
-}
-
-/* ---- Text morph (avoids raster ghosting on text shared elements) ---- */
-::view-transition-group(.text-morph) {
-  animation-duration: var(--duration-move);
-}
-::view-transition-old(.text-morph) {
-  display: none;
-}
-::view-transition-new(.text-morph) {
-  animation: none;
-  object-fit: none;
-  object-position: left top;
-}
-
-/* ---- Scale ---- */
-::view-transition-old(.scale-out) {
-  animation: var(--duration-exit) ease-in vt-scale-down;
-}
-::view-transition-new(.scale-in) {
-  animation: var(--duration-enter) ease-out var(--duration-exit) both vt-scale-up;
-}
-@keyframes vt-scale-down {
-  from { transform: scale(1); opacity: 1; }
-  to { transform: scale(0.85); opacity: 0; }
-}
-@keyframes vt-scale-up {
-  from { transform: scale(0.85); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-/* ---- Persistent element isolation (fixed navbar / bottom nav) ----
-   The navbar uses backdrop-blur glass, so hide its old snapshot to
-   avoid a blurred flash over the transitioning page. */
-::view-transition-group(site-header) {
-  animation: none;
-  z-index: 100;
-}
-::view-transition-old(site-header) {
-  display: none;
-}
-::view-transition-new(site-header) {
-  animation: none;
-}
-::view-transition-group(site-bottom-nav) {
-  animation: none;
-}
-
-/* ---- Reduced motion: view transitions snap, never animate ---- */
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(*),
-  ::view-transition-new(*),
-  ::view-transition-group(*) {
-    animation-duration: 0s !important;
-    animation-delay: 0s !important;
-  }
-}

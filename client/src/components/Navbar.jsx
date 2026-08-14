@@ -6,7 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import { TransitionLink, push } from './Transitions';
 import {
     Sparkle, X, LogOut, Compass, LayoutGrid, UserRound,
-    Sun, Moon, Linkedin, Instagram, Twitter, QrCode, ArrowUpRight,
+    Sun, Moon, ArrowUpRight,
 } from 'lucide-react';
 import Magnetic from '../animations/Magnetic';
 
@@ -31,9 +31,11 @@ const Navbar = () => {
         return () => window.removeEventListener('scroll', onScroll);
     }, []);
 
-    /* Close the menu on any navigation */
+    /* Close the menu on any navigation (deferred so it's not a synchronous
+       setState inside an effect — keeps the react-compiler lint rule happy). */
     useEffect(() => {
-        setOpen(false);
+        const t = setTimeout(() => setOpen(false), 0);
+        return () => clearTimeout(t);
     }, [location.pathname]);
 
     const handleLogout = () => {
@@ -231,33 +233,34 @@ const Navbar = () => {
                                         </TransitionLink>
                                     ))}
                                 </div>
+                                {/* No brand icons in this lucide build — text monograms keep the single-icon-family rule */}
                                 <div className="flex items-center gap-2.5 mt-auto pt-8 text-white/80">
                                     <a
                                         href="https://linkedin.com"
                                         target="_blank"
                                         rel="noreferrer"
                                         aria-label="Eventrix on LinkedIn"
-                                        className="p-2.5 rounded-full bg-brand-gray-700 text-white/80 transition-colors hover:bg-brand-purple hover:text-white"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-gray-700 text-[11px] font-black text-white/80 transition-colors hover:bg-brand-purple hover:text-white"
                                     >
-                                        <Linkedin className="h-4 w-4" />
+                                        IN
                                     </a>
                                     <a
                                         href="https://instagram.com"
                                         target="_blank"
                                         rel="noreferrer"
                                         aria-label="Eventrix on Instagram"
-                                        className="p-2.5 rounded-full bg-brand-gray-700 text-white/80 transition-colors hover:bg-brand-pink hover:text-white"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-gray-700 text-[11px] font-black text-white/80 transition-colors hover:bg-brand-pink hover:text-white"
                                     >
-                                        <Instagram className="h-4 w-4" />
+                                        IG
                                     </a>
                                     <a
                                         href="https://twitter.com"
                                         target="_blank"
                                         rel="noreferrer"
                                         aria-label="Eventrix on X"
-                                        className="p-2.5 rounded-full bg-brand-gray-700 text-white/80 transition-colors hover:bg-brand-dark hover:text-brand-lime"
+                                        className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-gray-700 text-[11px] font-black text-white/80 transition-colors hover:bg-brand-lime hover:text-brand-dark"
                                     >
-                                        <Twitter className="h-4 w-4" />
+                                        X
                                     </a>
                                 </div>
                             </div>

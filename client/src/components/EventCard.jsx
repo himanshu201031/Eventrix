@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { ViewTransition } from 'react';
 import { motion } from 'framer-motion';
 import { CalendarDays, MapPin, Bookmark, BookmarkCheck, ArrowUpRight, Users, Ticket } from 'lucide-react';
 import { Tilt } from '../animations';
@@ -28,7 +27,7 @@ const defaultImages = {
     Sports: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=1000&auto=format&fit=crop',
 };
 
-const EventCard = ({ event, morphName }) => {
+const EventCard = ({ event }) => {
     const [bookmarked, setBookmarked] = useState(false);
 
     if (!event) return null;
@@ -57,35 +56,16 @@ const EventCard = ({ event, morphName }) => {
                 transition={{ type: 'spring', stiffness: 300, damping: 22 }}
                 className="glass-card relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-black/5 bg-white shadow-[0_10px_40px_-18px_rgba(13,13,17,0.25)] dark:border-dark-line dark:bg-dark-surface"
             >
-                {/* Image with glass overlay.
-                    When morphName is set, this image is the source half of a
-                    shared-element morph into the EventDetail banner. Home does not
-                    pass it (featured/trending can show the same event twice, which
-                    would duplicate the view-transition name). */}
                 <div className="relative h-52 w-full overflow-hidden bg-gray-100 dark:bg-dark-surface-2">
-                    {morphName ? (
-                        <ViewTransition name={morphName} share="morph" default="none" className="block h-full w-full">
-                            <img
-                                src={imageUrl}
-                                alt={event.title}
-                                loading="lazy"
-                                className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                                onError={(e) => {
-                                    e.target.src = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1000&auto=format&fit=crop';
-                                }}
-                            />
-                        </ViewTransition>
-                    ) : (
-                        <img
-                            src={imageUrl}
-                            alt={event.title}
-                            loading="lazy"
-                            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                            onError={(e) => {
-                                e.target.src = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1000&auto=format&fit=crop';
-                            }}
-                        />
-                    )}
+                    <img
+                        src={imageUrl}
+                        alt={event.title}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                        onError={(e) => {
+                            e.target.src = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1000&auto=format&fit=crop';
+                        }}
+                    />
                     {/* Flat scrim so the overlay chips stay readable on any photo */}
                     <div className="absolute inset-0 bg-black/40" />
 
@@ -94,7 +74,7 @@ const EventCard = ({ event, morphName }) => {
                         {category}
                     </span>
 
-                    {/* Bookmark — glass chip */}
+                    {/* Bookmark — solid chip over the photo */}
                     <button
                         onClick={(e) => {
                             e.preventDefault();
@@ -163,9 +143,12 @@ const EventCard = ({ event, morphName }) => {
                     {/* CTA */}
                     <TransitionLink
                         to={`/events/${event._id}`}
-                        className="btn-gradient flex items-center justify-center gap-2 rounded-2xl py-3 text-xs font-extrabold uppercase tracking-wider text-white"
+                        className="btn-gradient group flex items-center justify-center rounded-2xl py-2.5 pl-6 pr-2.5 text-xs font-extrabold uppercase tracking-wider text-white transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
                     >
-                        Book tickets <ArrowUpRight className="h-4 w-4" />
+                        Book tickets
+                        <span className="btn-icon-chip group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                            <ArrowUpRight className="h-4 w-4" />
+                        </span>
                     </TransitionLink>
                 </div>
             </motion.div>
