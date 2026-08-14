@@ -1,6 +1,7 @@
 const User = require("../models/User.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const Otp = require("../models/Otp.js");
 const { sendOtpEmail } = require("../utils/email.js");
 const { logger } = require("../utils/logger");
@@ -14,10 +15,15 @@ const {
 const generateToken = (id, role) =>
   jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
-const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
+/* Cryptographically secure 6-digit OTP — never Math.random() for tokens */
+const generateOtp = () => crypto.randomInt(100000, 1000000).toString();
 
 exports.register = async (req, res) => {
-  const { username, email, password } = req.body;
+  /* Coerce to strings first — objects like { "$gt": "" } must never reach
+     a Mongoose query (NoSQL operator injection). */
+  const username = String(req.body.username ?? "");
+  const email = String(req.body.email ?? "").trim();
+  const password = String(req.body.password ?? "");
 
   if (!username || !email || !password) {
     throw new ValidationError("Username, email and password are required");
@@ -57,7 +63,9 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
+  /* Same coercion — operator objects in the filter would inject. */
+  const email = String(req.body.email ?? "").trim();
+  const password = String(req.body.password ?? "");
 
   if (!email || !password) {
     throw new ValidationError("Email and password are required");
@@ -94,7 +102,11 @@ exports.login = async (req, res) => {
 };
 
 exports.verifyotp = async (req, res) => {
-  const { email, otp } = req.body;
+  /* CRITICAL: both fields flow straight into Otp.findOne(). An object like
+     otp: { "$gt": "" } bypasses the OTP check entirely (operator
+     injection → verify any account + receive its JWT). Coerce first. */
+  const email = String(req.body.email ?? "").trim();
+  const otp = String(req.body.otp ?? "");
 
   if (!email || !otp) {
     throw new ValidationError("Email and OTP are required");
