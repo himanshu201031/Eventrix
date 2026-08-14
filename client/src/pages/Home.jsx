@@ -91,12 +91,12 @@ const demoEvents = [
 ];
 
 const categories = [
-    { name: 'Music', icon: Music2, tint: 'from-brand-pink/25 to-brand-pink/5 text-brand-pink', count: '1,234 events' },
-    { name: 'Festivals', icon: PartyPopper, tint: 'from-brand-purple/25 to-brand-purple/5 text-brand-purple', count: '845 events' },
-    { name: 'Workshops', icon: GraduationCap, tint: 'from-brand-lime/25 to-brand-lime/5 text-brand-lime-deep', count: '645 events' },
-    { name: 'Conferences', icon: Mic2, tint: 'from-brand-purple-deep/25 to-brand-purple-deep/5 text-brand-purple', count: '321 events' },
-    { name: 'Sports', icon: Trophy, tint: 'from-brand-cyan/25 to-brand-cyan/5 text-brand-cyan', count: '421 events' },
-    { name: 'Meetups', icon: Users, tint: 'from-brand-orange/25 to-brand-orange/5 text-brand-orange', count: '621 events' },
+    { name: 'Music', icon: Music2, tint: 'bg-brand-pink/15 text-brand-pink', count: '1,234 events' },
+    { name: 'Festivals', icon: PartyPopper, tint: 'bg-brand-purple/15 text-brand-purple', count: '845 events' },
+    { name: 'Workshops', icon: GraduationCap, tint: 'bg-brand-lime/15 text-brand-lime-deep', count: '645 events' },
+    { name: 'Conferences', icon: Mic2, tint: 'bg-brand-purple-deep/15 text-brand-purple', count: '321 events' },
+    { name: 'Sports', icon: Trophy, tint: 'bg-brand-cyan/15 text-brand-cyan', count: '421 events' },
+    { name: 'Meetups', icon: Users, tint: 'bg-brand-orange/15 text-brand-orange', count: '621 events' },
 ];
 
 const whyFeatures = [
@@ -166,7 +166,7 @@ const Countdown = ({ target }) => {
         <div className="flex items-center gap-1.5">
             {cells.map((c, i) => (
                 <React.Fragment key={c.l}>
-                    <span className="flex min-w-[44px] flex-col items-center rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1.5 backdrop-blur-sm">
+                    <span className="flex min-w-[44px] flex-col items-center rounded-xl border border-white/10 bg-white/10 px-2 py-1.5">
                         <span className="font-mono text-lg leading-none text-white">{c.v}</span>
                         <span className="mt-0.5 font-mono text-[9px] uppercase tracking-widest text-white/40">{c.l}</span>
                     </span>
@@ -354,7 +354,7 @@ const Home = () => {
                             <h1 className="hero-el font-display mt-5 text-[3.4rem] uppercase leading-[0.9] tracking-tight sm:text-8xl lg:text-[6rem]">
                                 <span className="block">The ticket</span>
                                 <span className="text-outline block">to your</span>
-                                <span className="text-gradient-sunset block">next night</span>
+                                <span className="text-brand-pink block">next night</span>
                             </h1>
 
                             <p className="hero-el mt-6 max-w-xl text-base leading-relaxed text-white/60 sm:text-lg">
@@ -365,7 +365,7 @@ const Home = () => {
                             {/* Search */}
                             <form onSubmit={goToSearch} className="hero-el mt-8 max-w-2xl">
                                 <Magnetic strength={0.06}>
-                                    <div className="flex flex-col gap-2 rounded-[2rem] border border-white/15 bg-white/[0.08] p-2 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:flex-row sm:items-center sm:pl-5">
+                                    <div className="flex flex-col gap-2 rounded-[2rem] border border-white/15 bg-[#14141f] p-2 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.6)] sm:flex-row sm:items-center sm:pl-5">
                                         <div className="flex flex-1 items-center gap-2.5">
                                             <Search className="h-5 w-5 shrink-0 text-brand-lime" />
                                             <input
@@ -470,7 +470,7 @@ const Home = () => {
                             {/* The pass */}
                             <div className="relative rotate-2 transition-transform duration-500">
                                 <Tilt max={6}>
-                                    <div className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-[#14141f]/85 shadow-[0_40px_90px_-30px_rgba(0,0,0,0.7)] backdrop-blur-2xl">
+                                    <div className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-[#14141f] shadow-[0_40px_90px_-30px_rgba(0,0,0,0.7)]">
                                         {/* Image + glass overlay */}
                                         <div className="relative h-56 w-full overflow-hidden bg-[#1a1a24]">
                                             <img
@@ -479,12 +479,12 @@ const Home = () => {
                                                 onError={(e) => { e.target.src = crowdImg; }}
                                                 className="plx-hero-img h-full w-full object-cover"
                                             />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-[#14141f] via-[#14141f]/20 to-black/20" />
+                                            <div className="absolute inset-0 bg-black/45" />
                                             <span className="absolute left-4 top-4 z-10 flex items-center gap-1.5 rounded-full bg-sunset px-3.5 py-1.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg">
                                                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
                                                 Featured
                                             </span>
-                                            <span className="absolute right-4 top-4 z-10 rounded-full border border-white/20 bg-[#0b0b14]/60 px-3.5 py-1.5 font-mono text-[10px] font-bold uppercase tracking-widest text-white backdrop-blur-md">
+                                            <span className="absolute right-4 top-4 z-10 rounded-full border border-white/20 bg-[#0b0b14]/80 px-3.5 py-1.5 font-mono text-[10px] font-bold uppercase tracking-widest text-white">
                                                 {featured?.category || 'Festivals'}
                                             </span>
                                         </div>
@@ -552,7 +552,7 @@ const Home = () => {
                 </div>
 
                 {/* Lineup marquee — the curtain between stage and content */}
-                <div className="marquee-band relative border-white/10 bg-[#0b0b14]/60 py-4 backdrop-blur-sm">
+                <div className="marquee-band relative border-white/10 bg-[#0b0b14] py-4">
                     <Marquee>
                         {marqueeItems.map((name, i) => (
                             <span key={`${name}-${i}`} className="mx-5 flex items-center gap-5 font-display text-xl uppercase text-white/50 sm:text-2xl">
@@ -588,7 +588,7 @@ const Home = () => {
                         <div>
                             <span className="eyebrow text-[11px] text-brand-pink">Hand-picked this week</span>
                             <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
-                                Featured <span className="text-gradient-sunset">events</span>
+                                Featured <span className="text-brand-purple">events</span>
                             </h2>
                             <p className="mt-3 text-sm text-gray-500 dark:text-dark-muted">The shows the crowd is talking about right now.</p>
                         </div>
@@ -615,8 +615,7 @@ const Home = () => {
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal className="text-center">
                         <span className="eyebrow text-[11px] text-brand-lime-deep">Six ways to spend a night out</span>
-                        <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
-                            Pick your <span className="text-gradient-sunset">vibe</span>
+                        <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">                                    Pick your <span className="text-brand-purple">vibe</span>
                         </h2>
                     </Reveal>
 
@@ -629,7 +628,7 @@ const Home = () => {
                                     onClick={() => push(navigate, `/events?category=${cat.name}`)}
                                     className="glass-card group flex w-full flex-col items-center gap-3 rounded-3xl border border-black/5 bg-brand-light p-6 text-center dark:border-white/10 dark:bg-white/[0.04]"
                                 >
-                                    <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${cat.tint} shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6`}>
+                                    <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${cat.tint} shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6`}>
                                         <cat.icon className="h-6 w-6" />
                                     </div>
                                     <div>
@@ -652,7 +651,7 @@ const Home = () => {
                                 <Flame className="h-3.5 w-3.5" fill="currentColor" /> Ranked by tickets sold
                             </span>
                             <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
-                                Trending <span className="text-gradient-sunset">this week</span>
+                                Trending <span className="text-brand-purple">this week</span>
                             </h2>
                             <p className="mt-3 text-sm text-gray-500 dark:text-dark-muted">The most-booked shows right now — seats are moving.</p>
                         </div>
@@ -684,7 +683,7 @@ const Home = () => {
                             <div>
                                 <span className="eyebrow text-[11px] text-brand-purple">What's on next, in order</span>
                                 <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
-                                    The <span className="text-gradient-sunset">lineup</span>
+                                    The <span className="text-brand-purple">lineup</span>
                                 </h2>
                                 <p className="mt-3 text-sm text-gray-500 dark:text-dark-muted">Dates, venues and live seat counts — grab yours before the meter empties.</p>
                             </div>
@@ -763,7 +762,7 @@ const Home = () => {
                                                 <span className="block font-display text-xl leading-none text-brand-dark dark:text-white">{ev.ticketPrice ? `₹${ev.ticketPrice}` : 'Free'}</span>
                                                 <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-gray-400 dark:text-dark-muted">{ev.ticketPrice ? 'from' : 'entry'}</span>
                                             </div>
-                                            <span className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 text-gray-500 transition-all group-hover:border-transparent group-hover:bg-gradient-to-br group-hover:from-brand-orange group-hover:via-brand-pink group-hover:to-brand-purple group-hover:text-white dark:border-white/15 dark:text-dark-muted">
+                                            <span className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 text-gray-500 transition-all group-hover:border-transparent group-hover:bg-brand-purple group-hover:text-white dark:border-white/15 dark:text-dark-muted">
                                                 <ArrowUpRight className="h-4 w-4" />
                                             </span>
                                         </div>
@@ -782,15 +781,17 @@ const Home = () => {
                     <div className="aurora-blob aurora-c -left-40 bottom-0 h-[420px] w-[420px]" />
                 </div>
 
-                {/* Floating festival illustrations */}
+                {/* Floating festival illustrations (dj photo sits in a solid
+                    dark tile so its dark background reads as intentional in
+                    both themes; mic + headphones are chroma-keyed to transparent) */}
                 <div className="plx-dj pointer-events-none absolute right-[5%] top-16 hidden w-40 opacity-90 xl:block" aria-hidden="true">
-                    <motion.img
-                        src={djImg}
-                        alt=""
+                    <motion.div
                         animate={{ y: [0, -14, 0], rotate: [0, -3, 0] }}
                         transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-                        className="w-full object-contain drop-shadow-[0_30px_40px_rgba(186,40,226,0.35)]"
-                    />
+                        className="overflow-hidden rounded-[1.75rem] border border-black/10 bg-[#16161d] p-2 shadow-[0_24px_48px_-20px_rgba(13,13,17,0.35)] dark:border-dark-line"
+                    >
+                        <img src={djImg} alt="" className="h-full w-full rounded-2xl object-cover" />
+                    </motion.div>
                 </div>
                 <div className="plx-mic pointer-events-none absolute -left-8 top-20 hidden w-24 lg:block" aria-hidden="true">
                     <motion.img
@@ -815,7 +816,7 @@ const Home = () => {
                     <Reveal className="text-center">
                         <span className="eyebrow text-[11px] text-brand-lime-deep">Why Eventrix</span>
                         <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
-                            Built for the <span className="text-gradient-sunset">night out</span>
+                            Built for the <span className="text-brand-purple">night out</span>
                         </h2>
                     </Reveal>
 
@@ -841,7 +842,7 @@ const Home = () => {
                     <Reveal className="text-center">
                         <span className="eyebrow text-[11px] text-brand-pink">From the crowd</span>
                         <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
-                            Loved by <span className="text-gradient-sunset">the crowd</span>
+                            Loved by <span className="text-brand-purple">the crowd</span>
                         </h2>
                     </Reveal>
 
@@ -856,7 +857,7 @@ const Home = () => {
                                     </div>
                                     <p className="mt-4 flex-1 text-sm leading-relaxed text-gray-600 dark:text-dark-muted">"{t.quote}"</p>
                                     <div className="mt-6 flex items-center gap-3 border-t border-black/5 pt-5 dark:border-white/10">
-                                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-brand-orange via-brand-pink to-brand-purple font-mono text-sm font-bold text-white">
+                                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-purple font-mono text-sm font-bold text-white">
                                             {t.initials}
                                         </div>
                                         <div>
@@ -875,8 +876,6 @@ const Home = () => {
             <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
                 <Reveal>
                     <div className="relative overflow-hidden rounded-[2.5rem] border border-black/5 bg-white px-6 py-16 text-center sm:px-12 dark:border-white/10 dark:bg-white/[0.04]">
-                        {/* Gradient glow */}
-                        <div className="pointer-events-none absolute -top-48 left-1/2 h-80 w-[130%] -translate-x-1/2 bg-gradient-to-r from-brand-orange/25 via-brand-pink/25 to-brand-purple/25 blur-[110px]" aria-hidden="true" />
                         <div className="pointer-events-none absolute inset-0 dots-bg opacity-25" aria-hidden="true" />
 
                         <div className="relative mx-auto max-w-xl">
@@ -884,7 +883,7 @@ const Home = () => {
                                 <Ticket className="h-3.5 w-3.5" /> Twice a month, no spam
                             </span>
                             <h2 className="font-display mt-3 text-4xl uppercase leading-[0.95] text-brand-dark sm:text-5xl dark:text-dark-ink">
-                                Passes drop <span className="text-gradient-sunset">early</span>
+                                Passes drop <span className="text-brand-purple">early</span>
                             </h2>
                             <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-gray-500 dark:text-dark-muted">
                                 Early-bird pricing and secret gigs, before they hit the feed. Join 500K+ people who never miss a drop.

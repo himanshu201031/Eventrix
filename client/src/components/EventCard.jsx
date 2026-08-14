@@ -86,8 +86,8 @@ const EventCard = ({ event, morphName }) => {
                             }}
                         />
                     )}
-                    {/* Gradient scrim (festival night) */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b14]/85 via-[#0b0b14]/25 to-transparent" />
+                    {/* Flat scrim so the overlay chips stay readable on any photo */}
+                    <div className="absolute inset-0 bg-black/40" />
 
                     {/* Category badge */}
                     <span className={`absolute left-4 top-4 z-10 rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg ${style.badge}`}>
@@ -101,7 +101,7 @@ const EventCard = ({ event, morphName }) => {
                             setBookmarked(!bookmarked);
                         }}
                         aria-label="Bookmark event"
-                        className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/15 text-white shadow-md backdrop-blur-md transition-all hover:scale-110"
+                        className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/45 text-white shadow-md transition-all hover:scale-110"
                     >
                         {bookmarked ? (
                             <BookmarkCheck className="h-4 w-4 text-brand-lime" />
@@ -111,7 +111,7 @@ const EventCard = ({ event, morphName }) => {
                     </button>
 
                     {/* Date chip */}
-                    <div className="absolute bottom-4 left-4 z-10 flex items-center gap-1.5 rounded-full border border-white/15 bg-[#0b0b14]/55 px-3.5 py-1.5 font-mono text-[11px] font-bold text-white backdrop-blur-md">
+                    <div className="absolute bottom-4 left-4 z-10 flex items-center gap-1.5 rounded-full border border-white/15 bg-[#0b0b14]/80 px-3.5 py-1.5 font-mono text-[11px] font-bold text-white">
                         <CalendarDays className="h-3.5 w-3.5 text-brand-lime" />
                         {formatDate(event.date)}
                     </div>
