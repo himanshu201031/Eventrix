@@ -12,7 +12,6 @@ const AppLoader = () => {
 
     useEffect(() => {
         const id = setInterval(() => setCaption((c) => (c + 1) % captions.length), 480);
-        if (typeof window !== 'undefined') window.__appLoaderMountedAt = performance.now();
         return () => clearInterval(id);
     }, []);
 

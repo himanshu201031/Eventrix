@@ -222,30 +222,33 @@ const Home = () => {
         return () => clearTimeout(timeoutId);
     }, [fetchEvents]);
 
-    /* ---- GSAP: load-in sequence + scroll parallax (synced with Lenis) ---- */
+    /* ---- GSAP: load-in sequence + scroll parallax (synced with Lenis) ----
+       gsap.matchMedia() is the canonical gate: it auto-reverts when the
+       condition flips (e.g. the user toggles reduced motion at runtime),
+       and nothing is created under (prefers-reduced-motion: reduce), so
+       content renders in its final static state. */
     useEffect(() => {
         const lenis = getLenis();
         if (lenis) lenis.on('scroll', ScrollTrigger.update);
 
-        /* Reduced motion: content renders in its final, static state — no
-           entrance choreography and no scroll-driven parallax (the CSS guard
-           can't stop GSAP, so we gate it here). */
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            return () => {
-                if (lenis) lenis.off('scroll', ScrollTrigger.update);
-            };
-        }
+        const mm = gsap.matchMedia();
 
-        const heroCtx = gsap.context(() => {
-            gsap.fromTo(
+        mm.add('(prefers-reduced-motion: no-preference)', () => {
+            /* Load-in — a timeline with position parameters sequences the
+               two staggered entrances; no delay chaining. immediateRender
+               holds the from-state at mount so nothing flashes first. */
+            const intro = gsap.timeline({ defaults: { ease: 'power3.out' } });
+            intro.fromTo(
                 '.hero-el',
-                { y: 46, opacity: 0 },
-                { y: 0, opacity: 1, duration: 1, stagger: 0.12, ease: 'power3.out', delay: 0.1 }
+                { y: 46, autoAlpha: 0 },
+                { y: 0, autoAlpha: 1, duration: 1, stagger: 0.12, immediateRender: true },
+                0.1
             );
-            gsap.fromTo(
+            intro.fromTo(
                 '.hero-sticker',
                 { scale: 0, rotate: -24 },
-                { scale: 1, rotate: 0, duration: 0.8, stagger: 0.15, ease: 'back.out(1.8)', delay: 0.75 }
+                { scale: 1, rotate: 0, duration: 0.8, stagger: 0.15, ease: 'back.out(1.8)', immediateRender: true },
+                0.75
             );
 
             /* Hero content drifts up as you scroll */
@@ -261,10 +264,8 @@ const Home = () => {
                 ease: 'none',
                 scrollTrigger: { trigger: heroRef.current, start: 'top top', end: 'bottom top', scrub: true },
             });
-        }, heroRef);
 
-        /* Why-section illustrations drift at their own speed */
-        const whyCtx = gsap.context(() => {
+            /* Why-section illustrations drift at their own speed */
             gsap.to('.plx-dj', {
                 yPercent: -14,
                 ease: 'none',
@@ -280,12 +281,31 @@ const Home = () => {
                 ease: 'none',
                 scrollTrigger: { trigger: whyRef.current, start: 'top bottom', end: 'bottom top', scrub: true },
             });
-        }, whyRef);
+        });
 
         return () => {
-            heroCtx.revert();
-            whyCtx.revert();
+            mm.revert();
             if (lenis) lenis.off('scroll', ScrollTrigger.update);
+        };
+    }, []);
+
+    /* ScrollTrigger positions are measured at mount while the lineup renders
+       skeletons; refresh once real event cards replace them — and again after
+       webfonts finish swapping — since both shift the Why-section trigger
+       points below. (Skill: refresh after new content / fonts.) */
+    useEffect(() => {
+        if (loading) return undefined;
+        const raf = requestAnimationFrame(() => ScrollTrigger.refresh());
+        return () => cancelAnimationFrame(raf);
+    }, [loading]);
+
+    useEffect(() => {
+        let alive = true;
+        document.fonts?.ready.then(() => {
+            if (alive) ScrollTrigger.refresh();
+        });
+        return () => {
+            alive = false;
         };
     }, []);
 
@@ -365,7 +385,9 @@ const Home = () => {
                             {/* Search */}
                             <form onSubmit={goToSearch} className="hero-el mt-8 max-w-2xl">
                                 <Magnetic strength={0.06}>
-                                    <div className="flex flex-col gap-2 rounded-[2rem] border border-white/15 bg-[#14141f] p-2 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.6)] sm:flex-row sm:items-center sm:pl-5">
+                                    {/* Double-Bezel shell: hairline outer ring + raised inner core */}
+                                    <div className="rounded-[2.5rem] border border-white/10 bg-white/[0.04] p-1.5 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.55)]">
+                                    <div className="flex flex-col gap-2 rounded-[2rem] bg-[#14141f] p-2 sm:flex-row sm:items-center sm:pl-5">
                                         <div className="flex flex-1 items-center gap-2.5">
                                             <Search className="h-5 w-5 shrink-0 text-brand-lime" />
                                             <input
@@ -407,11 +429,15 @@ const Home = () => {
                                             </div>
                                             <button
                                                 type="submit"
-                                                className="btn-gradient flex shrink-0 items-center gap-2 rounded-full px-6 py-3 text-xs font-extrabold uppercase tracking-wider text-white"
+                                                className="btn-gradient group flex shrink-0 items-center rounded-full py-2 pl-5 pr-2 text-xs font-extrabold uppercase tracking-wider text-white transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
                                             >
-                                                Search <ArrowUpRight className="h-3.5 w-3.5" />
+                                                Search
+                                                <span className="btn-icon-chip group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                                                    <ArrowUpRight className="h-3.5 w-3.5" />
+                                                </span>
                                             </button>
                                         </div>
+                                    </div>
                                     </div>
                                 </Magnetic>
                             </form>
@@ -470,8 +496,10 @@ const Home = () => {
                             {/* The pass */}
                             <div className="relative rotate-2 transition-transform duration-500">
                                 <Tilt max={6}>
-                                    <div className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-[#14141f] shadow-[0_40px_90px_-30px_rgba(0,0,0,0.7)]">
-                                        {/* Image + glass overlay */}
+                                    {/* Double-Bezel shell: machined outer ring, inset-highlighted core */}
+                                    <div className="rounded-[2.5rem] border border-white/10 bg-white/[0.05] p-1.5 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.6)]">
+                                    <div className="relative overflow-hidden rounded-[2.125rem] bg-[#14141f] shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
+                                        {/* Image + flat scrim */}
                                         <div className="relative h-56 w-full overflow-hidden bg-[#1a1a24]">
                                             <img
                                                 src={featured?.image || crowdImg}
@@ -532,9 +560,12 @@ const Home = () => {
                                         <div className="flex items-center justify-between gap-4 p-5 sm:p-6">
                                             <TransitionLink
                                                 to={featured ? `/events/${featured._id}` : '/events'}
-                                                className="btn-gradient flex shrink-0 items-center gap-2 rounded-full px-6 py-3 text-xs font-extrabold uppercase tracking-wider text-white"
+                                                className="btn-gradient group flex shrink-0 items-center rounded-full py-2 pl-5 pr-2 text-xs font-extrabold uppercase tracking-wider text-white transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
                                             >
-                                                Book tickets <ArrowUpRight className="h-3.5 w-3.5" />
+                                                Book tickets
+                                                <span className="btn-icon-chip group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                                                    <ArrowUpRight className="h-3.5 w-3.5" />
+                                                </span>
                                             </TransitionLink>
                                             <div className="flex items-center gap-4">
                                                 <div className="barcode hidden w-36 text-white/60 sm:block" aria-hidden="true" />
@@ -544,6 +575,7 @@ const Home = () => {
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
                                     </div>
                                 </Tilt>
                             </div>
@@ -582,7 +614,7 @@ const Home = () => {
             </section>
 
             {/* ═══════════ FEATURED EVENTS ═══════════ */}
-            <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+            <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
                 <Reveal>
                     <div className="flex flex-wrap items-end justify-between gap-4">
                         <div>
@@ -611,11 +643,11 @@ const Home = () => {
             </section>
 
             {/* ═══════════ POPULAR CATEGORIES ═══════════ */}
-            <section className="border-y border-black/5 bg-white py-20 dark:border-white/5 dark:bg-dark-page">
+            <section className="border-y border-black/5 bg-white py-24 dark:border-white/5 dark:bg-dark-page">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal className="text-center">
-                        <span className="eyebrow text-[11px] text-brand-lime-deep">Six ways to spend a night out</span>
-                        <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">                                    Pick your <span className="text-brand-purple">vibe</span>
+                        <h2 className="font-display text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
+                            Pick your <span className="text-brand-purple">vibe</span>
                         </h2>
                     </Reveal>
 
@@ -643,14 +675,11 @@ const Home = () => {
             </section>
 
             {/* ═══════════ TRENDING EVENTS ═══════════ */}
-            <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+            <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
                 <Reveal>
                     <div className="flex flex-wrap items-end justify-between gap-4">
                         <div>
-                            <span className="eyebrow inline-flex items-center gap-2 text-[11px] text-brand-orange">
-                                <Flame className="h-3.5 w-3.5" fill="currentColor" /> Ranked by tickets sold
-                            </span>
-                            <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
+                            <h2 className="font-display text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
                                 Trending <span className="text-brand-purple">this week</span>
                             </h2>
                             <p className="mt-3 text-sm text-gray-500 dark:text-dark-muted">The most-booked shows right now — seats are moving.</p>
@@ -676,7 +705,7 @@ const Home = () => {
             </section>
 
             {/* ═══════════ UPCOMING · THE LINEUP ═══════════ */}
-            <section className="border-y border-black/5 bg-white py-20 dark:border-white/5 dark:bg-dark-page">
+            <section className="border-y border-black/5 bg-white py-24 dark:border-white/5 dark:bg-dark-page">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal>
                         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -814,8 +843,7 @@ const Home = () => {
 
                 <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal className="text-center">
-                        <span className="eyebrow text-[11px] text-brand-lime-deep">Why Eventrix</span>
-                        <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
+                        <h2 className="font-display text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
                             Built for the <span className="text-brand-purple">night out</span>
                         </h2>
                     </Reveal>
@@ -823,12 +851,15 @@ const Home = () => {
                     <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                         {whyFeatures.map((f, i) => (
                             <Reveal key={f.title} delay={i * 0.08}>
-                                <div className="glass-card h-full rounded-[2rem] border border-black/5 bg-white p-7 dark:border-white/10 dark:bg-white/[0.04]">
+                                {/* Double-Bezel: hairline shell wraps the raised card core */}
+                                <div className="glass-card h-full rounded-[2.25rem] border border-black/5 bg-black/[0.03] p-1.5 dark:border-white/10 dark:bg-white/[0.06]">
+                                    <div className="h-full rounded-[1.875rem] bg-white p-7 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9)] dark:bg-dark-surface">
                                     <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${f.chip} ${f.tint}`}>
                                         <f.icon className="h-6 w-6" />
                                     </div>
                                     <h4 className="mt-5 font-display text-lg uppercase tracking-wide text-brand-dark dark:text-dark-ink">{f.title}</h4>
                                     <p className="mt-2 text-sm leading-relaxed text-gray-500 dark:text-dark-muted">{f.desc}</p>
+                                    </div>
                                 </div>
                             </Reveal>
                         ))}
@@ -837,11 +868,10 @@ const Home = () => {
             </section>
 
             {/* ═══════════ TESTIMONIALS ═══════════ */}
-            <section className="border-y border-black/5 bg-white py-20 dark:border-white/5 dark:bg-dark-page">
+            <section className="border-y border-black/5 bg-white py-24 dark:border-white/5 dark:bg-dark-page">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal className="text-center">
-                        <span className="eyebrow text-[11px] text-brand-pink">From the crowd</span>
-                        <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
+                        <h2 className="font-display text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
                             Loved by <span className="text-brand-purple">the crowd</span>
                         </h2>
                     </Reveal>
@@ -849,7 +879,9 @@ const Home = () => {
                     <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
                         {testimonials.map((t, i) => (
                             <Reveal key={t.name} delay={i * 0.1}>
-                                <div className="glass-card flex h-full flex-col rounded-[2rem] border border-black/5 bg-white p-7 dark:border-white/10 dark:bg-white/[0.04]">
+                                {/* Double-Bezel: hairline shell wraps the raised card core */}
+                                <div className="glass-card h-full rounded-[2.25rem] border border-black/5 bg-black/[0.03] p-1.5 dark:border-white/10 dark:bg-white/[0.06]">
+                                    <div className="flex h-full flex-col rounded-[1.875rem] bg-white p-7 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9)] dark:bg-dark-surface">
                                     <div className="flex gap-1">
                                         {[...Array(5)].map((_, s) => (
                                             <Star key={s} className="h-4 w-4 text-brand-orange" fill="currentColor" />
@@ -865,6 +897,7 @@ const Home = () => {
                                             <p className="font-mono text-[11px] font-bold text-gray-400 dark:text-dark-muted">{t.role}</p>
                                         </div>
                                     </div>
+                                    </div>
                                 </div>
                             </Reveal>
                         ))}
@@ -873,16 +906,13 @@ const Home = () => {
             </section>
 
             {/* ═══════════ NEWSLETTER ═══════════ */}
-            <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+            <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
                 <Reveal>
                     <div className="relative overflow-hidden rounded-[2.5rem] border border-black/5 bg-white px-6 py-16 text-center sm:px-12 dark:border-white/10 dark:bg-white/[0.04]">
                         <div className="pointer-events-none absolute inset-0 dots-bg opacity-25" aria-hidden="true" />
 
                         <div className="relative mx-auto max-w-xl">
-                            <span className="eyebrow inline-flex items-center gap-2 text-[11px] text-brand-lime-deep">
-                                <Ticket className="h-3.5 w-3.5" /> Twice a month, no spam
-                            </span>
-                            <h2 className="font-display mt-3 text-4xl uppercase leading-[0.95] text-brand-dark sm:text-5xl dark:text-dark-ink">
+                            <h2 className="font-display text-4xl uppercase leading-[0.95] text-brand-dark sm:text-5xl dark:text-dark-ink">
                                 Passes drop <span className="text-brand-purple">early</span>
                             </h2>
                             <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-gray-500 dark:text-dark-muted">
