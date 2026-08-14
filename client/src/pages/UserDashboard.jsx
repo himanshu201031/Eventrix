@@ -156,7 +156,7 @@ const UserDashboard = () => {
                         <div className="flex flex-wrap items-center justify-between gap-4 rounded-[2rem] border border-black/5 bg-white p-6 shadow-soft sm:p-8 dark:border-dark-line dark:bg-dark-surface">
                             <div>
                                 <h1 className="font-display text-3xl uppercase leading-tight">
-                                    Welcome back, <span className="text-gradient-brand">{user?.username || 'there'}</span> 👋
+                                    Welcome back, <span className="text-gradient-brand">{user?.username || 'there'}</span>
                                 </h1>
                                 <p className="mt-1 text-sm font-semibold text-gray-500 dark:text-dark-muted">{user?.email}</p>
                             </div>

@@ -91,12 +91,12 @@ const demoEvents = [
 ];
 
 const categories = [
-    { name: 'Music', icon: Music2, tint: 'from-brand-pink/25 to-brand-pink/5 text-brand-pink', count: '1,234 events' },
-    { name: 'Festivals', icon: PartyPopper, tint: 'from-brand-purple/25 to-brand-purple/5 text-brand-purple', count: '845 events' },
-    { name: 'Workshops', icon: GraduationCap, tint: 'from-brand-lime/25 to-brand-lime/5 text-brand-lime-deep', count: '645 events' },
-    { name: 'Conferences', icon: Mic2, tint: 'from-brand-purple-deep/25 to-brand-purple-deep/5 text-brand-purple', count: '321 events' },
-    { name: 'Sports', icon: Trophy, tint: 'from-brand-cyan/25 to-brand-cyan/5 text-brand-cyan', count: '421 events' },
-    { name: 'Meetups', icon: Users, tint: 'from-brand-orange/25 to-brand-orange/5 text-brand-orange', count: '621 events' },
+    { name: 'Music', icon: Music2, tint: 'bg-brand-pink/15 text-brand-pink', count: '1,234 events' },
+    { name: 'Festivals', icon: PartyPopper, tint: 'bg-brand-purple/15 text-brand-purple', count: '845 events' },
+    { name: 'Workshops', icon: GraduationCap, tint: 'bg-brand-lime/15 text-brand-lime-deep', count: '645 events' },
+    { name: 'Conferences', icon: Mic2, tint: 'bg-brand-purple-deep/15 text-brand-purple', count: '321 events' },
+    { name: 'Sports', icon: Trophy, tint: 'bg-brand-cyan/15 text-brand-cyan', count: '421 events' },
+    { name: 'Meetups', icon: Users, tint: 'bg-brand-orange/15 text-brand-orange', count: '621 events' },
 ];
 
 const whyFeatures = [
@@ -166,7 +166,7 @@ const Countdown = ({ target }) => {
         <div className="flex items-center gap-1.5">
             {cells.map((c, i) => (
                 <React.Fragment key={c.l}>
-                    <span className="flex min-w-[44px] flex-col items-center rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1.5 backdrop-blur-sm">
+                    <span className="flex min-w-[44px] flex-col items-center rounded-xl border border-white/10 bg-white/10 px-2 py-1.5">
                         <span className="font-mono text-lg leading-none text-white">{c.v}</span>
                         <span className="mt-0.5 font-mono text-[9px] uppercase tracking-widest text-white/40">{c.l}</span>
                     </span>
@@ -222,30 +222,33 @@ const Home = () => {
         return () => clearTimeout(timeoutId);
     }, [fetchEvents]);
 
-    /* ---- GSAP: load-in sequence + scroll parallax (synced with Lenis) ---- */
+    /* ---- GSAP: load-in sequence + scroll parallax (synced with Lenis) ----
+       gsap.matchMedia() is the canonical gate: it auto-reverts when the
+       condition flips (e.g. the user toggles reduced motion at runtime),
+       and nothing is created under (prefers-reduced-motion: reduce), so
+       content renders in its final static state. */
     useEffect(() => {
         const lenis = getLenis();
         if (lenis) lenis.on('scroll', ScrollTrigger.update);
 
-        /* Reduced motion: content renders in its final, static state — no
-           entrance choreography and no scroll-driven parallax (the CSS guard
-           can't stop GSAP, so we gate it here). */
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            return () => {
-                if (lenis) lenis.off('scroll', ScrollTrigger.update);
-            };
-        }
+        const mm = gsap.matchMedia();
 
-        const heroCtx = gsap.context(() => {
-            gsap.fromTo(
+        mm.add('(prefers-reduced-motion: no-preference)', () => {
+            /* Load-in — a timeline with position parameters sequences the
+               two staggered entrances; no delay chaining. immediateRender
+               holds the from-state at mount so nothing flashes first. */
+            const intro = gsap.timeline({ defaults: { ease: 'power3.out' } });
+            intro.fromTo(
                 '.hero-el',
-                { y: 46, opacity: 0 },
-                { y: 0, opacity: 1, duration: 1, stagger: 0.12, ease: 'power3.out', delay: 0.1 }
+                { y: 46, autoAlpha: 0 },
+                { y: 0, autoAlpha: 1, duration: 1, stagger: 0.12, immediateRender: true },
+                0.1
             );
-            gsap.fromTo(
+            intro.fromTo(
                 '.hero-sticker',
                 { scale: 0, rotate: -24 },
-                { scale: 1, rotate: 0, duration: 0.8, stagger: 0.15, ease: 'back.out(1.8)', delay: 0.75 }
+                { scale: 1, rotate: 0, duration: 0.8, stagger: 0.15, ease: 'back.out(1.8)', immediateRender: true },
+                0.75
             );
 
             /* Hero content drifts up as you scroll */
@@ -261,10 +264,8 @@ const Home = () => {
                 ease: 'none',
                 scrollTrigger: { trigger: heroRef.current, start: 'top top', end: 'bottom top', scrub: true },
             });
-        }, heroRef);
 
-        /* Why-section illustrations drift at their own speed */
-        const whyCtx = gsap.context(() => {
+            /* Why-section illustrations drift at their own speed */
             gsap.to('.plx-dj', {
                 yPercent: -14,
                 ease: 'none',
@@ -280,12 +281,31 @@ const Home = () => {
                 ease: 'none',
                 scrollTrigger: { trigger: whyRef.current, start: 'top bottom', end: 'bottom top', scrub: true },
             });
-        }, whyRef);
+        });
 
         return () => {
-            heroCtx.revert();
-            whyCtx.revert();
+            mm.revert();
             if (lenis) lenis.off('scroll', ScrollTrigger.update);
+        };
+    }, []);
+
+    /* ScrollTrigger positions are measured at mount while the lineup renders
+       skeletons; refresh once real event cards replace them — and again after
+       webfonts finish swapping — since both shift the Why-section trigger
+       points below. (Skill: refresh after new content / fonts.) */
+    useEffect(() => {
+        if (loading) return undefined;
+        const raf = requestAnimationFrame(() => ScrollTrigger.refresh());
+        return () => cancelAnimationFrame(raf);
+    }, [loading]);
+
+    useEffect(() => {
+        let alive = true;
+        document.fonts?.ready.then(() => {
+            if (alive) ScrollTrigger.refresh();
+        });
+        return () => {
+            alive = false;
         };
     }, []);
 
@@ -354,7 +374,7 @@ const Home = () => {
                             <h1 className="hero-el font-display mt-5 text-[3.4rem] uppercase leading-[0.9] tracking-tight sm:text-8xl lg:text-[6rem]">
                                 <span className="block">The ticket</span>
                                 <span className="text-outline block">to your</span>
-                                <span className="text-gradient-sunset block">next night</span>
+                                <span className="text-brand-pink block">next night</span>
                             </h1>
 
                             <p className="hero-el mt-6 max-w-xl text-base leading-relaxed text-white/60 sm:text-lg">
@@ -365,7 +385,9 @@ const Home = () => {
                             {/* Search */}
                             <form onSubmit={goToSearch} className="hero-el mt-8 max-w-2xl">
                                 <Magnetic strength={0.06}>
-                                    <div className="flex flex-col gap-2 rounded-[2rem] border border-white/15 bg-white/[0.08] p-2 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:flex-row sm:items-center sm:pl-5">
+                                    {/* Double-Bezel shell: hairline outer ring + raised inner core */}
+                                    <div className="rounded-[2.5rem] border border-white/10 bg-white/[0.04] p-1.5 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.55)]">
+                                    <div className="flex flex-col gap-2 rounded-[2rem] bg-[#14141f] p-2 sm:flex-row sm:items-center sm:pl-5">
                                         <div className="flex flex-1 items-center gap-2.5">
                                             <Search className="h-5 w-5 shrink-0 text-brand-lime" />
                                             <input
@@ -407,11 +429,15 @@ const Home = () => {
                                             </div>
                                             <button
                                                 type="submit"
-                                                className="btn-gradient flex shrink-0 items-center gap-2 rounded-full px-6 py-3 text-xs font-extrabold uppercase tracking-wider text-white"
+                                                className="btn-gradient group flex shrink-0 items-center rounded-full py-2 pl-5 pr-2 text-xs font-extrabold uppercase tracking-wider text-white transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
                                             >
-                                                Search <ArrowUpRight className="h-3.5 w-3.5" />
+                                                Search
+                                                <span className="btn-icon-chip group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                                                    <ArrowUpRight className="h-3.5 w-3.5" />
+                                                </span>
                                             </button>
                                         </div>
+                                    </div>
                                     </div>
                                 </Magnetic>
                             </form>
@@ -470,8 +496,10 @@ const Home = () => {
                             {/* The pass */}
                             <div className="relative rotate-2 transition-transform duration-500">
                                 <Tilt max={6}>
-                                    <div className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-[#14141f]/85 shadow-[0_40px_90px_-30px_rgba(0,0,0,0.7)] backdrop-blur-2xl">
-                                        {/* Image + glass overlay */}
+                                    {/* Double-Bezel shell: machined outer ring, inset-highlighted core */}
+                                    <div className="rounded-[2.5rem] border border-white/10 bg-white/[0.05] p-1.5 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.6)]">
+                                    <div className="relative overflow-hidden rounded-[2.125rem] bg-[#14141f] shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
+                                        {/* Image + flat scrim */}
                                         <div className="relative h-56 w-full overflow-hidden bg-[#1a1a24]">
                                             <img
                                                 src={featured?.image || crowdImg}
@@ -479,12 +507,12 @@ const Home = () => {
                                                 onError={(e) => { e.target.src = crowdImg; }}
                                                 className="plx-hero-img h-full w-full object-cover"
                                             />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-[#14141f] via-[#14141f]/20 to-black/20" />
+                                            <div className="absolute inset-0 bg-black/45" />
                                             <span className="absolute left-4 top-4 z-10 flex items-center gap-1.5 rounded-full bg-sunset px-3.5 py-1.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg">
                                                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
                                                 Featured
                                             </span>
-                                            <span className="absolute right-4 top-4 z-10 rounded-full border border-white/20 bg-[#0b0b14]/60 px-3.5 py-1.5 font-mono text-[10px] font-bold uppercase tracking-widest text-white backdrop-blur-md">
+                                            <span className="absolute right-4 top-4 z-10 rounded-full border border-white/20 bg-[#0b0b14]/80 px-3.5 py-1.5 font-mono text-[10px] font-bold uppercase tracking-widest text-white">
                                                 {featured?.category || 'Festivals'}
                                             </span>
                                         </div>
@@ -532,9 +560,12 @@ const Home = () => {
                                         <div className="flex items-center justify-between gap-4 p-5 sm:p-6">
                                             <TransitionLink
                                                 to={featured ? `/events/${featured._id}` : '/events'}
-                                                className="btn-gradient flex shrink-0 items-center gap-2 rounded-full px-6 py-3 text-xs font-extrabold uppercase tracking-wider text-white"
+                                                className="btn-gradient group flex shrink-0 items-center rounded-full py-2 pl-5 pr-2 text-xs font-extrabold uppercase tracking-wider text-white transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
                                             >
-                                                Book tickets <ArrowUpRight className="h-3.5 w-3.5" />
+                                                Book tickets
+                                                <span className="btn-icon-chip group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                                                    <ArrowUpRight className="h-3.5 w-3.5" />
+                                                </span>
                                             </TransitionLink>
                                             <div className="flex items-center gap-4">
                                                 <div className="barcode hidden w-36 text-white/60 sm:block" aria-hidden="true" />
@@ -545,6 +576,7 @@ const Home = () => {
                                             </div>
                                         </div>
                                     </div>
+                                    </div>
                                 </Tilt>
                             </div>
                         </div>
@@ -552,7 +584,7 @@ const Home = () => {
                 </div>
 
                 {/* Lineup marquee — the curtain between stage and content */}
-                <div className="marquee-band relative border-white/10 bg-[#0b0b14]/60 py-4 backdrop-blur-sm">
+                <div className="marquee-band relative border-white/10 bg-[#0b0b14] py-4">
                     <Marquee>
                         {marqueeItems.map((name, i) => (
                             <span key={`${name}-${i}`} className="mx-5 flex items-center gap-5 font-display text-xl uppercase text-white/50 sm:text-2xl">
@@ -582,13 +614,13 @@ const Home = () => {
             </section>
 
             {/* ═══════════ FEATURED EVENTS ═══════════ */}
-            <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+            <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
                 <Reveal>
                     <div className="flex flex-wrap items-end justify-between gap-4">
                         <div>
                             <span className="eyebrow text-[11px] text-brand-pink">Hand-picked this week</span>
                             <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
-                                Featured <span className="text-gradient-sunset">events</span>
+                                Featured <span className="text-brand-purple">events</span>
                             </h2>
                             <p className="mt-3 text-sm text-gray-500 dark:text-dark-muted">The shows the crowd is talking about right now.</p>
                         </div>
@@ -611,12 +643,11 @@ const Home = () => {
             </section>
 
             {/* ═══════════ POPULAR CATEGORIES ═══════════ */}
-            <section className="border-y border-black/5 bg-white py-20 dark:border-white/5 dark:bg-dark-page">
+            <section className="border-y border-black/5 bg-white py-24 dark:border-white/5 dark:bg-dark-page">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal className="text-center">
-                        <span className="eyebrow text-[11px] text-brand-lime-deep">Six ways to spend a night out</span>
-                        <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
-                            Pick your <span className="text-gradient-sunset">vibe</span>
+                        <h2 className="font-display text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
+                            Pick your <span className="text-brand-purple">vibe</span>
                         </h2>
                     </Reveal>
 
@@ -629,7 +660,7 @@ const Home = () => {
                                     onClick={() => push(navigate, `/events?category=${cat.name}`)}
                                     className="glass-card group flex w-full flex-col items-center gap-3 rounded-3xl border border-black/5 bg-brand-light p-6 text-center dark:border-white/10 dark:bg-white/[0.04]"
                                 >
-                                    <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${cat.tint} shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6`}>
+                                    <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${cat.tint} shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6`}>
                                         <cat.icon className="h-6 w-6" />
                                     </div>
                                     <div>
@@ -644,15 +675,12 @@ const Home = () => {
             </section>
 
             {/* ═══════════ TRENDING EVENTS ═══════════ */}
-            <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+            <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
                 <Reveal>
                     <div className="flex flex-wrap items-end justify-between gap-4">
                         <div>
-                            <span className="eyebrow inline-flex items-center gap-2 text-[11px] text-brand-orange">
-                                <Flame className="h-3.5 w-3.5" fill="currentColor" /> Ranked by tickets sold
-                            </span>
-                            <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
-                                Trending <span className="text-gradient-sunset">this week</span>
+                            <h2 className="font-display text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
+                                Trending <span className="text-brand-purple">this week</span>
                             </h2>
                             <p className="mt-3 text-sm text-gray-500 dark:text-dark-muted">The most-booked shows right now — seats are moving.</p>
                         </div>
@@ -677,14 +705,14 @@ const Home = () => {
             </section>
 
             {/* ═══════════ UPCOMING · THE LINEUP ═══════════ */}
-            <section className="border-y border-black/5 bg-white py-20 dark:border-white/5 dark:bg-dark-page">
+            <section className="border-y border-black/5 bg-white py-24 dark:border-white/5 dark:bg-dark-page">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal>
                         <div className="flex flex-wrap items-end justify-between gap-4">
                             <div>
                                 <span className="eyebrow text-[11px] text-brand-purple">What's on next, in order</span>
                                 <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
-                                    The <span className="text-gradient-sunset">lineup</span>
+                                    The <span className="text-brand-purple">lineup</span>
                                 </h2>
                                 <p className="mt-3 text-sm text-gray-500 dark:text-dark-muted">Dates, venues and live seat counts — grab yours before the meter empties.</p>
                             </div>
@@ -763,7 +791,7 @@ const Home = () => {
                                                 <span className="block font-display text-xl leading-none text-brand-dark dark:text-white">{ev.ticketPrice ? `₹${ev.ticketPrice}` : 'Free'}</span>
                                                 <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-gray-400 dark:text-dark-muted">{ev.ticketPrice ? 'from' : 'entry'}</span>
                                             </div>
-                                            <span className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 text-gray-500 transition-all group-hover:border-transparent group-hover:bg-gradient-to-br group-hover:from-brand-orange group-hover:via-brand-pink group-hover:to-brand-purple group-hover:text-white dark:border-white/15 dark:text-dark-muted">
+                                            <span className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 text-gray-500 transition-all group-hover:border-transparent group-hover:bg-brand-purple group-hover:text-white dark:border-white/15 dark:text-dark-muted">
                                                 <ArrowUpRight className="h-4 w-4" />
                                             </span>
                                         </div>
@@ -782,15 +810,17 @@ const Home = () => {
                     <div className="aurora-blob aurora-c -left-40 bottom-0 h-[420px] w-[420px]" />
                 </div>
 
-                {/* Floating festival illustrations */}
+                {/* Floating festival illustrations (dj photo sits in a solid
+                    dark tile so its dark background reads as intentional in
+                    both themes; mic + headphones are chroma-keyed to transparent) */}
                 <div className="plx-dj pointer-events-none absolute right-[5%] top-16 hidden w-40 opacity-90 xl:block" aria-hidden="true">
-                    <motion.img
-                        src={djImg}
-                        alt=""
+                    <motion.div
                         animate={{ y: [0, -14, 0], rotate: [0, -3, 0] }}
                         transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-                        className="w-full object-contain drop-shadow-[0_30px_40px_rgba(186,40,226,0.35)]"
-                    />
+                        className="overflow-hidden rounded-[1.75rem] border border-black/10 bg-[#16161d] p-2 shadow-[0_24px_48px_-20px_rgba(13,13,17,0.35)] dark:border-dark-line"
+                    >
+                        <img src={djImg} alt="" className="h-full w-full rounded-2xl object-cover" />
+                    </motion.div>
                 </div>
                 <div className="plx-mic pointer-events-none absolute -left-8 top-20 hidden w-24 lg:block" aria-hidden="true">
                     <motion.img
@@ -813,21 +843,23 @@ const Home = () => {
 
                 <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal className="text-center">
-                        <span className="eyebrow text-[11px] text-brand-lime-deep">Why Eventrix</span>
-                        <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
-                            Built for the <span className="text-gradient-sunset">night out</span>
+                        <h2 className="font-display text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
+                            Built for the <span className="text-brand-purple">night out</span>
                         </h2>
                     </Reveal>
 
                     <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                         {whyFeatures.map((f, i) => (
                             <Reveal key={f.title} delay={i * 0.08}>
-                                <div className="glass-card h-full rounded-[2rem] border border-black/5 bg-white p-7 dark:border-white/10 dark:bg-white/[0.04]">
+                                {/* Double-Bezel: hairline shell wraps the raised card core */}
+                                <div className="glass-card h-full rounded-[2.25rem] border border-black/5 bg-black/[0.03] p-1.5 dark:border-white/10 dark:bg-white/[0.06]">
+                                    <div className="h-full rounded-[1.875rem] bg-white p-7 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9)] dark:bg-dark-surface">
                                     <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${f.chip} ${f.tint}`}>
                                         <f.icon className="h-6 w-6" />
                                     </div>
                                     <h4 className="mt-5 font-display text-lg uppercase tracking-wide text-brand-dark dark:text-dark-ink">{f.title}</h4>
                                     <p className="mt-2 text-sm leading-relaxed text-gray-500 dark:text-dark-muted">{f.desc}</p>
+                                    </div>
                                 </div>
                             </Reveal>
                         ))}
@@ -836,19 +868,20 @@ const Home = () => {
             </section>
 
             {/* ═══════════ TESTIMONIALS ═══════════ */}
-            <section className="border-y border-black/5 bg-white py-20 dark:border-white/5 dark:bg-dark-page">
+            <section className="border-y border-black/5 bg-white py-24 dark:border-white/5 dark:bg-dark-page">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal className="text-center">
-                        <span className="eyebrow text-[11px] text-brand-pink">From the crowd</span>
-                        <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
-                            Loved by <span className="text-gradient-sunset">the crowd</span>
+                        <h2 className="font-display text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
+                            Loved by <span className="text-brand-purple">the crowd</span>
                         </h2>
                     </Reveal>
 
                     <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
                         {testimonials.map((t, i) => (
                             <Reveal key={t.name} delay={i * 0.1}>
-                                <div className="glass-card flex h-full flex-col rounded-[2rem] border border-black/5 bg-white p-7 dark:border-white/10 dark:bg-white/[0.04]">
+                                {/* Double-Bezel: hairline shell wraps the raised card core */}
+                                <div className="glass-card h-full rounded-[2.25rem] border border-black/5 bg-black/[0.03] p-1.5 dark:border-white/10 dark:bg-white/[0.06]">
+                                    <div className="flex h-full flex-col rounded-[1.875rem] bg-white p-7 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9)] dark:bg-dark-surface">
                                     <div className="flex gap-1">
                                         {[...Array(5)].map((_, s) => (
                                             <Star key={s} className="h-4 w-4 text-brand-orange" fill="currentColor" />
@@ -856,13 +889,14 @@ const Home = () => {
                                     </div>
                                     <p className="mt-4 flex-1 text-sm leading-relaxed text-gray-600 dark:text-dark-muted">"{t.quote}"</p>
                                     <div className="mt-6 flex items-center gap-3 border-t border-black/5 pt-5 dark:border-white/10">
-                                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-brand-orange via-brand-pink to-brand-purple font-mono text-sm font-bold text-white">
+                                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-purple font-mono text-sm font-bold text-white">
                                             {t.initials}
                                         </div>
                                         <div>
                                             <h4 className="text-sm font-black text-brand-dark dark:text-dark-ink">{t.name}</h4>
                                             <p className="font-mono text-[11px] font-bold text-gray-400 dark:text-dark-muted">{t.role}</p>
                                         </div>
+                                    </div>
                                     </div>
                                 </div>
                             </Reveal>
@@ -872,19 +906,14 @@ const Home = () => {
             </section>
 
             {/* ═══════════ NEWSLETTER ═══════════ */}
-            <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+            <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
                 <Reveal>
                     <div className="relative overflow-hidden rounded-[2.5rem] border border-black/5 bg-white px-6 py-16 text-center sm:px-12 dark:border-white/10 dark:bg-white/[0.04]">
-                        {/* Gradient glow */}
-                        <div className="pointer-events-none absolute -top-48 left-1/2 h-80 w-[130%] -translate-x-1/2 bg-gradient-to-r from-brand-orange/25 via-brand-pink/25 to-brand-purple/25 blur-[110px]" aria-hidden="true" />
                         <div className="pointer-events-none absolute inset-0 dots-bg opacity-25" aria-hidden="true" />
 
                         <div className="relative mx-auto max-w-xl">
-                            <span className="eyebrow inline-flex items-center gap-2 text-[11px] text-brand-lime-deep">
-                                <Ticket className="h-3.5 w-3.5" /> Twice a month, no spam
-                            </span>
-                            <h2 className="font-display mt-3 text-4xl uppercase leading-[0.95] text-brand-dark sm:text-5xl dark:text-dark-ink">
-                                Passes drop <span className="text-gradient-sunset">early</span>
+                            <h2 className="font-display text-4xl uppercase leading-[0.95] text-brand-dark sm:text-5xl dark:text-dark-ink">
+                                Passes drop <span className="text-brand-purple">early</span>
                             </h2>
                             <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-gray-500 dark:text-dark-muted">
                                 Early-bird pricing and secret gigs, before they hit the feed. Join 500K+ people who never miss a drop.

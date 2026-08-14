@@ -18,19 +18,10 @@
 /* Class-based dark mode (toggled on <html> by ThemeContext) */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Signature gradient (sunset: orange → pink → purple).
-   @theme inline keeps the brand-color references live. */
-@theme inline {
-  --gradient-sunset: linear-gradient(
-    92deg,
-    var(--color-brand-orange) 0%,
-    var(--color-brand-pink) 52%,
-    var(--color-brand-purple) 100%
-  );
-
-  /* shadcn/ui semantic tokens → Eventrix palette.
+/* shadcn/ui semantic tokens → Eventrix palette.
      bg-primary, text-muted-foreground, border-border, ring-ring etc.
      resolve through these, so every component picks up the brand. */
+@theme inline {
   --color-background: var(--bg-main);
   --color-foreground: var(--text-dark);
   --color-card: var(--surface-bg);
@@ -193,11 +184,11 @@
     --accent-bg: rgb(186 40 226 / 0.08);
     --border-color: rgb(13 13 17 / 0.12);
 
-    /* Glass surfaces (light) */
-    --glass-bg: rgb(255 255 255 / 0.62);
-    --glass-border: rgb(13 13 17 / 0.08);
-    --glass-strong-bg: rgb(255 255 255 / 0.82);
-    --glass-strong-border: rgb(13 13 17 / 0.08);
+    /* Solid surfaces (formerly glass — no backdrop blur) */
+    --glass-bg: rgb(255 255 255 / 0.92);
+    --glass-border: rgb(13 13 17 / 0.1);
+    --glass-strong-bg: #ffffff;
+    --glass-strong-border: rgb(13 13 17 / 0.1);
 
     /* Editorial outline (used on the always-night hero) */
     --outline-color: rgb(13 13 17 / 0.9);
@@ -207,10 +198,10 @@
     --skeleton-bg: #ececf2;
     --skeleton-shine: rgb(255 255 255 / 0.6);
 
-    /* Aurora glows (light) — color-mix keeps brand as single source */
-    --aurora-a: radial-gradient(circle, color-mix(in oklab, var(--color-brand-purple) 22%, transparent), transparent 65%);
-    --aurora-b: radial-gradient(circle, color-mix(in oklab, var(--color-brand-pink) 18%, transparent), transparent 65%);
-    --aurora-c: radial-gradient(circle, color-mix(in oklab, var(--color-brand-orange) 16%, transparent), transparent 65%);
+    /* Ambient tint circles (flat colors, blurred for softness — no gradients) */
+    --aurora-a: rgb(186 40 226 / 0.14);
+    --aurora-b: rgb(255 45 122 / 0.12);
+    --aurora-c: rgb(255 90 31 / 0.1);
   }
 
   html.dark {
@@ -224,9 +215,9 @@
     --accent-bg: rgb(186 40 226 / 0.14);
     --border-color: rgb(255 255 255 / 0.12);
 
-    --glass-bg: rgb(255 255 255 / 0.06);
+    --glass-bg: rgb(23 23 32 / 0.94);
     --glass-border: rgb(255 255 255 / 0.12);
-    --glass-strong-bg: rgb(17 17 27 / 0.72);
+    --glass-strong-bg: #16161d;
     --glass-strong-border: rgb(255 255 255 / 0.14);
 
     --outline-color: rgb(255 255 255 / 0.9);
@@ -235,9 +226,9 @@
     --skeleton-bg: #1a1a22;
     --skeleton-shine: rgb(255 255 255 / 0.07);
 
-    --aurora-a: radial-gradient(circle, color-mix(in oklab, var(--color-brand-purple) 50%, transparent), transparent 65%);
-    --aurora-b: radial-gradient(circle, color-mix(in oklab, var(--color-brand-pink) 42%, transparent), transparent 65%);
-    --aurora-c: radial-gradient(circle, color-mix(in oklab, var(--color-brand-orange) 34%, transparent), transparent 65%);
+    --aurora-a: rgb(186 40 226 / 0.22);
+    --aurora-b: rgb(255 45 122 / 0.18);
+    --aurora-c: rgb(255 90 31 / 0.15);
   }
 
   html {
@@ -369,30 +360,26 @@ html.lenis, html.lenis body { height: auto; }
 @utility text-gradient-lime { color: var(--color-brand-lime-deep); }
 @utility text-gradient-cyan { color: #00b8d0; }
 
-/* ---- Sunset gradient (the signature) ------------------------ */
+/* ---- Flat accent (formerly the sunset gradient) ------------- */
 @utility bg-sunset {
-  background-image: var(--gradient-sunset);
+  background-color: var(--color-brand-purple);
 }
 
 @utility text-gradient-sunset {
-  background-image: var(--gradient-sunset);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--color-brand-purple);
 }
 
 /* ---- Buttons ------------------------------------------------- */
 @utility btn-gradient {
-  background-image: var(--gradient-sunset);
-  background-size: 140% 140%;
+  background-color: var(--color-brand-purple);
   color: #fff;
-  box-shadow: 0 12px 30px -12px color-mix(in oklab, var(--color-brand-pink) 55%, transparent);
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background-position 0.4s ease, filter 0.25s ease;
+  box-shadow: 0 12px 30px -12px color-mix(in oklab, var(--color-brand-purple) 55%, transparent);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background-color 0.25s ease, filter 0.25s ease;
   &:hover {
     transform: translateY(-2px);
-    background-position: 90% 50%;
-    box-shadow: 0 20px 42px -14px color-mix(in oklab, var(--color-brand-pink) 60%, transparent);
-    filter: brightness(1.07);
+    background-color: color-mix(in oklab, var(--color-brand-purple) 88%, #ffffff);
+    box-shadow: 0 20px 42px -14px color-mix(in oklab, var(--color-brand-purple) 60%, transparent);
+    filter: brightness(1.05);
   }
 }
 
@@ -420,6 +407,21 @@ html.lenis, html.lenis body { height: auto; }
     color: var(--color-brand-purple);
     background: #fff;
   }
+}
+
+/* Button-in-Button: the trailing arrow of a primary CTA lives inside its own
+   circular pocket, flush with the button's inner padding, instead of sitting
+   naked next to the label. Paired with `group-hover:translate-*` on the chip. */
+@utility btn-icon-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.75rem;
+  width: 1.75rem;
+  margin-left: 0.5rem;
+  border-radius: 9999px;
+  background-color: rgb(255 255 255 / 0.2);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), background-color 0.3s ease;
 }
 
 /* ---- Festival sticker (floating badge) ----------------------- */
@@ -486,19 +488,15 @@ html.lenis, html.lenis body { height: auto; }
   }
 }
 
-/* ---- Glass surfaces (theme-flipping via semantic vars) -------- */
+/* ---- Solid surfaces (formerly glass — no backdrop blur) ------ */
 @utility glass {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
-  backdrop-filter: blur(18px) saturate(1.35);
-  -webkit-backdrop-filter: blur(18px) saturate(1.35);
 }
 
 @utility glass-strong {
   background: var(--glass-strong-bg);
   border: 1px solid var(--glass-strong-border);
-  backdrop-filter: blur(22px) saturate(1.4);
-  -webkit-backdrop-filter: blur(22px) saturate(1.4);
 }
 
 /* Card that lifts + lights its border on hover */
@@ -517,7 +515,7 @@ html.lenis, html.lenis body { height: auto; }
   -webkit-text-stroke: 2px var(--outline-color);
 }
 
-/* ---- Hero aurora (dynamic gradient background) ---------------- */
+/* ---- Hero ambient tint circles (flat colors, no gradients) ---- */
 @utility aurora-blob {
   position: absolute;
   border-radius: 9999px;
@@ -576,143 +574,3 @@ html.lenis, html.lenis body { height: auto; }
   scrollbar-width: none;
 }
 
-/* ══════════════════════════════════════════════════════════════
-   VIEW TRANSITIONS (React <ViewTransition>)
-   Recipes from the Vercel view-transitions skill — do not edit the
-   animation CSS; only the timing variables below are tunable.
-   ══════════════════════════════════════════════════════════════ */
-
-:root {
-  --duration-exit: 150ms;
-  --duration-enter: 210ms;
-  --duration-move: 400ms;
-}
-
-@keyframes vt-fade {
-  from { filter: blur(3px); opacity: 0; }
-  to { filter: blur(0); opacity: 1; }
-}
-
-@keyframes vt-slide {
-  from { translate: var(--slide-offset); }
-  to { translate: 0; }
-}
-
-@keyframes vt-slide-y {
-  from { transform: translateY(var(--slide-y-offset, 10px)); }
-  to { transform: translateY(0); }
-}
-
-/* ---- Fade ---- */
-::view-transition-old(.fade-out) {
-  animation: var(--duration-exit) ease-in vt-fade reverse;
-}
-::view-transition-new(.fade-in) {
-  animation: var(--duration-enter) ease-out var(--duration-exit) both vt-fade;
-}
-
-/* ---- Slide (vertical) ---- */
-::view-transition-old(.slide-down) {
-  animation:
-    var(--duration-exit) ease-out both vt-fade reverse,
-    var(--duration-exit) ease-out both vt-slide-y reverse;
-}
-::view-transition-new(.slide-up) {
-  animation:
-    var(--duration-enter) ease-in var(--duration-exit) both vt-fade,
-    var(--duration-move) ease-in both vt-slide-y;
-}
-
-/* ---- Directional navigation (single-class: nav-forward / nav-back) ---- */
-::view-transition-old(.nav-forward) {
-  --slide-offset: -60px;
-  animation:
-    var(--duration-exit) ease-in both vt-fade reverse,
-    var(--duration-move) ease-in-out both vt-slide reverse;
-}
-::view-transition-new(.nav-forward) {
-  --slide-offset: 60px;
-  animation:
-    var(--duration-enter) ease-out var(--duration-exit) both vt-fade,
-    var(--duration-move) ease-in-out both vt-slide;
-}
-
-::view-transition-old(.nav-back) {
-  --slide-offset: 60px;
-  animation:
-    var(--duration-exit) ease-in both vt-fade reverse,
-    var(--duration-move) ease-in-out both vt-slide reverse;
-}
-::view-transition-new(.nav-back) {
-  --slide-offset: -60px;
-  animation:
-    var(--duration-enter) ease-out var(--duration-exit) both vt-fade,
-    var(--duration-move) ease-in-out both vt-slide;
-}
-
-/* ---- Shared element morph ---- */
-::view-transition-group(.morph) {
-  animation-duration: var(--duration-move);
-}
-::view-transition-image-pair(.morph) {
-  animation-name: vt-via-blur;
-}
-@keyframes vt-via-blur {
-  30% { filter: blur(3px); }
-}
-
-/* ---- Text morph (avoids raster ghosting on text shared elements) ---- */
-::view-transition-group(.text-morph) {
-  animation-duration: var(--duration-move);
-}
-::view-transition-old(.text-morph) {
-  display: none;
-}
-::view-transition-new(.text-morph) {
-  animation: none;
-  object-fit: none;
-  object-position: left top;
-}
-
-/* ---- Scale ---- */
-::view-transition-old(.scale-out) {
-  animation: var(--duration-exit) ease-in vt-scale-down;
-}
-::view-transition-new(.scale-in) {
-  animation: var(--duration-enter) ease-out var(--duration-exit) both vt-scale-up;
-}
-@keyframes vt-scale-down {
-  from { transform: scale(1); opacity: 1; }
-  to { transform: scale(0.85); opacity: 0; }
-}
-@keyframes vt-scale-up {
-  from { transform: scale(0.85); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-/* ---- Persistent element isolation (fixed navbar / bottom nav) ----
-   The navbar uses backdrop-blur glass, so hide its old snapshot to
-   avoid a blurred flash over the transitioning page. */
-::view-transition-group(site-header) {
-  animation: none;
-  z-index: 100;
-}
-::view-transition-old(site-header) {
-  display: none;
-}
-::view-transition-new(site-header) {
-  animation: none;
-}
-::view-transition-group(site-bottom-nav) {
-  animation: none;
-}
-
-/* ---- Reduced motion: view transitions snap, never animate ---- */
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(*),
-  ::view-transition-new(*),
-  ::view-transition-group(*) {
-    animation-duration: 0s !important;
-    animation-delay: 0s !important;
-  }
-}

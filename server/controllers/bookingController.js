@@ -1,6 +1,7 @@
 const Booking = require("../models/booking.js");
 const Event = require("../models/Events.js");
 const OTP = require("../models/Otp.js");
+const crypto = require("crypto");
 const { sendBookingEmail, sendOtpEmail } = require("../utils/email.js");
 const { pagination } = require("../utils/pagination");
 const {
@@ -10,7 +11,8 @@ const {
   ForbiddenError,
 } = require("../utils/errors");
 
-const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+/* Cryptographically secure 6-digit OTP */
+const generateOTP = () => crypto.randomInt(100000, 1000000).toString();
 
 exports.sendBookingOTP = async (req, res) => {
   const otp = generateOTP();
@@ -21,7 +23,15 @@ exports.sendBookingOTP = async (req, res) => {
 };
 
 exports.bookEvent = async (req, res) => {
-  const { eventId, otp } = req.body;
+  /* Coerce to strings — an object like otp: { "$gt": "" } would bypass the
+     OTP check via operator injection. eventId is cast by Mongoose, but
+     keep it explicit and safe. */
+  const eventId = String(req.body.eventId ?? "");
+  const otp = String(req.body.otp ?? "");
+
+  if (!eventId || !otp) {
+    throw new ValidationError("Event ID and OTP are required");
+  }
 
   // Verify OTP explicitly before proceeding
   const validOTP = await OTP.findOne({ email: req.user.email, otp, action: "event_booking" });
