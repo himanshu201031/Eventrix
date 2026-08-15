@@ -7,9 +7,15 @@ const SORT_FIELDS = new Set(["date", "createdAt", "title", "ticketPrice"]);
 
 exports.getEvents = async (req, res) => {
   const filters = {};
-  if (req.query.category) filters.category = req.query.category;
+
+  /* Coerce scalars and escape the search pattern: a raw user string inside
+     $regex is both an operator-injection surface and a ReDoS risk. */
+  if (req.query.category) filters.category = String(req.query.category);
   if (req.query.search) {
-    filters.title = { $regex: req.query.search, $options: "i" };
+    const escaped = String(req.query.search)
+      .slice(0, 100)
+      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    filters.title = { $regex: escaped, $options: "i" };
   }
 
   const { page, pageSize, skip } = pagination(req.query);
