@@ -81,7 +81,11 @@ const EventCard = ({ event }) => {
                             setBookmarked(!bookmarked);
                         }}
                         aria-label="Bookmark event"
+<<<<<<< HEAD
                         className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/50 text-white shadow-md transition-all hover:scale-110"
+=======
+                        className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/45 text-white shadow-md transition-all hover:scale-110"
+>>>>>>> 0f9398d99f342a20b045dfce0c3915763a25f848
                     >
                         {bookmarked ? (
                             <BookmarkCheck className="h-4 w-4 text-brand-lime" />
@@ -91,7 +95,11 @@ const EventCard = ({ event }) => {
                     </button>
 
                     {/* Date chip */}
+<<<<<<< HEAD
                     <div className="absolute bottom-4 left-4 z-10 flex items-center gap-1.5 rounded-full border border-white/15 bg-black/55 px-3.5 py-1.5 font-mono text-[11px] font-bold text-white">
+=======
+                    <div className="absolute bottom-4 left-4 z-10 flex items-center gap-1.5 rounded-full border border-white/15 bg-[#0b0b14]/80 px-3.5 py-1.5 font-mono text-[11px] font-bold text-white">
+>>>>>>> 0f9398d99f342a20b045dfce0c3915763a25f848
                         <CalendarDays className="h-3.5 w-3.5 text-brand-lime" />
                         {formatDate(event.date)}
                     </div>
@@ -143,9 +151,12 @@ const EventCard = ({ event }) => {
                     {/* CTA */}
                     <TransitionLink
                         to={`/events/${event._id}`}
-                        className="btn-gradient flex items-center justify-center gap-2 rounded-2xl py-3 text-xs font-extrabold uppercase tracking-wider text-white"
+                        className="btn-gradient group flex items-center justify-center rounded-2xl py-2.5 pl-6 pr-2.5 text-xs font-extrabold uppercase tracking-wider text-white transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
                     >
-                        Book tickets <ArrowUpRight className="h-4 w-4" />
+                        Book tickets
+                        <span className="btn-icon-chip group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                            <ArrowUpRight className="h-4 w-4" />
+                        </span>
                     </TransitionLink>
                 </div>
             </motion.div>

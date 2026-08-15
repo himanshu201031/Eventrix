@@ -3,9 +3,13 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigatio
 import { motion, MotionConfig, AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+<<<<<<< HEAD
 import Loader from './components/Loader';
+=======
+import AppLoader from './components/AppLoader';
+>>>>>>> 0f9398d99f342a20b045dfce0c3915763a25f848
 import { initSmoothScroll, destroySmoothScroll, scrollToTop } from './utils/smoothScroll';
-import { Compass } from 'lucide-react';
+import { Compass, Sparkle } from 'lucide-react';
 
 /* Route-level code splitting: each page is its own chunk, so /login, /events,
    /dashboard etc. never download each other's code (GSAP stays with Home, the
@@ -23,8 +27,11 @@ const PaymentFailed = lazy(() => import('./pages/PaymentFailed'));
 /* Quiet fallback while a route chunk loads — pages render their own skeletons,
    so this just holds the layout steady during the fetch. */
 const RouteFallback = () => (
-    <div className="flex min-h-[70vh] items-center justify-center" role="status" aria-label="Loading page">
-        <span className="font-display animate-pulse text-lg uppercase tracking-widest text-brand-gray-400 dark:text-dark-muted">
+    <div className="flex min-h-[70vh] flex-col items-center justify-center gap-4" role="status" aria-label="Loading page">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-purple shadow-[0_12px_30px_-10px_rgba(186,40,226,0.5)]">
+            <Sparkle className="h-6 w-6 animate-pulse text-white" fill="white" />
+        </div>
+        <span className="font-display text-xl uppercase tracking-wide text-brand-gray-400 dark:text-dark-muted">
             eventrix
         </span>
     </div>
@@ -41,20 +48,36 @@ const ScrollToTop = () => {
     return null;
 };
 
+<<<<<<< HEAD
 /* Page transitions run through framer-motion AnimatePresence: the outgoing
    page fades/slides out (mode="wait"), then the incoming page enters. The
    key on the location ensures each navigation restarts the animation. */
+=======
+/* Routes with a framer-motion page transition: keyed by pathname, each page
+   fades/slides in while the previous one exits (mode="wait" animates them
+   one at a time; reducedMotion="user" in MotionConfig collapses this to a
+   snap for users who prefer reduced motion). The fixed Navbar/Footer live
+   outside this boundary, so they stay put while the page swaps. */
+>>>>>>> 0f9398d99f342a20b045dfce0c3915763a25f848
 const AnimatedRoutes = () => {
     const location = useLocation();
     return (
         <Suspense fallback={<RouteFallback />}>
+<<<<<<< HEAD
             <AnimatePresence mode="wait">
+=======
+            <AnimatePresence mode="wait" initial={false}>
+>>>>>>> 0f9398d99f342a20b045dfce0c3915763a25f848
                 <motion.div
                     key={location.pathname}
                     initial={{ opacity: 0, y: 14 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
+<<<<<<< HEAD
                     transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+=======
+                    transition={{ duration: 0.28, ease: 'easeOut' }}
+>>>>>>> 0f9398d99f342a20b045dfce0c3915763a25f848
                 >
                     <Routes location={location}>
                     <Route path="/" element={<Home />} />
@@ -100,6 +123,7 @@ const AnimatedRoutes = () => {
 };
 
 function App() {
+<<<<<<< HEAD
     /* Splash loader: hold the WebGL shader splash until the Home chunk is
        warmed AND a minimum beat has passed (so the reveal isn't a flash),
        with a hard cap so a slow network can never trap the loader on. */
@@ -118,6 +142,26 @@ function App() {
         return () => {
             clearTimeout(minTimer);
             clearTimeout(capTimer);
+=======
+    /* Boot loader: hold the branded splash until the window has loaded (fonts,
+       first chunk) AND a minimum of ~500ms have passed, with a 1.6s cap so a
+       slow network can never trap the user behind the overlay. */
+    const [booting, setBooting] = useState(true);
+
+    useEffect(() => {
+        const start = Date.now();
+        const finish = () => {
+            const elapsed = Date.now() - start;
+            if (elapsed >= 500) setBooting(false);
+            else setTimeout(() => setBooting(false), 500 - elapsed);
+        };
+        const cap = setTimeout(() => setBooting(false), 1600);
+        if (document.readyState === 'complete') finish();
+        else window.addEventListener('load', finish);
+        return () => {
+            clearTimeout(cap);
+            window.removeEventListener('load', finish);
+>>>>>>> 0f9398d99f342a20b045dfce0c3915763a25f848
         };
     }, []);
 
@@ -133,7 +177,13 @@ function App() {
                 the OS prefers-reduced-motion setting; native view transitions have
                 their own reduced-motion CSS in index.css. */}
             <MotionConfig reducedMotion="user">
+<<<<<<< HEAD
                 <AnimatePresence>{!booted && <Loader key="splash" />}</AnimatePresence>
+=======
+                {/* Boot loader overlay — fades out once the app is ready */}
+                <AnimatePresence>{booting && <AppLoader />}</AnimatePresence>
+
+>>>>>>> 0f9398d99f342a20b045dfce0c3915763a25f848
                 <a href="#main-content" className="skip-link">
                     Skip to content
                 </a>

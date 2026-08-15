@@ -237,7 +237,7 @@ const Events = () => {
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {filteredEvents.map((event, i) => (
                             <Reveal key={event._id} delay={(i % 3) * 0.06}>
-                                <EventCard event={event} morphName={`event-cover-${event._id}`} />
+                                <EventCard event={event} />
                             </Reveal>
                         ))}
                     </div>
