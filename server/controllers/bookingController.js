@@ -64,7 +64,9 @@ exports.bookEvent = async (req, res) => {
 };
 
 exports.confirmBooking = async (req, res) => {
-  const { paymentStatus } = req.body; // 'paid' or 'not_paid'
+  // Express 5 leaves req.body undefined when no body is sent — paymentStatus
+  // is optional, so a bare confirm must not crash.
+  const { paymentStatus } = req.body ?? {}; // 'paid' or 'not_paid'
   // Never echo the password hash back to clients
   const booking = await Booking.findById(req.params.id)
     .populate("userId", "-password")

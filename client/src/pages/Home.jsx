@@ -7,13 +7,16 @@ import api from '../utils/axios';
 import { getLenis } from '../utils/smoothScroll';
 import EventCard from '../components/EventCard';
 import { DirectionalTransition, TransitionLink, push } from '../components/Transitions';
-import { Reveal, Counter, Magnetic, Tilt, Marquee } from '../animations';
-import crowdImg from '../assets/crowd.png';
+import { Reveal, Counter, Magnetic, Marquee } from '../animations';
+import heroBg from '../assets/herobg.png';
+import vipTicket from '../assets/vipticket.png';
+import midTicket from '../assets/midticket.png';
+import normalTicket from '../assets/normalticket.png';
 import djImg from '../assets/dj.png';
 import micImg from '../assets/mic3d.png';
 import headphonesImg from '../assets/headphones3d.png';
 import {
-    ArrowUpRight, BadgePercent, CalendarCheck, CalendarDays, ChevronDown, ChevronRight,
+    ArrowUpRight, BadgePercent, CalendarCheck, ChevronDown, ChevronRight,
     Flame, GraduationCap, Headphones, MapPin, Mic2, Music2, PartyPopper, Plus,
     Search, ShieldCheck, Sparkle, Star, Ticket, Trophy, Users,
 } from 'lucide-react';
@@ -131,70 +134,16 @@ const SkeletonCard = () => (
     </div>
 );
 
-/* Live countdown — ticks every second, shows ON NOW when the date has passed */
-const Countdown = ({ target }) => {
-    const [now, setNow] = useState(() => Date.now());
 
-    useEffect(() => {
-        const id = setInterval(() => setNow(Date.now()), 1000);
-        return () => clearInterval(id);
-    }, []);
-
-    const diff = target - now;
-    if (!(diff > 0)) {
-        return (
-            <span className="inline-flex items-center gap-2 rounded-full bg-brand-lime px-4 py-1.5 font-mono text-[11px] font-bold uppercase tracking-widest text-brand-dark">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-dark" /> On now
-            </span>
-        );
-    }
-
-    const days = Math.floor(diff / 86400000);
-    const hours = Math.floor((diff % 86400000) / 3600000);
-    const mins = Math.floor((diff % 3600000) / 60000);
-    const secs = Math.floor((diff % 60000) / 1000);
-    const pad = (n) => String(n).padStart(2, '0');
-
-    const cells = [
-        { v: String(days).padStart(2, '0'), l: 'days' },
-        { v: pad(hours), l: 'hrs' },
-        { v: pad(mins), l: 'min' },
-        { v: pad(secs), l: 'sec' },
-    ];
-
-    return (
-        <div className="flex items-center gap-1.5">
-            {cells.map((c, i) => (
-                <React.Fragment key={c.l}>
-                    <span className="flex min-w-[44px] flex-col items-center rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1.5 backdrop-blur-sm">
-                        <span className="font-mono text-lg leading-none text-white">{c.v}</span>
-                        <span className="mt-0.5 font-mono text-[9px] uppercase tracking-widest text-white/40">{c.l}</span>
-                    </span>
-                    {i < cells.length - 1 && <span className="font-mono text-sm text-brand-lime">:</span>}
-                </React.Fragment>
-            ))}
-        </div>
-    );
-};
-
-/* Deterministic faux pass number, e.g. EVX-7K2M */
-const passSerial = (str) => {
-    let h = 0;
-    for (let i = 0; i < str.length; i += 1) h = (h * 31 + str.charCodeAt(i)) % 100000;
-    const alpha = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let out = '';
-    let x = h;
-    for (let i = 0; i < 4; i += 1) { out += alpha[x % alpha.length]; x = Math.floor(x / alpha.length); }
-    return `EVX-${out}`;
-};
-
-/* Fallback target for the pass countdown when an event has no date */
-const FALLBACK_TARGET = Date.now() + 30 * 86400000;
 
 const Home = () => {
     const navigate = useNavigate();
     const heroRef = useRef(null);
     const whyRef = useRef(null);
+    const outerRef = useRef(null);
+    const rigRef = useRef(null);
+    /* Lets the journey effect be told to re-measure (events loaded, etc.) */
+    const journeyRebuildRef = useRef(null);
     const [searchParams] = useSearchParams();
     const search = searchParams.get('search') || '';
     const [events, setEvents] = useState([]);
@@ -254,13 +203,6 @@ const Home = () => {
                 ease: 'none',
                 scrollTrigger: { trigger: heroRef.current, start: 'top top', end: 'bottom top', scrub: true },
             });
-
-            /* Hero photo slowly un-scales for depth */
-            gsap.to('.plx-hero-img', {
-                scale: 1.1,
-                ease: 'none',
-                scrollTrigger: { trigger: heroRef.current, start: 'top top', end: 'bottom top', scrub: true },
-            });
         }, heroRef);
 
         /* Why-section illustrations drift at their own speed */
@@ -289,10 +231,293 @@ const Home = () => {
         };
     }, []);
 
+    /* ---- Ticket journey: the three passes fly section-to-section ----
+       Each section hosts a `.ticket-slot`; as the page scrolls, the fan of
+       passes travels from slot to slot along an S-curve (zig-zag) path,
+       parking in the next section's reserved space. Each stop arrives exactly
+       as its section's pocket reaches the viewport centre, rests there while
+       the section scrolls through, then leaps to the next. Rebuilt on resize /
+       breakpoint changes / font load so parked positions stay exact. */
+    useEffect(() => {
+        const outer = outerRef.current;
+        const rig = rigRef.current;
+        if (!outer || !rig) return undefined;
+
+        let tl1 = null;
+        let tl2 = null;
+        let resizeTimer = null;
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        const build = () => {
+            if (tl1) {
+                if (tl1.scrollTrigger) tl1.scrollTrigger.kill();
+                tl1.kill();
+                tl1 = null;
+            }
+            if (tl2) {
+                if (tl2.scrollTrigger) tl2.scrollTrigger.kill();
+                tl2.kill();
+                tl2 = null;
+            }
+
+            /* Only slots currently visible (display:none below lg for section
+               slots, so mobile = hero slot only). */
+            const slots = gsap.utils
+                .toArray('.ticket-slot')
+                .filter((s) => s.getClientRects().length > 0);
+            if (slots.length === 0) return;
+
+            /* Reset any transform from a previous build so the rect read below
+               is the rig's true (untransformed) static corner in page coords.
+               The fan is a centered child, so centering the rig on a slot
+               centers the fan. Tickets also reset — GSAP owns their flight
+               transforms now, and a stale value would jump at the hero. */
+            gsap.set(rig, { x: 0, y: 0, rotation: 0 });
+            gsap.set(rig.querySelectorAll('.ticket-img'), { x: 0, y: 0, rotation: 0 });
+            const tMid = rig.querySelector('.ticket-mid');
+            const tNorm = rig.querySelector('.ticket-normal');
+            const r = rig.getBoundingClientRect();
+            const sx = r.left + window.scrollX;
+            const sy = r.top + window.scrollY;
+            const fanW = rig.offsetWidth;
+            const fanH = rig.offsetHeight;
+
+            const vh = window.innerHeight || 1;
+
+            const measure = () => slots.map((s) => {
+                const sr = s.getBoundingClientRect();
+                return {
+                    x: sr.left + sr.width / 2 + window.scrollX - sx - fanW / 2,
+                    y: sr.top + sr.height / 2 + window.scrollY - sy - fanH / 2,
+                };
+            });
+
+            /* Pass 1 (pre-pin): hero + featured only — sizes the takeoff. */
+            const prePts = measure();
+
+            if (reduced) {
+                gsap.set(rig, { x: prePts[0].x, y: prePts[0].y, rotation: 0, opacity: 1 });
+                return;
+            }
+
+            /* Takeoff window: how much scroll the pinned hero consumes while
+               the passes burst up out of it (capped so the featured pocket
+               always has room to receive them). */
+            const preArrive = (prePts[1]?.y ?? 900) + fanH / 2 - vh / 2;
+            const TW = Math.min(560, Math.max(320, Math.round(preArrive * 0.5)));
+
+            /* ── TL1: pin the hero for the takeoff ──
+               Created first so its pin-spacer exists before we measure the
+               sections below (the spacer shifts everything down by TW). */
+            tl1 = gsap.timeline({
+                defaults: { ease: 'none' },
+                scrollTrigger: {
+                    trigger: heroRef.current,
+                    start: 'top top',
+                    end: `+=${TW}`,
+                    pin: true,
+                    scrub: 1,
+                },
+            });
+
+            /* The hero slot doesn't move when the pin engages (scroll 0), so
+               the takeoff can build immediately from the pre-pin pass. */
+            const heroPt = prePts[0];
+            window.__evxDbg = window.__evxDbg || [];
+            window.__evxDbg.push({
+                build: (window.__evxDbg.length + 1),
+                TW,
+                preY1: Math.round(prePts[1]?.y ?? -1),
+                heroH0: Math.round(heroRef.current.getBoundingClientRect().height),
+                spacersBefore: document.querySelectorAll('.pin-spacer').length,
+            });
+
+            /* Alternate parking tilt per stop */
+            const tilts = [0, -3, 3, -2, 3, -4, 3, -2, 4];
+
+            gsap.set(rig, { x: heroPt.x, y: heroPt.y, rotation: 0, opacity: 1 });
+
+            /* Durations are raw scroll-pixels, so with `end: 'bottom bottom'`
+               the timeline's time axis maps 1:1 to scroll position — arrivals
+               happen exactly when each pocket reaches the viewport centre, and
+               scrolling back up simply runs the whole thing in reverse. */
+            const addFlight = (timeline, leg, i, at) => {
+                const d = leg.len;
+                const d1 = d * 0.34;
+                const d2 = d * 0.33;
+                const d3 = d * 0.33;
+                const zig = (i % 2 === 0 ? 1 : -1) * 110;
+                const mx1 = leg.a.x + (leg.b.x - leg.a.x) * 0.32;
+                const my1 = leg.a.y + (leg.b.y - leg.a.y) * 0.42;
+                const mx2 = leg.a.x + (leg.b.x - leg.a.x) * 0.68;
+                const my2 = leg.a.y + (leg.b.y - leg.a.y) * 0.74;
+
+                /* The rig weaves the S-curve; on top of that the left pass
+                   zigs to the right, the right pass zigs to the left (mirror),
+                   and the VIP pass rides straight. They fan apart mid-flight
+                   and re-form on the slot. */
+                timeline.to(rig, { x: mx1 + zig, y: my1 - 36, rotation: 7, duration: d1 }, at);
+                timeline.to(tMid, { x: 170, y: 14, rotation: 13, duration: d1 }, at);
+                timeline.to(tNorm, { x: -170, y: -14, rotation: -13, duration: d1 }, at);
+                at += d1;
+
+                timeline.to(rig, { x: mx2 - zig, y: my2 + 28, rotation: -6, duration: d2 }, at);
+                timeline.to(tMid, { x: 80, y: -8, rotation: -7, duration: d2 }, at);
+                timeline.to(tNorm, { x: -80, y: 8, rotation: 7, duration: d2 }, at);
+                at += d2;
+
+                timeline.to(rig, { x: leg.b.x, y: leg.b.y, rotation: leg.rot, duration: d3, ease: 'power2.inOut' }, at);
+                timeline.to(tMid, { x: 0, y: 0, rotation: 0, duration: d3, ease: 'power2.inOut' }, at);
+                timeline.to(tNorm, { x: 0, y: 0, rotation: 0, duration: d3, ease: 'power2.inOut' }, at);
+                return at + d3;
+            };
+
+            /* ── Takeoff keyframes ──
+               The passes burst up through the hero and out the top. Each y
+               target moves the fan CENTRE in viewport space and adds the
+               scroll consumed so far: the rig is page-anchored and the page
+               itself scrolls while the hero is pinned, so without that term
+               the passes would fly off the top instead of visibly rising. */
+            const tkX = (dx) => heroPt.x + dx;
+            const tkY = (viewportY, share) => viewportY - fanH / 2 + TW * share;
+            const td1 = TW * 0.34;
+            const td2 = TW * 0.33;
+            const td3 = TW * 0.33;
+            const fanCY = heroPt.y + fanH / 2;
+            const leapPt = { x: tkX(70), y: tkY(-260, 1) };
+
+            /* Pass 2 (post-pin): ScrollTrigger moves the hero into its
+               pin-spacer on its first refresh, which is what shifts the
+               sections below. TL2 is therefore built from that refresh
+               (once per build). */
+            let built2 = false;
+            const buildJourney2 = () => {
+                const pts = measure();
+                const maxScroll = Math.max(1, outer.scrollHeight - vh);
+                const scrollFor = pts.map((p, i) =>
+                    i === 0 ? 0 : Math.min(maxScroll, Math.max(0, p.y + fanH / 2 - vh / 2))
+                );
+
+                const windows = [];
+                for (let i = 0; i < pts.length - 1; i += 1) {
+                    const arriveNext = scrollFor[i + 1];
+                    const departCur = i === 0 ? TW : scrollFor[i] + vh / 2;
+                    windows.push(Math.max(60, arriveNext - departCur));
+                }
+                /* Final leg: settle into the last pocket and hold to the page end */
+                windows.push(Math.max(60, maxScroll - scrollFor[pts.length - 1]));
+
+                const legs = [];
+                for (let i = 0; i < pts.length - 1; i += 1) {
+                    legs.push({
+                        a: pts[i],
+                        b: pts[i + 1],
+                        len: windows[i],
+                        rot: tilts[i + 1] ?? 0,
+                    });
+                }
+                if (legs.length === 0) return;
+
+                tl2 = gsap.timeline({
+                    defaults: { ease: 'none' },
+                    scrollTrigger: {
+                        trigger: outer,
+                        start: TW,
+                        end: 'max',
+                        scrub: 1,
+                    },
+                });
+
+                /* Glide down from the takeoff exit into the featured pocket */
+                let at = 0;
+                at = addFlight(tl2, { a: leapPt, b: pts[1], len: windows[0], rot: tilts[1] ?? 0 }, 0, at);
+                /* Each later stop: rest in the section as it scrolls through the
+                   viewport (vh/2 of scroll), then leap to the next section */
+                for (let i = 1; i < legs.length; i += 1) {
+                    tl2.to(rig, { x: legs[i - 1].b.x, y: legs[i - 1].b.y, rotation: tilts[i] ?? 0, duration: vh / 2 }, at);
+                    at += vh / 2;
+                    at = addFlight(tl2, legs[i], i, at);
+                }
+                /* Hold the final park through the rest of the page */
+                const last = pts[pts.length - 1];
+                tl2.to(rig, { x: last.x, y: last.y, rotation: tilts[pts.length - 1] ?? 0, duration: windows[windows.length - 1] }, at);
+            };
+
+            /* ── TL1: pin the hero for the takeoff ──
+               onRefresh runs after the pin-spacer exists, so buildJourney2
+               measures the shifted sections and wires the rest of the trip. */
+            tl1 = gsap.timeline({
+                defaults: { ease: 'none' },
+                scrollTrigger: {
+                    trigger: heroRef.current,
+                    start: 'top top',
+                    end: `+=${TW}`,
+                    pin: true,
+                    scrub: 1,
+                    onRefresh: () => {
+                        if (!built2) {
+                            built2 = true;
+                            buildJourney2();
+                        }
+                    },
+                },
+            });
+
+            tl1.to(rig, { x: tkX(150), y: tkY(fanCY - 170, 0.34), rotation: 9, duration: td1 }, 0);
+            tl1.to(tMid, { x: 170, y: 12, rotation: 12, duration: td1 }, 0);
+            tl1.to(tNorm, { x: -170, y: -12, rotation: -12, duration: td1 }, 0);
+            tl1.to(rig, { x: tkX(-120), y: tkY(fanCY - 350, 0.67), rotation: -8, duration: td2 });
+            tl1.to(tMid, { x: -70, y: -10, rotation: -9, duration: td2 });
+            tl1.to(tNorm, { x: 70, y: 10, rotation: 9, duration: td2 });
+            tl1.to(rig, { x: tkX(70), y: tkY(-260, 1), rotation: 3, duration: td3, ease: 'power2.inOut' });
+            tl1.to(tMid, { x: 0, y: 0, rotation: 0, duration: td3, ease: 'power2.inOut' });
+            tl1.to(tNorm, { x: 0, y: 0, rotation: 0, duration: td3, ease: 'power2.inOut' });
+        };
+
+        build();
+        const onResize = () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                build();
+                ScrollTrigger.refresh();
+            }, 150);
+        };
+        const onLoad = () => {
+            build();
+            ScrollTrigger.refresh();
+        };
+        window.addEventListener('resize', onResize);
+        window.addEventListener('load', onLoad);
+        /* Page-enter transition settles the layout ~0.4s after mount */
+        const settleTimer = setTimeout(onLoad, 500);
+        journeyRebuildRef.current = onLoad;
+
+        return () => {
+            window.removeEventListener('resize', onResize);
+            window.removeEventListener('load', onLoad);
+            clearTimeout(resizeTimer);
+            clearTimeout(settleTimer);
+            if (tl1) {
+                if (tl1.scrollTrigger) tl1.scrollTrigger.kill();
+                tl1.kill();
+            }
+            if (tl2) {
+                if (tl2.scrollTrigger) tl2.scrollTrigger.kill();
+                tl2.kill();
+            }
+        };
+    }, []);
+
+    /* The API events re-render the cards with real heights once loaded —
+       re-measure the journey's parked positions then (ScrollTrigger needs
+       refresh() after layout changes). */
+    useEffect(() => {
+        if (!loading && journeyRebuildRef.current) {
+            journeyRebuildRef.current();
+        }
+    }, [loading]);
+
     const displayEvents = events.length > 0 ? events : demoEvents;
-    const featured = displayEvents[0];
-    const featuredDate = new Date(featured?.date);
-    const validFeaturedDate = featured && !Number.isNaN(featuredDate.getTime()) ? featuredDate : new Date(FALLBACK_TARGET);
 
     /* Trending: ranked by tickets already sold this week */
     const trending = [...displayEvents]
@@ -325,14 +550,17 @@ const Home = () => {
         setSubscribed(true);
     };
 
-    const formatDate = (d) =>
-        new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-
     return (
         <DirectionalTransition>
-        <div>
+        <div ref={outerRef} className="relative">
             {/* ═══════════ STAGE · HERO (always night) ═══════════ */}
             <section ref={heroRef} className="relative overflow-hidden bg-[#0b0b14] text-white">
+                {/* Static artwork backdrop + legibility wash */}
+                <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+                    <img src={heroBg} alt="" className="h-full w-full object-cover object-center opacity-60" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#0b0b14] via-[#0b0b14]/60 to-[#0b0b14]/25" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b14] via-transparent to-[#0b0b14]/40" />
+                </div>
                 {/* Dynamic gradient background — drifting aurora */}
                 <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
                     <div className="aurora-blob aurora-a -left-48 -top-40 h-[620px] w-[620px]" />
@@ -441,11 +669,11 @@ const Home = () => {
                                     <span className="font-display text-lg uppercase leading-none">30%</span>
                                 </div>
                             </div>
-                            <div className="hero-sticker sticker -left-5 top-16 z-20 rounded-[2rem] rounded-bl-md bg-brand-orange px-5 py-3 text-[11px] text-white shadow-[0_16px_36px_-14px_rgba(255,90,31,0.55)] animate-float-slow">
-                                <Sparkle className="mr-1.5 h-3.5 w-3.5 text-brand-lime" fill="currentColor" />
+                            <div className="hero-sticker sticker -left-5 top-16 z-20 rounded-[2rem] rounded-bl-md bg-brand-lime px-5 py-3 text-[11px] text-brand-dark shadow-[0_16px_36px_-14px_rgba(166,255,0,0.55)] animate-float-slow">
+                                <Sparkle className="mr-1.5 h-3.5 w-3.5 text-brand-dark" fill="currentColor" />
                                 Feel the vibe
                             </div>
-                            <div className="hero-sticker sticker -right-4 bottom-32 z-20 hidden rounded-[2rem] rounded-tr-md bg-brand-purple px-5 py-3 text-[11px] text-white shadow-[0_16px_36px_-14px_rgba(186,40,226,0.55)] animate-float lg:flex">
+                            <div className="hero-sticker sticker -right-4 bottom-6 z-20 hidden rounded-[2rem] rounded-tr-md bg-brand-purple px-5 py-3 text-[11px] text-white shadow-[0_16px_36px_-14px_rgba(186,40,226,0.55)] animate-float lg:flex">
                                 <Ticket className="mr-1.5 h-3.5 w-3.5 text-brand-lime" />
                                 Instant QR pass
                             </div>
@@ -461,92 +689,14 @@ const Home = () => {
                             <motion.span
                                 animate={{ rotate: [0, -14, 0], y: [0, 6, 0] }}
                                 transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-                                className="absolute -bottom-10 -left-10 hidden text-brand-orange lg:block"
+                                className="absolute -bottom-10 -left-10 hidden text-white/25 lg:block"
                             >
                                 <Star className="h-7 w-7" fill="currentColor" />
                             </motion.span>
-                            <span className="absolute right-16 top-40 hidden h-8 w-8 rounded-full border-[3px] border-brand-cyan/80 lg:block" />
+                            <span className="absolute -right-2 top-8 hidden h-8 w-8 rounded-full border-[3px] border-white/20 lg:block" />
 
-                            {/* The pass */}
-                            <div className="relative rotate-2 transition-transform duration-500">
-                                <Tilt max={6}>
-                                    <div className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-[#14141f]/85 shadow-[0_40px_90px_-30px_rgba(0,0,0,0.7)] backdrop-blur-2xl">
-                                        {/* Image + glass overlay */}
-                                        <div className="relative h-56 w-full overflow-hidden bg-[#1a1a24]">
-                                            <img
-                                                src={featured?.image || crowdImg}
-                                                alt={featured?.title || 'Featured event'}
-                                                onError={(e) => { e.target.src = crowdImg; }}
-                                                className="plx-hero-img h-full w-full object-cover"
-                                            />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-[#14141f] via-[#14141f]/20 to-black/20" />
-                                            <span className="absolute left-4 top-4 z-10 flex items-center gap-1.5 rounded-full bg-sunset px-3.5 py-1.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg">
-                                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
-                                                Featured
-                                            </span>
-                                            <span className="absolute right-4 top-4 z-10 rounded-full border border-white/20 bg-[#0b0b14]/60 px-3.5 py-1.5 font-mono text-[10px] font-bold uppercase tracking-widest text-white backdrop-blur-md">
-                                                {featured?.category || 'Festivals'}
-                                            </span>
-                                        </div>
-
-                                        {/* Pass body */}
-                                        <div className="p-5 sm:p-6">
-                                            <div className="flex items-start justify-between gap-3">
-                                                <div>
-                                                    <span className="eyebrow text-[11px] text-brand-lime">Pass · General admission</span>
-                                                    <h3 className="font-display mt-1.5 text-2xl uppercase leading-none tracking-wide text-white sm:text-[1.7rem]">
-                                                        {featured?.title || 'Sunset Music Festival'}
-                                                    </h3>
-                                                </div>
-                                                <div className="text-right">
-                                                    <span className="block font-mono text-[9px] uppercase tracking-[0.2em] text-white/40">From</span>
-                                                    <span className="font-display text-2xl leading-none text-white">₹{featured?.ticketPrice || 1499}</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 font-mono text-xs text-white/55">
-                                                <span className="flex items-center gap-1.5">
-                                                    <CalendarDays className="h-3.5 w-3.5 text-brand-pink" />
-                                                    {featured ? formatDate(featured.date) : 'TBA'}
-                                                </span>
-                                                <span className="flex items-center gap-1.5">
-                                                    <MapPin className="h-3.5 w-3.5 text-brand-orange" />
-                                                    {featured?.location || 'Venue TBA'}
-                                                </span>
-                                            </div>
-
-                                            {/* Countdown */}
-                                            <div className="mt-5 flex flex-wrap items-center gap-4">
-                                                <span className="eyebrow text-[11px] text-white/45">Doors open in</span>
-                                                <Countdown target={validFeaturedDate.getTime()} />
-                                            </div>
-                                        </div>
-
-                                        {/* Perforation */}
-                                        <div className="relative mx-5 border-t-2 border-dashed border-white/20">
-                                            <span className="ticket-notch -left-5" aria-hidden="true" />
-                                            <span className="ticket-notch -right-5" aria-hidden="true" />
-                                        </div>
-
-                                        {/* Stub */}
-                                        <div className="flex items-center justify-between gap-4 p-5 sm:p-6">
-                                            <TransitionLink
-                                                to={featured ? `/events/${featured._id}` : '/events'}
-                                                className="btn-gradient flex shrink-0 items-center gap-2 rounded-full px-6 py-3 text-xs font-extrabold uppercase tracking-wider text-white"
-                                            >
-                                                Book tickets <ArrowUpRight className="h-3.5 w-3.5" />
-                                            </TransitionLink>
-                                            <div className="flex items-center gap-4">
-                                                <div className="barcode hidden w-36 text-white/60 sm:block" aria-hidden="true" />
-                                                <div className="text-right">
-                                                    <span className="block font-mono text-[9px] uppercase tracking-[0.2em] text-white/40">Pass no.</span>
-                                                    <span className="font-mono text-sm font-bold text-brand-lime">{passSerial(featured?._id || 'eventrix')}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Tilt>
-                            </div>
+                            {/* Reserved space — the three passes park here until scroll flies them to the next section */}
+                            <div className="ticket-slot relative mx-auto h-52 w-56 lg:h-96 lg:w-72" aria-hidden="true" />
                         </div>
                     </div>
                 </div>
@@ -582,7 +732,9 @@ const Home = () => {
             </section>
 
             {/* ═══════════ FEATURED EVENTS ═══════════ */}
-            <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+            <section className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+                {/* Parking pocket — the passes land here from the hero */}
+                <div className="ticket-slot pointer-events-none absolute -top-7 left-4 h-40 w-28 lg:-left-6 lg:top-24 lg:h-60 lg:w-40" aria-hidden="true" />
                 <Reveal>
                     <div className="flex flex-wrap items-end justify-between gap-4">
                         <div>
@@ -611,10 +763,10 @@ const Home = () => {
             </section>
 
             {/* ═══════════ POPULAR CATEGORIES ═══════════ */}
-            <section className="border-y border-black/5 bg-white py-20 dark:border-white/5 dark:bg-dark-page">
+            <section className="relative border-y border-black/5 bg-white py-20 dark:border-white/5 dark:bg-dark-page">
+                <div className="ticket-slot pointer-events-none absolute -top-7 right-4 h-40 w-28 lg:-right-6 lg:top-1/3 lg:h-60 lg:w-40" aria-hidden="true" />
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal className="text-center">
-                        <span className="eyebrow text-[11px] text-brand-lime-deep">Six ways to spend a night out</span>
                         <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
                             Pick your <span className="text-gradient-sunset">vibe</span>
                         </h2>
@@ -644,13 +796,11 @@ const Home = () => {
             </section>
 
             {/* ═══════════ TRENDING EVENTS ═══════════ */}
-            <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+            <section className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+                <div className="ticket-slot pointer-events-none absolute -top-7 left-4 h-40 w-28 lg:-left-4 lg:top-16 lg:h-60 lg:w-40" aria-hidden="true" />
                 <Reveal>
                     <div className="flex flex-wrap items-end justify-between gap-4">
                         <div>
-                            <span className="eyebrow inline-flex items-center gap-2 text-[11px] text-brand-orange">
-                                <Flame className="h-3.5 w-3.5" fill="currentColor" /> Ranked by tickets sold
-                            </span>
                             <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
                                 Trending <span className="text-gradient-sunset">this week</span>
                             </h2>
@@ -677,7 +827,8 @@ const Home = () => {
             </section>
 
             {/* ═══════════ UPCOMING · THE LINEUP ═══════════ */}
-            <section className="border-y border-black/5 bg-white py-20 dark:border-white/5 dark:bg-dark-page">
+            <section className="relative border-y border-black/5 bg-white py-20 dark:border-white/5 dark:bg-dark-page">
+                <div className="ticket-slot pointer-events-none absolute -top-7 right-4 h-40 w-28 lg:-right-4 lg:top-1/2 lg:h-60 lg:w-40" aria-hidden="true" />
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal>
                         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -777,6 +928,7 @@ const Home = () => {
 
             {/* ═══════════ WHY EVENTRIX ═══════════ */}
             <section ref={whyRef} className="why-section relative overflow-hidden py-24">
+                <div className="ticket-slot pointer-events-none absolute -top-7 left-4 h-40 w-28 lg:-left-6 lg:top-1/3 lg:h-60 lg:w-40" aria-hidden="true" />
                 <div className="pointer-events-none absolute inset-0" aria-hidden="true">
                     <div className="aurora-blob aurora-b -right-48 top-1/4 h-[480px] w-[480px]" />
                     <div className="aurora-blob aurora-c -left-40 bottom-0 h-[420px] w-[420px]" />
@@ -813,7 +965,6 @@ const Home = () => {
 
                 <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal className="text-center">
-                        <span className="eyebrow text-[11px] text-brand-lime-deep">Why Eventrix</span>
                         <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
                             Built for the <span className="text-gradient-sunset">night out</span>
                         </h2>
@@ -836,10 +987,10 @@ const Home = () => {
             </section>
 
             {/* ═══════════ TESTIMONIALS ═══════════ */}
-            <section className="border-y border-black/5 bg-white py-20 dark:border-white/5 dark:bg-dark-page">
+            <section className="relative border-y border-black/5 bg-white py-20 dark:border-white/5 dark:bg-dark-page">
+                <div className="ticket-slot pointer-events-none absolute -top-7 right-4 h-40 w-28 lg:-right-6 lg:top-1/2 lg:h-60 lg:w-40" aria-hidden="true" />
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Reveal className="text-center">
-                        <span className="eyebrow text-[11px] text-brand-pink">From the crowd</span>
                         <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
                             Loved by <span className="text-gradient-sunset">the crowd</span>
                         </h2>
@@ -872,7 +1023,8 @@ const Home = () => {
             </section>
 
             {/* ═══════════ NEWSLETTER ═══════════ */}
-            <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+            <section className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+                <div className="ticket-slot pointer-events-none absolute -top-7 left-4 h-40 w-28 lg:-left-2 lg:top-1/2 lg:h-64 lg:w-44" aria-hidden="true" />
                 <Reveal>
                     <div className="relative overflow-hidden rounded-[2.5rem] border border-black/5 bg-white px-6 py-16 text-center sm:px-12 dark:border-white/10 dark:bg-white/[0.04]">
                         {/* Gradient glow */}
@@ -880,9 +1032,6 @@ const Home = () => {
                         <div className="pointer-events-none absolute inset-0 dots-bg opacity-25" aria-hidden="true" />
 
                         <div className="relative mx-auto max-w-xl">
-                            <span className="eyebrow inline-flex items-center gap-2 text-[11px] text-brand-lime-deep">
-                                <Ticket className="h-3.5 w-3.5" /> Twice a month, no spam
-                            </span>
                             <h2 className="font-display mt-3 text-4xl uppercase leading-[0.95] text-brand-dark sm:text-5xl dark:text-dark-ink">
                                 Passes drop <span className="text-gradient-sunset">early</span>
                             </h2>
@@ -919,6 +1068,21 @@ const Home = () => {
             </section>
 
             {/* Footer lives in App.jsx */}
+
+            {/* ═══════════ THE THREE PASSES ═══════════
+               A page-wide layer holding the vip / mid / normal passes. They
+               start parked on the hero slot and are flown slot-to-slot by the
+               GSAP journey above, always arriving in the next section's
+               reserved pocket. */}
+            <div ref={rigRef} className="ticket-rig" aria-hidden="true">
+                {/* GSAP owns each pass's transform during the flight — the left
+                    swings right, the right swings left, the VIP runs straight. */}
+                <div className="ticket-fan scale-[0.62] sm:scale-[0.78] lg:scale-[0.95]">
+                    <img src={midTicket} alt="" draggable={false} className="ticket-img ticket-mid" />
+                    <img src={normalTicket} alt="" draggable={false} className="ticket-img ticket-normal" />
+                    <img src={vipTicket} alt="" draggable={false} className="ticket-img ticket-vip" />
+                </div>
+            </div>
         </div>
         </DirectionalTransition>
     );
