@@ -140,8 +140,8 @@ const Footer = () => {
                         <span className="cursor-pointer transition-colors hover:text-brand-dark dark:hover:text-dark-ink">Privacy</span>
                         <span className="cursor-pointer transition-colors hover:text-brand-dark dark:hover:text-dark-ink">Terms</span>
                     </div>
-                    <span className="flex items-center gap-1.5 text-xs font-black uppercase text-brand-purple dark:text-brand-lime">
-                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-lime" /> Good vibes only
+                    <span className="text-xs font-black uppercase text-brand-purple dark:text-brand-lime">
+                        Good vibes only
                     </span>
                 </div>
             </div>

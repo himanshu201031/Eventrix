@@ -9,6 +9,7 @@ import EventCard from '../components/EventCard';
 import { DirectionalTransition, TransitionLink, push } from '../components/Transitions';
 import { Reveal, Counter, Magnetic, Marquee } from '../animations';
 import heroBg from '../assets/herobg.png';
+import peoples from '../assets/peoples.png';
 import vipTicket from '../assets/vipticket.png';
 import midTicket from '../assets/midticket.png';
 import normalTicket from '../assets/normalticket.png';
@@ -104,7 +105,7 @@ const categories = [
 
 const whyFeatures = [
     { icon: ShieldCheck, tint: 'text-brand-lime', chip: 'bg-brand-lime/15', title: 'OTP-verified booking', desc: 'Every booking is confirmed to your email before a seat is held. No bots, no ghost tickets.' },
-    { icon: CalendarCheck, tint: 'text-brand-pink', chip: 'bg-brand-pink/15', title: 'Instant QR passes', desc: 'Your pass lands in the app the moment payment clears — gate-ready before you leave the house.' },
+    { icon: CalendarCheck, tint: 'text-brand-pink', chip: 'bg-brand-pink/15', title: 'Instant QR passes', desc: 'Your pass lands in the app the moment payment clears, gate-ready before you leave the house.' },
     { icon: BadgePercent, tint: 'text-brand-orange', chip: 'bg-brand-orange/15', title: 'Best-price promise', desc: 'Early-bird pricing and member deals, with no surprise fees hiding at checkout.' },
     { icon: Headphones, tint: 'text-brand-cyan', chip: 'bg-brand-cyan/15', title: '24/7 human support', desc: 'Real people, day or night. Most replies land inside five minutes.' },
 ];
@@ -117,7 +118,7 @@ const stats = [
 ];
 
 const testimonials = [
-    { name: 'Ananya Sharma', role: 'Festival regular · Goa', quote: 'Booked Sunset Festival on a Sunday night. The QR pass was in my wallet before I finished my chai — zero queue at the gate.', initials: 'AS' },
+    { name: 'Ananya Sharma', role: 'Festival regular · Goa', quote: 'Booked Sunset Festival on a Sunday night. The QR pass was in my wallet before I finished my chai. Zero queue at the gate.', initials: 'AS' },
     { name: 'Rohan Mehta', role: 'Tech founder · Bengaluru', quote: 'Every ticket, invoice and confirmation sits in one dashboard. I always know what I paid and what is coming up.', initials: 'RM' },
     { name: 'Zara Khan', role: 'Music lover · Mumbai', quote: 'Found the Arijit show in seconds, grabbed an early-bird pass, got the OTP, done. Booking felt genuinely smooth.', initials: 'ZK' },
 ];
@@ -203,6 +204,29 @@ const Home = () => {
                 ease: 'none',
                 scrollTrigger: { trigger: heroRef.current, start: 'top top', end: 'bottom top', scrub: true },
             });
+
+            /* Layered parallax — the stage artwork lags (drifts down) while
+               the crowd rises (drifts up), so the two planes pull apart for
+               depth as you scroll. The bg's scale covers its travel. */
+            gsap.fromTo(
+                '.plx-hero-bg',
+                { yPercent: -8, scale: 1.1 },
+                {
+                    yPercent: 8,
+                    scale: 1.1,
+                    ease: 'none',
+                    scrollTrigger: { trigger: heroRef.current, start: 'top top', end: 'bottom top', scrub: true },
+                }
+            );
+            gsap.fromTo(
+                '.plx-hero-crowd',
+                { yPercent: 8 },
+                {
+                    yPercent: -20,
+                    ease: 'none',
+                    scrollTrigger: { trigger: heroRef.current, start: 'top top', end: 'bottom top', scrub: true },
+                }
+            );
         }, heroRef);
 
         /* Why-section illustrations drift at their own speed */
@@ -246,7 +270,21 @@ const Home = () => {
         let tl1 = null;
         let tl2 = null;
         let resizeTimer = null;
-        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let dispose = null;
+        let disposed = false;
+
+        /* The layout is NOT settled at mount: the page-enter translate is
+           still animating and the display fonts are still loading, so any
+           slot rect read now inherits a shifted baseline — the earlier build
+           parked the fan at page (0,0) for exactly this reason. Hide the rig
+           until the first settled build, then run pin + takeoff + journey in
+           one pass. */
+        gsap.set(rig, { opacity: 0 });
+
+        const build = () => {
+            if (disposed) return;
+
+            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         /* Only slots currently visible (display:none below lg for section
            slots, so mobile = hero slot only). */
@@ -263,14 +301,29 @@ const Home = () => {
         const fanW = rig.offsetWidth;
         const fanH = rig.offsetHeight;
         const vh = window.innerHeight || 1;
+        /* The hero's natural page-top, captured before the pin turns it
+           fixed — used to anchor the hero slot's page position. */
+        const heroEl = heroRef.current;
+        const heroPageTop = heroEl.getBoundingClientRect().top + window.scrollY;
 
-        const measure = () => slots.map((s) => {
-            const sr = s.getBoundingClientRect();
-            return {
-                x: sr.left + sr.width / 2 + window.scrollX - sx - fanW / 2,
-                y: sr.top + sr.height / 2 + window.scrollY - sy - fanH / 2,
-            };
-        });
+        const measure = () => {
+            const hr = heroEl.getBoundingClientRect();
+            return slots.map((s, i) => {
+                const sr = s.getBoundingClientRect();
+                /* The hero slot lives inside the pinned (fixed) hero, so its
+                   rect is viewport-anchored — derive its page position from
+                   the hero's own rect instead of adding scrollY, which would
+                   corrupt it whenever a rebuild runs mid-pin. Section slots
+                   stay in normal flow, so they keep the scroll offset. */
+                const pageY = i === 0
+                    ? heroPageTop + (sr.top - hr.top)
+                    : sr.top + window.scrollY;
+                return {
+                    x: sr.left + sr.width / 2 + window.scrollX - sx - fanW / 2,
+                    y: sr.height / 2 + pageY - sy - fanH / 2,
+                };
+            });
+        };
 
         const prePts = measure();
 
@@ -345,6 +398,7 @@ const Home = () => {
            cycle (rAF) so creating its trigger can't disturb the pin setup. */
         let built2 = false;
         const buildJourney2 = () => {
+            if (disposed) return;
             if (tl2) {
                 if (tl2.scrollTrigger) tl2.scrollTrigger.kill();
                 tl2.kill();
@@ -382,7 +436,13 @@ const Home = () => {
                 scrollTrigger: {
                     trigger: outer,
                     start: TW,
-                    end: 'max',
+                    /* Bind the end to the timeline's own duration (evaluated on
+                       refresh, after all flights are added) instead of 'max':
+                       the page below outer (footer, etc.) makes the document
+                       taller, which silently stretches the scrub mapping and
+                       lands every flight progressively late. With end = start +
+                       duration, scroll maps 1:1 to timeline time. */
+                    end: () => TW + tl2.duration(),
                     scrub: 1,
                 },
             });
@@ -416,7 +476,10 @@ const Home = () => {
                 onRefresh: () => {
                     if (!built2) {
                         built2 = true;
-                        requestAnimationFrame(buildJourney2);
+                        requestAnimationFrame(() => {
+                            reanchorTakeoff();
+                            buildJourney2();
+                        });
                     }
                 },
             },
@@ -432,9 +495,37 @@ const Home = () => {
         tl1.to(tMid, { x: 0, y: 0, rotation: 0, duration: td3, ease: 'power2.inOut' });
         tl1.to(tNorm, { x: 0, y: 0, rotation: 0, duration: td3, ease: 'power2.inOut' });
 
+        /* The pin-spacer + late font/image settle shift the hero pocket after
+           the first measure — re-anchor the parked fan and every takeoff
+           keyframe to the settled heroPt so the takeoff starts exactly on the
+           slot. Idempotent: re-measures and shifts by the fresh delta each
+           rebuild, converging on the final layout. */
+        const reanchorTakeoff = () => {
+            const pts = measure();
+            const dx = pts[0].x - heroPt.x;
+            const dy = pts[0].y - heroPt.y;
+            if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+                heroPt.x += dx;
+                heroPt.y += dy;
+                gsap.set(rig, { x: heroPt.x, y: heroPt.y, rotation: 0 });
+                tl1.getChildren().forEach((tween) => {
+                    if (tween.targets()[0] === rig) {
+                        if (typeof tween.vars.x === 'number') tween.vars.x += dx;
+                        if (typeof tween.vars.y === 'number') tween.vars.y += dy;
+                    }
+                });
+                leapPt.x += dx;
+                leapPt.y += dy;
+                /* Re-capture tween start values from the current (re-parked)
+                   position on the next render. */
+                tl1.invalidate();
+            }
+        };
+
         /* Rebuilds (resize / load / events) re-measure and re-wire TL2 only —
            the pin and takeoff stay put, so no spacer compounding. */
         const rebuild = () => {
+            reanchorTakeoff();
             buildJourney2();
             ScrollTrigger.refresh();
         };
@@ -444,23 +535,75 @@ const Home = () => {
         };
         window.addEventListener('resize', onResize);
         window.addEventListener('load', rebuild);
-        /* Page-enter transition settles the layout ~0.4s after mount */
-        const settleTimer = setTimeout(rebuild, 500);
         journeyRebuildRef.current = rebuild;
 
+        /* The hero pocket can keep shifting while fonts/images finish — keep
+           re-anchoring the takeoff every frame until the layout is quiet: at
+           least 4s AND 30 consecutive stable frames, so a late font swap or
+           image settle is always caught no matter when it lands. */
+        let settleRaf = 0;
+        let stableFrames = 0;
+        const settleStart = performance.now();
+        const settleCheck = () => {
+            if (disposed) return;
+            const before = { x: heroPt.x, y: heroPt.y };
+            reanchorTakeoff();
+            const moved = Math.abs(heroPt.x - before.x) > 1 || Math.abs(heroPt.y - before.y) > 1;
+            stableFrames = moved ? 0 : stableFrames + 1;
+            const elapsed = performance.now() - settleStart;
+            if (stableFrames < 30 || elapsed < 4000) settleRaf = requestAnimationFrame(settleCheck);
+        };
+        settleRaf = requestAnimationFrame(settleCheck);
+
+            dispose = () => {
+                window.removeEventListener('resize', onResize);
+                window.removeEventListener('load', rebuild);
+                cancelAnimationFrame(settleRaf);
+                clearTimeout(resizeTimer);
+                journeyRebuildRef.current = null;
+                if (tl1) {
+                    if (tl1.scrollTrigger) tl1.scrollTrigger.kill();
+                    tl1.kill();
+                    tl1 = null;
+                }
+                if (tl2) {
+                    if (tl2.scrollTrigger) tl2.scrollTrigger.kill();
+                    tl2.kill();
+                    tl2 = null;
+                }
+            };
+        };
+
+        /* First build waits for the layout to settle: past the page-enter
+           translate AND the display fonts, with a cap so a slow font CDN can
+           never leave the fan hidden. */
+        let ran = false;
+        let deferTimer = null;
+        const go = () => {
+            if (ran) return;
+            ran = true;
+            clearTimeout(deferTimer);
+            build();
+        };
+        const MIN_SETTLE = 450;
+        const start = Date.now();
+        const whenSettled = () => {
+            const elapsed = Date.now() - start;
+            if (elapsed >= MIN_SETTLE) go();
+            else deferTimer = setTimeout(go, MIN_SETTLE - elapsed);
+        };
+        if (document.fonts && document.fonts.ready) {
+            deferTimer = setTimeout(go, 900);
+            document.fonts.ready.then(whenSettled).catch(whenSettled);
+        } else {
+            deferTimer = setTimeout(go, MIN_SETTLE);
+        }
+
         return () => {
-            window.removeEventListener('resize', onResize);
-            window.removeEventListener('load', rebuild);
-            clearTimeout(resizeTimer);
-            clearTimeout(settleTimer);
-            if (tl1) {
-                if (tl1.scrollTrigger) tl1.scrollTrigger.kill();
-                tl1.kill();
-            }
-            if (tl2) {
-                if (tl2.scrollTrigger) tl2.scrollTrigger.kill();
-                tl2.kill();
-            }
+            if (dispose) dispose();
+            else disposed = true;
+            clearTimeout(deferTimer);
+            ran = true;
         };
     }, []);
 
@@ -513,7 +656,7 @@ const Home = () => {
             <section ref={heroRef} className="relative overflow-hidden bg-[#0b0b14] text-white">
                 {/* Static artwork backdrop + legibility wash */}
                 <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-                    <img src={heroBg} alt="" className="h-full w-full object-cover object-center opacity-60" />
+                    <img src={heroBg} alt="" className="plx-hero-bg h-full w-full object-cover object-center opacity-60" />
                     <div className="absolute inset-0 bg-gradient-to-r from-[#0b0b14] via-[#0b0b14]/60 to-[#0b0b14]/25" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b14] via-transparent to-[#0b0b14]/40" />
                 </div>
@@ -526,13 +669,22 @@ const Home = () => {
                 <div className="pointer-events-none absolute inset-0 dots-bg opacity-30" aria-hidden="true" />
                 <div className="noise pointer-events-none absolute inset-0" aria-hidden="true" />
 
+                {/* Crowd cutout — foreground parallax layer across the hero floor */}
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 sm:h-60 lg:h-80" aria-hidden="true">
+                    <img
+                        src={peoples}
+                        alt=""
+                        className="plx-hero-crowd h-full w-full object-cover object-bottom opacity-70"
+                    />
+                </div>
+
                 <div className="hero-content relative mx-auto max-w-7xl px-4 pt-32 pb-14 sm:px-6 sm:pt-40 lg:px-8">
                     <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-12">
                         {/* Left: thesis */}
                         <div className="lg:col-span-7">
                             <span className="hero-el eyebrow inline-flex items-center gap-2.5 text-[11px] text-brand-lime">
                                 <Sparkle className="h-3.5 w-3.5" fill="currentColor" />
-                                Concerts · Festivals · Workshops — 40+ cities
+                                Live events across 40+ cities
                             </span>
 
                             <h1 className="hero-el font-display mt-5 text-[3.4rem] uppercase leading-[0.9] tracking-tight sm:text-8xl lg:text-[6rem]">
@@ -542,8 +694,8 @@ const Home = () => {
                             </h1>
 
                             <p className="hero-el mt-6 max-w-xl text-base leading-relaxed text-white/60 sm:text-lg">
-                                Concerts, festivals and workshops across India. Book in seconds —
-                                your pass is gate-ready before you leave the house.
+                                Concerts, festivals and workshops across India. Book in seconds.
+                                Your pass is gate-ready before you leave the house.
                             </p>
 
                             {/* Search */}
@@ -760,7 +912,7 @@ const Home = () => {
                             <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
                                 Trending <span className="text-gradient-sunset">this week</span>
                             </h2>
-                            <p className="mt-3 text-sm text-gray-500 dark:text-dark-muted">The most-booked shows right now — seats are moving.</p>
+                            <p className="mt-3 text-sm text-gray-500 dark:text-dark-muted">The most-booked shows right now. Seats are moving.</p>
                         </div>
                     </div>
                 </Reveal>
@@ -793,7 +945,7 @@ const Home = () => {
                                 <h2 className="font-display mt-2 text-4xl uppercase leading-none text-brand-dark sm:text-5xl dark:text-dark-ink">
                                     The <span className="text-gradient-sunset">lineup</span>
                                 </h2>
-                                <p className="mt-3 text-sm text-gray-500 dark:text-dark-muted">Dates, venues and live seat counts — grab yours before the meter empties.</p>
+                                <p className="mt-3 text-sm text-gray-500 dark:text-dark-muted">Dates, venues and live seat counts. Grab yours before the meter empties.</p>
                             </div>
                             <TransitionLink
                                 to="/events"
@@ -997,7 +1149,7 @@ const Home = () => {
 
                             {subscribed ? (
                                 <p className="mx-auto mt-8 inline-flex items-center gap-2 rounded-full bg-brand-lime px-6 py-3 font-mono text-xs font-bold uppercase tracking-widest text-brand-dark">
-                                    <Sparkle className="h-4 w-4" fill="currentColor" /> You're on the list — watch your inbox
+                                    <Sparkle className="h-4 w-4" fill="currentColor" /> You're on the list. Watch your inbox
                                 </p>
                             ) : (
                                 <form onSubmit={subscribe} className="mx-auto mt-8 flex max-w-md flex-col gap-2 rounded-[2rem] border border-black/10 bg-brand-light p-1.5 sm:flex-row sm:items-center sm:pl-5 dark:border-white/10 dark:bg-white/[0.06]">

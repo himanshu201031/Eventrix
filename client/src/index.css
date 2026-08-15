@@ -9,9 +9,17 @@
                        aurora, skeleton — theme-dependent surfaces)
      Component utils→ @utility  (btn-, glass-, text-, stickers…)
 
-   Palette  Purple #BA28E2 · Pink #FF2D7A · Orange #FF5A1F
-            Lime #A6FF00 · Cyan #00E5FF · Night #0B0B14
-   Type     Anton (display) · Space Grotesk (body) · Space Mono (data)
+   Palette  Night #0B0B14 · Lime #A6FF00 · Sunset gradient (brand)
+            Purple #BA28E2 · Pink #FF2D7A (brand moments)
+            Cyan #00E5FF (live/verified only) · Orange #FF5A1F (heat/warning)
+   Type     Archivo (display, variable) · Space Grotesk (body) · Space Mono (data)
+
+   HIERARCHY LOCK (one accent per surface):
+     · Night surfaces → lime is THE accent (hero, navbar, footer)
+     · Brand moments  → sunset gradient / purple + pink
+     · Cyan           → live, verified, support signals only
+     · Orange         → location pins, heat, low-seat warnings only
+   Never mix cyan + lime + orange as decorative accents on one surface.
    Dark-first: the .dark class on <html> flips semantic tokens.
    ══════════════════════════════════════════════════════════════ */
 
@@ -59,8 +67,10 @@
 }
 
 @theme {
-  /* ---- Type ---- */
-  --font-display: "Anton", "Arial Narrow", sans-serif;
+  /* ---- Type ----
+     Display is variable Archivo (Google Fonts v2: wdth 62..125 × wght 100..900).
+     Anton stays in the chain as a static fallback if Archivo fails to load. */
+  --font-display: "Archivo", "Anton", "Arial Narrow", sans-serif;
   --font-sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "Space Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 
@@ -350,6 +360,12 @@ html.lenis, html.lenis body { height: auto; }
 /* ---- Type helpers ------------------------------------------- */
 @utility font-display {
   font-family: var(--font-display);
+  /* Anton was a single heavy weight; Archivo is a range, so the utility must
+     default to a heavy cut or every headline silently thins out. */
+  font-weight: 700;
+  /* Condensed stretch (75% of the wdth axis) keeps the narrow poster energy
+     Anton gave the hero, while Archivo adds the 100..900 weight range. */
+  font-stretch: 75%;
   letter-spacing: 0.01em;
 }
 
@@ -561,6 +577,65 @@ html.lenis, html.lenis body { height: auto; }
   background: var(--color-night);
   top: -13px;
   z-index: 2;
+}
+
+/* ---- The three passes (scroll journey rig) -------------------
+   A page-wide absolute layer that GSAP flies between each section's
+   reserved `.ticket-slot`. The fan is a centered child so the rig's
+   translate x/y keeps the fan centered on any slot; responsive scale
+   lives on `.ticket-fan` (individual `scale` prop, not transform, so
+   it composes with GSAP's transform on the rig). */
+.ticket-rig {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 360px;
+  z-index: 30;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.ticket-fan {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+}
+
+.ticket-img {
+  position: absolute;
+  display: block;
+  object-fit: contain;
+  width: 62%;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.ticket-vip {
+  width: 70%;
+  left: 15%;
+  top: 0;
+  z-index: 3;
+  filter: drop-shadow(0 18px 28px rgb(186 40 226 / 0.45));
+}
+
+.ticket-mid {
+  left: -4%;
+  top: 9%;
+  z-index: 1;
+  filter: drop-shadow(0 14px 22px rgb(255 45 122 / 0.35));
+}
+
+.ticket-normal {
+  right: -4%;
+  top: 9%;
+  z-index: 2;
+  filter: drop-shadow(0 14px 22px rgb(0 229 255 / 0.3));
+}
+
+.ticket-slot {
+  z-index: 1;
 }
 
 /* ---- Marquee band (lives inside the always-night hero) -------- */
