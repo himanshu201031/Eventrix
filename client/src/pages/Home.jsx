@@ -214,16 +214,27 @@ const Home = () => {
                 { scale: 1, rotate: 0, duration: 0.8, stagger: 0.15, ease: 'back.out(1.8)', delay: 0.75 }
             );
 
-            /* Hero content drifts up as you scroll */
-            gsap.to('.hero-content', {
-                yPercent: -6,
-                ease: 'none',
-                scrollTrigger: { trigger: heroRef.current, start: 'top top', end: 'bottom top', scrub: true },
-            });
+            /* Hero copy recedes at three speeds while the passes burst out —
+               the headline leads, the subtitle trails, the CTA lingers, so
+               the text reads as a layer behind the tickets. The first quarter
+               of the hero's scroll leaves the copy fully stable. */
+            const heroCopy = (sel, dist) =>
+                gsap.fromTo(sel, { y: 0, opacity: 1 }, {
+                    keyframes: [
+                        { y: 0, opacity: 1, duration: 0.25 },
+                        { y: dist, opacity: 0, duration: 0.75, ease: 'none' },
+                    ],
+                    ease: 'none',
+                    scrollTrigger: { trigger: heroRef.current, start: 'top top', end: 'bottom top', scrub: true },
+                });
+            heroCopy('.hero-headline', -120);
+            heroCopy('.hero-sub', -85);
+            heroCopy('.hero-cta', -55);
 
             /* Layered parallax — the stage artwork lags (drifts down) while
                the crowd rises (drifts up), so the two planes pull apart for
-               depth as you scroll. The bg's scale covers its travel. */
+               depth as you scroll. The bg's scale covers its travel; the
+               crowd barely moves — the passes are the primary motion focus. */
             gsap.fromTo(
                 '.plx-hero-bg',
                 { yPercent: -8, scale: 1.1 },
@@ -236,9 +247,10 @@ const Home = () => {
             );
             gsap.fromTo(
                 '.plx-hero-crowd',
-                { yPercent: 8 },
+                { yPercent: 6, scale: 1 },
                 {
-                    yPercent: -20,
+                    yPercent: -14,
+                    scale: 1.08,
                     ease: 'none',
                     scrollTrigger: { trigger: heroRef.current, start: 'top top', end: 'bottom top', scrub: true },
                 }
@@ -288,6 +300,7 @@ const Home = () => {
         let resizeTimer = null;
         let dispose = null;
         let disposed = false;
+        let pointerCleanup = null;
 
         /* The layout is NOT settled at mount: the page-enter translate is
            still animating and the display fonts are still loading, so any
@@ -311,6 +324,7 @@ const Home = () => {
 
         const tMid = rig.querySelector('.ticket-mid');
         const tNorm = rig.querySelector('.ticket-normal');
+        const tVip = rig.querySelector('.ticket-vip');
         const r = rig.getBoundingClientRect();
         const sx = r.left + window.scrollX;
         const sy = r.top + window.scrollY;
@@ -343,8 +357,17 @@ const Home = () => {
 
         const prePts = measure();
 
+        /* Responsive burst distances: full on desktop, ~65% on tablet,
+           ~45% on mobile. 3D Y-tilt is dropped below lg. */
+        const vw = window.innerWidth;
+        const F = vw < 640 ? 0.45 : vw < 1024 ? 0.65 : 1;
+        const ryOn = vw >= 1024;
+
         if (reduced) {
             gsap.set(rig, { x: prePts[0].x, y: prePts[0].y, rotation: 0, opacity: 1 });
+            gsap.set(tMid, { rotation: -8, rotateY: ryOn ? -10 : 0 });
+            gsap.set(tVip, { rotation: 3, rotateY: ryOn ? -3 : 0 });
+            gsap.set(tNorm, { rotation: 8, rotateY: ryOn ? 10 : 0 });
             return undefined;
         }
 
@@ -358,6 +381,13 @@ const Home = () => {
         const tilts = [0, -3, 3, -2, 3, -4, 3, -2, 4];
 
         gsap.set(rig, { x: heroPt.x, y: heroPt.y, rotation: 0, opacity: 1 });
+        /* Parked 3D pose — matches the artwork composition: GENERAL tilted
+           back-left, VIP flat-front (largest), VVIP tilted back-right. The
+           takeoff bursts FROM these poses; the journey's Z-rotation resets
+           them flat at each pocket landing. */
+        gsap.set(tMid, { rotation: -8, rotateY: ryOn ? -10 : 0 });
+        gsap.set(tVip, { rotation: 3, rotateY: ryOn ? -3 : 0 });
+        gsap.set(tNorm, { rotation: 8, rotateY: ryOn ? 10 : 0 });
 
         /* Durations are raw scroll-pixels, so the timeline's time axis maps
            1:1 to scroll position — arrivals happen exactly when each pocket
@@ -488,6 +518,7 @@ const Home = () => {
                 start: 'top top',
                 end: `+=${TW}`,
                 pin: true,
+                anticipatePin: 1,
                 scrub: 1,
                 onRefresh: () => {
                     if (!built2) {
@@ -501,15 +532,65 @@ const Home = () => {
             },
         });
 
-        tl1.to(rig, { x: tkX(150), y: tkY(fanCY - 170, 0.34), rotation: 9, duration: td1 }, 0);
-        tl1.to(tMid, { x: 170, y: 12, rotation: 12, duration: td1 }, 0);
-        tl1.to(tNorm, { x: -170, y: -12, rotation: -12, duration: td1 }, 0);
-        tl1.to(rig, { x: tkX(-120), y: tkY(fanCY - 350, 0.67), rotation: -8, duration: td2 });
-        tl1.to(tMid, { x: -70, y: -10, rotation: -9, duration: td2 });
-        tl1.to(tNorm, { x: 70, y: 10, rotation: 9, duration: td2 });
-        tl1.to(rig, { x: tkX(70), y: tkY(-260, 1), rotation: 3, duration: td3, ease: 'power2.inOut' });
-        tl1.to(tMid, { x: 0, y: 0, rotation: 0, duration: td3, ease: 'power2.inOut' });
-        tl1.to(tNorm, { x: 0, y: 0, rotation: 0, duration: td3, ease: 'power2.inOut' });
+        /* ── Takeoff: one pinned burst in three directions ──
+           The passes explode out of the hero composition along three distinct
+           trajectories — GENERAL → upper-left, VIP → lower-right, VVIP →
+           upper-right — then arc back together at the off-screen leap point
+           so the featured pocket receives the reformed fan (collection →
+           separation → expansion → disappearance → next section). Each pass
+           carries its own 3D Y-tilt, rotation and scale: GENERAL swings
+           up-left and shrinks (CCW), VIP dips right-down and grows first,
+           VVIP flies up-right with the most aggressive rotation. */
+        /* Every phase pins all four passes at the SAME timeline position so
+           the three trajectories run in parallel (one burst, three directions)
+           — without the explicit positions GSAP stacks them sequentially and
+           the directions fire one-after-another instead of together. */
+        tl1.to(rig, { x: tkX(80), y: tkY(fanCY - 190, 0.34), rotation: 6, duration: td1 }, 0);
+        tl1.to(tMid, { x: -260 * F, y: -150 * F, rotation: -16, rotateY: ryOn ? -10 : 0, scale: 0.92, duration: td1 }, 0);
+        tl1.to(tVip, { x: 250 * F, y: 80 * F, rotation: 8, rotateY: ryOn ? -4 : 0, scale: 1.06, duration: td1 }, 0);
+        tl1.to(tNorm, { x: 220 * F, y: -170 * F, rotation: 18, rotateY: ryOn ? 10 : 0, scale: 0.9, duration: td1 }, 0);
+        tl1.to(rig, { x: tkX(-70), y: tkY(fanCY - 330, 0.67), rotation: -6, duration: td2 }, td1);
+        tl1.to(tMid, { x: -340 * F, y: -220 * F, rotation: -22, rotateY: ryOn ? -14 : 0, scale: 0.86, duration: td2 }, td1);
+        tl1.to(tVip, { x: 320 * F, y: 180 * F, rotation: 13, rotateY: ryOn ? 3 : 0, scale: 0.96, duration: td2 }, td1);
+        tl1.to(tNorm, { x: 320 * F, y: -250 * F, rotation: 26, rotateY: ryOn ? 15 : 0, scale: 0.84, duration: td2 }, td1);
+        tl1.to(rig, { x: tkX(70), y: tkY(-260, 1), rotation: 3, duration: td3, ease: 'power2.inOut' }, td1 + td2);
+        tl1.to(tMid, { x: 0, y: 0, rotation: 0, rotateY: ryOn ? -10 : 0, scale: 1, duration: td3, ease: 'power2.inOut' }, td1 + td2);
+        tl1.to(tVip, { x: 0, y: 0, rotation: 0, rotateY: ryOn ? -3 : 0, scale: 1, duration: td3, ease: 'power2.inOut' }, td1 + td2);
+        tl1.to(tNorm, { x: 0, y: 0, rotation: 0, rotateY: ryOn ? 10 : 0, scale: 1, duration: td3, ease: 'power2.inOut' }, td1 + td2);
+
+        /* ── Mouse parallax on the parked fan ──
+           Before any scroll, the passes answer the cursor at three different
+           speeds (GENERAL 4px, VIP 8px, VVIP 12px) via quickTo — no per-frame
+           listeners. Scroll owns the passes the moment the page moves: the
+           parallax is gated to the hero park (scrollY < 40) and the scrubbed
+           timelines write the transforms during flight. */
+        if (!reduced) {
+            const makePar = (el) => ({
+                x: gsap.quickTo(el, 'x', { duration: 0.7, ease: 'power3.out' }),
+                y: gsap.quickTo(el, 'y', { duration: 0.7, ease: 'power3.out' }),
+            });
+            const par = {
+                general: makePar(tMid),
+                vip: makePar(tVip),
+                vvip: makePar(tNorm),
+            };
+            const onPointerMove = (e) => {
+                if (window.scrollY > 40) return;
+                const nx = (e.clientX / window.innerWidth) * 2 - 1;
+                const ny = (e.clientY / window.innerHeight) * 2 - 1;
+                par.general.x(nx * 4);
+                par.general.y(ny * 3);
+                par.vip.x(nx * 8);
+                par.vip.y(ny * 6);
+                par.vvip.x(nx * 12);
+                par.vvip.y(ny * 8);
+            };
+            window.addEventListener('pointermove', onPointerMove, { passive: true });
+            pointerCleanup = () => {
+                window.removeEventListener('pointermove', onPointerMove);
+                gsap.killTweensOf([tMid, tVip, tNorm]);
+            };
+        }
 
         /* The pin-spacer + late font/image settle shift the hero pocket after
            the first measure — re-anchor the parked fan and every takeoff
@@ -586,6 +667,10 @@ const Home = () => {
                     if (tl2.scrollTrigger) tl2.scrollTrigger.kill();
                     tl2.kill();
                     tl2 = null;
+                }
+                if (pointerCleanup) {
+                    pointerCleanup();
+                    pointerCleanup = null;
                 }
             };
         };
@@ -719,19 +804,19 @@ const Home = () => {
                                 Live events across 40+ cities
                             </span>
 
-                            <h1 className="font-display mt-5 text-[3.4rem] uppercase leading-[0.9] tracking-tighter sm:text-8xl lg:text-[6.25rem]">
+                            <h1 className="hero-headline font-display mt-5 text-[3.4rem] uppercase leading-[0.9] tracking-tighter sm:text-8xl lg:text-[6.25rem]">
                                 <span className="hero-line block">The ticket</span>
                                 <span className="hero-line text-outline block">to your</span>
                                 <span className="hero-line text-gradient-sunset block">next night</span>
                             </h1>
 
-                            <p className="hero-el mt-6 max-w-xl text-base leading-relaxed text-white/60 sm:text-lg">
+                            <p className="hero-sub hero-el mt-6 max-w-xl text-base leading-relaxed text-white/60 sm:text-lg">
                                 Concerts, festivals and workshops across India.
                                 Your pass is gate-ready before you leave the house.
                             </p>
 
                             {/* Search */}
-                            <form onSubmit={goToSearch} className="hero-el mt-8 max-w-2xl">
+                            <form onSubmit={goToSearch} className="hero-cta hero-el mt-8 max-w-2xl">
                                 <Magnetic strength={0.06}>
                                     <div className="flex flex-col gap-2 rounded-[2rem] border border-white/15 bg-white/[0.08] p-2 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:flex-row sm:items-center sm:pl-5">
                                         <div className="flex flex-1 items-center gap-2.5">
@@ -785,7 +870,7 @@ const Home = () => {
                             </form>
 
                             {/* Quick pills */}
-                            <div className="hero-el mt-5 flex flex-wrap items-center gap-2 text-[11px] font-bold">
+                            <div className="hero-cta hero-el mt-5 flex flex-wrap items-center gap-2 text-[11px] font-bold">
                                 <span className="eyebrow mr-1 text-[11px] text-white/40">Popular:</span>
                                 {['Concerts', 'Festivals', 'Workshops', 'Conferences', 'Sports', 'More'].map((tag) => (
                                     <button
