@@ -4,7 +4,6 @@ import { motion, MotionConfig, AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import AppLoader from './components/AppLoader';
-import TicketDrop from './components/TicketDrop';
 import { initSmoothScroll, destroySmoothScroll, scrollToTop } from './utils/smoothScroll';
 import { Compass, Sparkle } from 'lucide-react';
 
@@ -72,28 +71,6 @@ const AnimatedRoutes = () => {
                     <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/payment-success" element={<PaymentSuccess />} />
                     <Route path="/payment-failed" element={<PaymentFailed />} />
-                    {/* TEMP: visual verification for the Ticket Drop signature
-                        animation — remove before commit */}
-                    <Route
-                        path="/ticket-drop-demo"
-                        element={
-                            <div className="flex min-h-screen flex-col items-start justify-start bg-[#0b0b14] px-4 pt-24 pb-40">
-                                <TicketDrop
-                                    event={{
-                                        _id: 'demo-evtx-2026',
-                                        title: 'Neon Nights EDM Festival',
-                                        date: '2026-12-14T18:00:00Z',
-                                        location: 'Grand Arena, Mumbai',
-                                        image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1200&auto=format&fit=crop',
-                                    }}
-                                    tierLabel="VIP Front-Row Experience"
-                                    quantity={2}
-                                    total={4498}
-                                    passRef="EVTX-DEMO2026"
-                                />
-                            </div>
-                        }
-                    />
                     <Route
                         path="*"
                         element={
