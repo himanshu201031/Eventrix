@@ -28,7 +28,7 @@ const app = require("../server.js");
 const User = require("../models/User.js");
 const Otp = require("../models/Otp.js");
 const Event = require("../models/Events.js");
-const Booking = require("../models/booking.js");
+const Booking = require("../models/Booking.js");
 
 let mongod;
 
