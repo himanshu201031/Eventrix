@@ -77,7 +77,7 @@ const AnimatedRoutes = () => {
                     <Route
                         path="/ticket-drop-demo"
                         element={
-                            <div className="flex min-h-screen flex-col items-center justify-center bg-[#0b0b14] px-4 py-16">
+                            <div className="flex min-h-screen flex-col items-start justify-start bg-[#0b0b14] px-4 pt-24 pb-40">
                                 <TicketDrop
                                     event={{
                                         _id: 'demo-evtx-2026',
