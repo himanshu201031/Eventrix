@@ -54,7 +54,7 @@ const EventCard = ({ event }) => {
             <motion.div
                 whileHover={{ y: -6 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-                className="glass-card relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-black/5 bg-white shadow-[0_10px_40px_-18px_rgba(13,13,17,0.25)] dark:border-dark-line dark:bg-dark-surface"
+                className="glass-card group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-black/5 bg-white shadow-[0_10px_40px_-18px_rgba(13,13,17,0.25)] dark:border-dark-line dark:bg-dark-surface"
             >
                 <div className="relative h-52 w-full overflow-hidden bg-gray-100 dark:bg-dark-surface-2">
                     <img
@@ -112,14 +112,9 @@ const EventCard = ({ event }) => {
                             <MapPin className="h-3.5 w-3.5 shrink-0 text-brand-orange" />
                             <span className="truncate">{event.location || 'Venue TBA'}</span>
                         </div>
-                        <h3 className="mt-2 font-display text-lg uppercase leading-tight tracking-wide text-black line-clamp-2 dark:text-dark-ink">
+                        <h3 className="mt-2 font-display text-xl uppercase leading-[0.95] tracking-wide text-black line-clamp-2 dark:text-dark-ink">
                             {event.title}
                         </h3>
-                        {event.description && (
-                            <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-gray-500 dark:text-dark-muted">
-                                {event.description}
-                            </p>
-                        )}
                     </div>
 
                     {/* Capacity */}
@@ -143,9 +138,12 @@ const EventCard = ({ event }) => {
                     {/* CTA */}
                     <TransitionLink
                         to={`/events/${event._id}`}
-                        className="btn-gradient flex items-center justify-center gap-2 rounded-2xl py-3 text-xs font-extrabold uppercase tracking-wider text-white"
+                        className="btn-gradient group/cta flex items-center justify-between gap-2 rounded-2xl py-2.5 pl-5 pr-2.5 text-xs font-extrabold uppercase tracking-wider text-white"
                     >
-                        Book tickets <ArrowUpRight className="h-4 w-4" />
+                        Book tickets
+                        <span className="btn-icon-chip group-hover/cta:translate-x-0.5 group-hover/cta:-translate-y-0.5">
+                            <ArrowUpRight className="h-4 w-4" />
+                        </span>
                     </TransitionLink>
                 </div>
             </motion.div>

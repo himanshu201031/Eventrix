@@ -137,6 +137,9 @@ const SkeletonCard = () => (
 
 
 
+/* Fallback poster for the lineup cursor preview when an event has no image */
+const lineupFallbackImg = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=800&auto=format&fit=crop';
+
 const Home = () => {
     const navigate = useNavigate();
     const heroRef = useRef(null);
@@ -154,6 +157,13 @@ const Home = () => {
     const [loading, setLoading] = useState(true);
     const [subscribed, setSubscribed] = useState(false);
     const [email, setEmail] = useState('');
+    /* Pick Your Vibe: which mood is hovered — it expands while its neighbours
+       shrink, turning the grid into a single composable moment. */
+    const [vibe, setVibe] = useState(null);
+    /* Lineup: the event whose poster follows the cursor across the rows */
+    const [lineupPreview, setLineupPreview] = useState(null);
+    const lineupListRef = useRef(null);
+    const lineupPreviewRef = useRef(null);
 
     /* ---- API events (kept from original implementation) ---- */
     const fetchEvents = useCallback(async () => {
@@ -655,6 +665,22 @@ const Home = () => {
         setSubscribed(true);
     };
 
+    /* Position the cursor poster imperatively (no re-renders per mousemove),
+       offset to the right of the pointer and clamped inside the list. */
+    const onLineupMove = (e) => {
+        const el = lineupPreviewRef.current;
+        const list = lineupListRef.current;
+        if (!el || !list || !lineupPreview) return;
+        const rect = list.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const w = el.offsetWidth;
+        const h = el.offsetHeight;
+        const nx = Math.min(Math.max(12, x + 28), Math.max(12, rect.width - w - 12));
+        const ny = Math.min(Math.max(12, y - h / 2), Math.max(12, rect.height - h - 12));
+        el.style.transform = `translate3d(${nx}px, ${ny}px, 0)`;
+    };
+
     return (
         <DirectionalTransition>
         <div ref={outerRef} className="relative">
@@ -693,14 +719,14 @@ const Home = () => {
                                 Live events across 40+ cities
                             </span>
 
-                            <h1 className="font-display mt-5 text-[3.4rem] uppercase leading-[0.9] tracking-tight sm:text-8xl lg:text-[6rem]">
+                            <h1 className="font-display mt-5 text-[3.4rem] uppercase leading-[0.9] tracking-tighter sm:text-8xl lg:text-[6.25rem]">
                                 <span className="hero-line block">The ticket</span>
                                 <span className="hero-line text-outline block">to your</span>
                                 <span className="hero-line text-gradient-sunset block">next night</span>
                             </h1>
 
                             <p className="hero-el mt-6 max-w-xl text-base leading-relaxed text-white/60 sm:text-lg">
-                                Concerts, festivals and workshops across India. Book in seconds.
+                                Concerts, festivals and workshops across India.
                                 Your pass is gate-ready before you leave the house.
                             </p>
 
@@ -887,24 +913,38 @@ const Home = () => {
                     </Reveal>
 
                     <div className="mt-12 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-6">
-                        {categories.map((cat, i) => (
-                            <Reveal key={cat.name} delay={i * 0.07}>
-                                <motion.button
-                                    whileHover={{ y: -6, rotate: i % 2 === 0 ? -1 : 1 }}
-                                    transition={{ type: 'spring', stiffness: 300, damping: 18 }}
-                                    onClick={() => push(navigate, `/events?category=${cat.name}`)}
-                                    className="glass-card group flex w-full flex-col items-center gap-3 rounded-3xl border border-black/5 bg-brand-light p-6 text-center dark:border-white/10 dark:bg-white/[0.04]"
-                                >
-                                    <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${cat.tint} shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6`}>
-                                        <cat.icon className="h-6 w-6" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-display text-base uppercase text-brand-dark dark:text-dark-ink">{cat.name}</h3>
-                                        <span className="font-mono text-[11px] font-bold text-gray-400 dark:text-dark-muted">{cat.count}</span>
-                                    </div>
-                                </motion.button>
-                            </Reveal>
-                        ))}
+                        {categories.map((cat, i) => {
+                            const active = vibe === cat.name;
+                            return (
+                                <Reveal key={cat.name} delay={i * 0.07}>
+                                    <motion.button
+                                        onMouseEnter={() => setVibe(cat.name)}
+                                        onMouseLeave={() => setVibe(null)}
+                                        onFocus={() => setVibe(cat.name)}
+                                        onBlur={() => setVibe(null)}
+                                        onClick={() => push(navigate, `/events?category=${cat.name}`)}
+                                        animate={{ scale: vibe ? (active ? 1.07 : 0.9) : 1, y: vibe ? (active ? -6 : 0) : 0 }}
+                                        transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                                        className={`glass-card group relative flex w-full flex-col items-center gap-3 overflow-hidden rounded-3xl border p-6 text-center transition-colors duration-300 ${active ? 'border-brand-purple/40 bg-brand-purple/[0.06] dark:border-brand-purple/50 dark:bg-brand-purple/[0.12]' : 'border-black/5 bg-brand-light dark:border-white/10 dark:bg-white/[0.04]'}`}
+                                    >
+                                        {/* Ghost wordmark bleeds in behind the active mood */}
+                                        <span
+                                            className={`pointer-events-none absolute -bottom-4 left-1/2 -translate-x-1/2 font-display text-[68px] uppercase leading-none text-black/[0.05] transition-opacity duration-300 dark:text-white/[0.06] ${active ? 'opacity-100' : 'opacity-0'}`}
+                                            aria-hidden="true"
+                                        >
+                                            {cat.name}
+                                        </span>
+                                        <div className={`relative z-10 flex h-14 w-14 items-center justify-center rounded-2xl ${cat.tint} shadow-lg transition-transform duration-300 ${active ? 'scale-110 -rotate-6' : ''}`}>
+                                            <cat.icon className="h-6 w-6" />
+                                        </div>
+                                        <div className="relative z-10">
+                                            <h3 className="font-display text-base uppercase text-brand-dark dark:text-dark-ink">{cat.name}</h3>
+                                            <span className="font-mono text-[11px] font-bold text-gray-400 dark:text-dark-muted">{cat.count}</span>
+                                        </div>
+                                    </motion.button>
+                                </Reveal>
+                            );
+                        })}
                     </div>
                 </div>
             </section>
@@ -962,7 +1002,39 @@ const Home = () => {
                         </div>
                     </Reveal>
 
-                    <div className="mt-10 overflow-hidden rounded-[2rem] border border-black/5 bg-white shadow-[0_20px_60px_-30px_rgba(13,13,17,0.25)] dark:border-white/10 dark:bg-white/[0.03]">
+                    <div
+                        ref={lineupListRef}
+                        onMouseMove={onLineupMove}
+                        onMouseLeave={() => setLineupPreview(null)}
+                        className="relative mt-10 overflow-hidden rounded-[2rem] border border-black/5 bg-white shadow-[0_20px_60px_-30px_rgba(13,13,17,0.25)] dark:border-white/10 dark:bg-white/[0.03]"
+                    >
+                        {/* Cursor poster — follows the pointer across the rows (desktop) */}
+                        <div className="pointer-events-none absolute inset-0 z-20 hidden sm:block" aria-hidden="true">
+                            <div
+                                ref={lineupPreviewRef}
+                                className={`absolute left-0 top-0 h-44 w-60 overflow-hidden rounded-xl border border-black/10 bg-white shadow-[0_24px_60px_-20px_rgba(13,13,17,0.5)] transition-opacity duration-200 dark:border-white/10 dark:bg-dark-surface ${lineupPreview ? 'opacity-100' : 'opacity-0'}`}
+                            >
+                                <img
+                                    src={lineupPreview?.image || lineupFallbackImg}
+                                    alt=""
+                                    onError={(e) => { e.target.src = lineupFallbackImg; }}
+                                    className="h-full w-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+                                <div className="absolute bottom-3 left-4 right-4">
+                                    <div className="font-display truncate text-sm uppercase leading-tight text-white">
+                                        {lineupPreview?.title || 'Event'}
+                                    </div>
+                                    <div className="mt-1 flex items-center justify-between font-mono text-[9px] uppercase tracking-widest text-white/70">
+                                        <span>{lineupPreview?.ticketPrice ? `₹${lineupPreview.ticketPrice}` : 'Free'}</span>
+                                        <span className="flex items-center gap-1">
+                                            <MapPin className="h-2.5 w-2.5" />
+                                            {lineupPreview?.location || 'TBA'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         {loading ? (
                             <div className="space-y-0 p-6">
                                 {[1, 2, 3, 4].map((n) => (
@@ -984,6 +1056,8 @@ const Home = () => {
                                     <TransitionLink
                                         key={ev._id}
                                         to={`/events/${ev._id}`}
+                                        onMouseEnter={() => setLineupPreview(ev)}
+                                        onMouseLeave={() => setLineupPreview(null)}
                                         className={`group grid grid-cols-[auto_1fr] items-center gap-x-5 gap-y-2 px-5 py-5 transition-colors hover:bg-black/[0.03] sm:grid-cols-[120px_1fr_120px_auto] sm:gap-x-8 sm:px-8 dark:hover:bg-white/[0.05] ${i !== 0 ? 'border-t border-black/5 dark:border-white/10' : ''}`}
                                     >
                                         {/* Date block */}
