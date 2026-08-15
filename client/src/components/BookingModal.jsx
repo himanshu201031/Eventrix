@@ -5,10 +5,13 @@ import { motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { stopScroll, startScroll } from '../utils/smoothScroll';
 import { Ticket, Check, X, ShieldCheck, CreditCard, Lock, CheckCircle2, ChevronRight, ChevronLeft } from 'lucide-react';
+import ConfettiSideCannons from './Confetti';
 
 const BookingModal = ({ event, onClose, onSuccess }) => {
     const { user } = useContext(AuthContext);
     const [step, setStep] = useState(1);
+    /* Increments per completed booking so the success confetti replays */
+    const [celebrationId, setCelebrationId] = useState(0);
     const [ticketTier, setTicketTier] = useState('general');
     const [quantity, setQuantity] = useState(1);
     const [paymentMethod, setPaymentMethod] = useState('card');
@@ -59,6 +62,7 @@ const BookingModal = ({ event, onClose, onSuccess }) => {
                 ticketTier
             });
             setStep(6);
+            setCelebrationId((n) => n + 1);
             if (onSuccess) onSuccess();
         } catch (err) {
             setError(err.response?.data?.message || 'Booking verification failed.');
@@ -74,7 +78,7 @@ const BookingModal = ({ event, onClose, onSuccess }) => {
         <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
             <DialogContent hideCloseButton className="max-w-xl gap-0 overflow-hidden p-0">
                 <DialogTitle className="sr-only">
-                    {event.title} — booking checkout
+                    {event.title} - booking checkout
                 </DialogTitle>
 
                 <div className="flex max-h-[90vh] w-full flex-col overflow-hidden rounded-[2rem] border border-black/10 bg-white text-brand-dark shadow-2xl dark:border-dark-line dark:bg-dark-surface dark:text-dark-ink">
@@ -253,8 +257,11 @@ const BookingModal = ({ event, onClose, onSuccess }) => {
                             </motion.div>
                         )}
 
-                        {/* Step 6: Success */}
+                        {/* Step 6: Success — celebrate with confetti (keyed so
+                            every new booking replays the burst) */}
                         {step === 6 && (
+                            <>
+                            <ConfettiSideCannons key={celebrationId} />
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -269,6 +276,7 @@ const BookingModal = ({ event, onClose, onSuccess }) => {
                                     Your ticket reservation for <strong className="text-brand-dark dark:text-dark-ink">{event.title}</strong> has been submitted! Check your dashboard for instant pass updates.
                                 </p>
                             </motion.div>
+                            </>
                         )}
                     </div>
 
