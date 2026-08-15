@@ -4,8 +4,15 @@ import api from '../utils/axios';
 import { motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { stopScroll, startScroll } from '../utils/smoothScroll';
-import { Ticket, Check, X, ShieldCheck, CreditCard, Lock, CheckCircle2, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Ticket, Check, X, ShieldCheck, CreditCard, Lock, ChevronRight, ChevronLeft } from 'lucide-react';
 import ConfettiSideCannons from './Confetti';
+import TicketDrop from './TicketDrop';
+
+const TIER_NAMES = {
+    general: 'General Access Pass',
+    vip: 'VIP Front-Row Experience',
+    early: 'Early Bird Pass',
+};
 
 const BookingModal = ({ event, onClose, onSuccess }) => {
     const { user } = useContext(AuthContext);
@@ -18,6 +25,9 @@ const BookingModal = ({ event, onClose, onSuccess }) => {
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    /* Pass reference captured from the booking response — the Ticket Drop
+       stamps it onto the pass header. */
+    const [passRef, setPassRef] = useState('');
 
     useEffect(() => {
         stopScroll();
@@ -54,13 +64,15 @@ const BookingModal = ({ event, onClose, onSuccess }) => {
         setLoading(true);
         setError('');
         try {
-            await api.post('/bookings', {
+            const res = await api.post('/bookings', {
                 eventId: event._id,
                 otp,
                 amount: totalAmount,
                 quantity,
                 ticketTier
             });
+            const bookingId = res?.data?.booking?._id || res?.data?._id || '';
+            if (bookingId) setPassRef(`EVTX-${String(bookingId).slice(-8).toUpperCase()}`);
             setStep(6);
             setCelebrationId((n) => n + 1);
             if (onSuccess) onSuccess();
@@ -257,25 +269,23 @@ const BookingModal = ({ event, onClose, onSuccess }) => {
                             </motion.div>
                         )}
 
-                        {/* Step 6: Success — celebrate with confetti (keyed so
-                            every new booking replays the burst) */}
+                        {/* Step 6: Success — the signature Ticket Drop: the event
+                            card transforms into the pass, the QR gets scanned,
+                            and the "YOU'RE GOING" seal pops on. Confetti (keyed
+                            so every new booking replays the burst) fires above. */}
                         {step === 6 && (
                             <>
                             <ConfettiSideCannons key={celebrationId} />
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ type: 'spring', stiffness: 200, damping: 18 }}
-                                className="space-y-4 py-6 text-center"
-                            >
-                                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-brand-lime text-brand-dark animate-bounce-soft">
-                                    <CheckCircle2 className="h-10 w-10" />
-                                </div>
-                                <h4 className="text-2xl font-black text-brand-dark dark:text-dark-ink">Booking requested!</h4>
-                                <p className="mx-auto max-w-sm text-xs leading-relaxed text-gray-500 dark:text-dark-muted">
-                                    Your ticket reservation for <strong className="text-brand-dark dark:text-dark-ink">{event.title}</strong> has been submitted! Check your dashboard for instant pass updates.
-                                </p>
-                            </motion.div>
+                            <TicketDrop
+                                event={event}
+                                tierLabel={TIER_NAMES[ticketTier] || TIER_NAMES.general}
+                                quantity={quantity}
+                                total={totalAmount}
+                                passRef={passRef}
+                            />
+                            <p className="text-center text-xs leading-relaxed text-gray-500 dark:text-dark-muted">
+                                Your <strong className="text-brand-dark dark:text-dark-ink">{event.title}</strong> pass is confirmed. It's in your dashboard, gate-ready.
+                            </p>
                             </>
                         )}
                     </div>

@@ -74,9 +74,11 @@ describe('BookingModal — booking success path', () => {
         await confirmBooking(user);
 
         // The success step mounts ConfettiSideCannons, which fires its burst
-        // ~250ms later — waitFor catches it.
+        // ~250ms later — waitFor catches it. The Ticket Drop's "YOU'RE GOING"
+        // seal is in the DOM from the first frame (framer-motion animates it
+        // in), so it is assertable immediately.
         await waitFor(() => expect(confettiMock).toHaveBeenCalled());
-        expect(screen.getByText('Booking requested!')).toBeInTheDocument();
+        expect(screen.getByText("You're going")).toBeInTheDocument();
     });
 
     it('renders the success state with the booked event after completing the wizard', async () => {
@@ -92,10 +94,14 @@ describe('BookingModal — booking success path', () => {
             otp: '123456',
         }));
 
-        // Success state renders.
-        expect(await screen.findByText('Booking requested!')).toBeInTheDocument();
-        expect(screen.getByText(/has been submitted/i)).toBeInTheDocument();
-        // Event title appears in the header and in the success copy.
+        // Success state renders the Ticket Drop: the pass face with its
+        // scanned QR, the booked tier, and the confirmation caption.
+        expect(await screen.findByText("You're going")).toBeInTheDocument();
+        expect(screen.getByText(/Official pass/i)).toBeInTheDocument();
+        expect(screen.getByText(/Scan at venue entrance/i)).toBeInTheDocument();
+        expect(screen.getByText('General Access Pass')).toBeInTheDocument();
+        expect(screen.getByText(/pass is confirmed/i)).toBeInTheDocument();
+        // Event title appears in the header and in the pass face.
         expect(screen.getAllByText('Neon Nights EDM Festival').length).toBeGreaterThanOrEqual(2);
         expect(screen.getByRole('button', { name: /Close & view dashboard/i })).toBeInTheDocument();
         // Progress indicator moved to the final step.
