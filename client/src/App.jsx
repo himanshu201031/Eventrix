@@ -1,9 +1,9 @@
-import React, { lazy, Suspense, useEffect } from 'react';
-import { ViewTransition } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigationType } from 'react-router-dom';
-import { motion, MotionConfig } from 'framer-motion';
+import { motion, MotionConfig, AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import Loader from './components/Loader';
 import { initSmoothScroll, destroySmoothScroll, scrollToTop } from './utils/smoothScroll';
 import { Compass } from 'lucide-react';
 
@@ -41,21 +41,22 @@ const ScrollToTop = () => {
     return null;
 };
 
-/* Routes with native view transitions. Page-level directional slides come
-   from each page's own <DirectionalTransition>; this boundary handles the
-   Suspense reveal (fallback → content, vertical slide) for lazy chunks. */
+/* Page transitions run through framer-motion AnimatePresence: the outgoing
+   page fades/slides out (mode="wait"), then the incoming page enters. The
+   key on the location ensures each navigation restarts the animation. */
 const AnimatedRoutes = () => {
     const location = useLocation();
     return (
-        <Suspense
-            fallback={
-                <ViewTransition exit="slide-down" default="none">
-                    <RouteFallback />
-                </ViewTransition>
-            }
-        >
-            <ViewTransition enter="slide-up" default="none">
-                <Routes location={location}>
+        <Suspense fallback={<RouteFallback />}>
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={location.pathname}
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                >
+                    <Routes location={location}>
                     <Route path="/" element={<Home />} />
                     <Route path="/events" element={<Events />} />
                     <Route path="/events/:id" element={<EventDetail />} />
@@ -91,13 +92,35 @@ const AnimatedRoutes = () => {
                             </div>
                         }
                     />
-                </Routes>
-            </ViewTransition>
+                    </Routes>
+                </motion.div>
+            </AnimatePresence>
         </Suspense>
     );
 };
 
 function App() {
+    /* Splash loader: hold the WebGL shader splash until the Home chunk is
+       warmed AND a minimum beat has passed (so the reveal isn't a flash),
+       with a hard cap so a slow network can never trap the loader on. */
+    const [booted, setBooted] = useState(false);
+    useEffect(() => {
+        let done = false;
+        const finish = () => {
+            if (!done) {
+                done = true;
+                setBooted(true);
+            }
+        };
+        const minTimer = setTimeout(finish, 1600);
+        const capTimer = setTimeout(finish, 3200);
+        import('./pages/Home').then(finish).catch(finish);
+        return () => {
+            clearTimeout(minTimer);
+            clearTimeout(capTimer);
+        };
+    }, []);
+
     useEffect(() => {
         initSmoothScroll();
         return () => destroySmoothScroll();
@@ -110,6 +133,7 @@ function App() {
                 the OS prefers-reduced-motion setting; native view transitions have
                 their own reduced-motion CSS in index.css. */}
             <MotionConfig reducedMotion="user">
+                <AnimatePresence>{!booted && <Loader key="splash" />}</AnimatePresence>
                 <a href="#main-content" className="skip-link">
                     Skip to content
                 </a>

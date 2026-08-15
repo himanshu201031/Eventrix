@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { ViewTransition } from 'react';
 import { motion } from 'framer-motion';
 import { CalendarDays, MapPin, Bookmark, BookmarkCheck, ArrowUpRight, Users, Ticket } from 'lucide-react';
 import { Tilt } from '../animations';
@@ -28,7 +27,7 @@ const defaultImages = {
     Sports: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=1000&auto=format&fit=crop',
 };
 
-const EventCard = ({ event, morphName }) => {
+const EventCard = ({ event }) => {
     const [bookmarked, setBookmarked] = useState(false);
 
     if (!event) return null;
@@ -57,51 +56,32 @@ const EventCard = ({ event, morphName }) => {
                 transition={{ type: 'spring', stiffness: 300, damping: 22 }}
                 className="glass-card relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-black/5 bg-white shadow-[0_10px_40px_-18px_rgba(13,13,17,0.25)] dark:border-dark-line dark:bg-dark-surface"
             >
-                {/* Image with glass overlay.
-                    When morphName is set, this image is the source half of a
-                    shared-element morph into the EventDetail banner. Home does not
-                    pass it (featured/trending can show the same event twice, which
-                    would duplicate the view-transition name). */}
                 <div className="relative h-52 w-full overflow-hidden bg-gray-100 dark:bg-dark-surface-2">
-                    {morphName ? (
-                        <ViewTransition name={morphName} share="morph" default="none" className="block h-full w-full">
-                            <img
-                                src={imageUrl}
-                                alt={event.title}
-                                loading="lazy"
-                                className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                                onError={(e) => {
-                                    e.target.src = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1000&auto=format&fit=crop';
-                                }}
-                            />
-                        </ViewTransition>
-                    ) : (
-                        <img
-                            src={imageUrl}
-                            alt={event.title}
-                            loading="lazy"
-                            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                            onError={(e) => {
-                                e.target.src = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1000&auto=format&fit=crop';
-                            }}
-                        />
-                    )}
-                    {/* Gradient scrim (festival night) */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b14]/85 via-[#0b0b14]/25 to-transparent" />
+                    <img
+                        src={imageUrl}
+                        alt={event.title}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                        onError={(e) => {
+                            e.target.src = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1000&auto=format&fit=crop';
+                        }}
+                    />
+                    {/* Flat scrim so the overlay chips stay readable on any photo */}
+                    <div className="absolute inset-0 bg-black/40" />
 
                     {/* Category badge */}
                     <span className={`absolute left-4 top-4 z-10 rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg ${style.badge}`}>
                         {category}
                     </span>
 
-                    {/* Bookmark — glass chip */}
+                    {/* Bookmark — solid chip over the photo */}
                     <button
                         onClick={(e) => {
                             e.preventDefault();
                             setBookmarked(!bookmarked);
                         }}
                         aria-label="Bookmark event"
-                        className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/15 text-white shadow-md backdrop-blur-md transition-all hover:scale-110"
+                        className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/50 text-white shadow-md transition-all hover:scale-110"
                     >
                         {bookmarked ? (
                             <BookmarkCheck className="h-4 w-4 text-brand-lime" />
@@ -111,7 +91,7 @@ const EventCard = ({ event, morphName }) => {
                     </button>
 
                     {/* Date chip */}
-                    <div className="absolute bottom-4 left-4 z-10 flex items-center gap-1.5 rounded-full border border-white/15 bg-[#0b0b14]/55 px-3.5 py-1.5 font-mono text-[11px] font-bold text-white backdrop-blur-md">
+                    <div className="absolute bottom-4 left-4 z-10 flex items-center gap-1.5 rounded-full border border-white/15 bg-black/55 px-3.5 py-1.5 font-mono text-[11px] font-bold text-white">
                         <CalendarDays className="h-3.5 w-3.5 text-brand-lime" />
                         {formatDate(event.date)}
                     </div>
