@@ -81,30 +81,36 @@ app.use(notFound);
 app.use(errorHandler);
 
 // ── Boot & graceful shutdown ────────────────────────────────────────────
-const PORT = process.env.PORT || 5000;
+// The app is exported so tests (supertest) can exercise the full middleware
+// stack without opening a port or connecting to a real database.
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, () => {
-  logger.info(`Server is running on port ${PORT}`);
-});
+  const server = app.listen(PORT, () => {
+    logger.info(`Server is running on port ${PORT}`);
+  });
 
-connectDB()
-  .then(() => logger.info("MongoDB connected"))
-  .catch((err) => {
-    logger.error("Failed to connect to MongoDB, shutting down", {
-      message: err.message,
+  connectDB()
+    .then(() => logger.info("MongoDB connected"))
+    .catch((err) => {
+      logger.error("Failed to connect to MongoDB, shutting down", {
+        message: err.message,
+      });
+      server.close(() => process.exit(1));
     });
-    server.close(() => process.exit(1));
-  });
 
-const shutdown = (signal) => {
-  logger.info(`${signal} received, shutting down gracefully`);
-  server.close(async () => {
-    await closeDB();
-    process.exit(0);
-  });
-  // Force exit if connections do not drain within 10s
-  setTimeout(() => process.exit(1), 10000).unref();
-};
+  const shutdown = (signal) => {
+    logger.info(`${signal} received, shutting down gracefully`);
+    server.close(async () => {
+      await closeDB();
+      process.exit(0);
+    });
+    // Force exit if connections do not drain within 10s
+    setTimeout(() => process.exit(1), 10000).unref();
+  };
 
-process.on("SIGTERM", () => shutdown("SIGTERM"));
-process.on("SIGINT", () => shutdown("SIGINT"));
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
+}
+
+module.exports = app;
