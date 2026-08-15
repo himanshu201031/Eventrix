@@ -248,253 +248,209 @@ const Home = () => {
         let resizeTimer = null;
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        const build = () => {
-            if (tl1) {
-                if (tl1.scrollTrigger) tl1.scrollTrigger.kill();
-                tl1.kill();
-                tl1 = null;
-            }
+        /* Only slots currently visible (display:none below lg for section
+           slots, so mobile = hero slot only). */
+        const slots = gsap.utils
+            .toArray('.ticket-slot')
+            .filter((s) => s.getClientRects().length > 0);
+        if (slots.length === 0) return undefined;
+
+        const tMid = rig.querySelector('.ticket-mid');
+        const tNorm = rig.querySelector('.ticket-normal');
+        const r = rig.getBoundingClientRect();
+        const sx = r.left + window.scrollX;
+        const sy = r.top + window.scrollY;
+        const fanW = rig.offsetWidth;
+        const fanH = rig.offsetHeight;
+        const vh = window.innerHeight || 1;
+
+        const measure = () => slots.map((s) => {
+            const sr = s.getBoundingClientRect();
+            return {
+                x: sr.left + sr.width / 2 + window.scrollX - sx - fanW / 2,
+                y: sr.top + sr.height / 2 + window.scrollY - sy - fanH / 2,
+            };
+        });
+
+        const prePts = measure();
+
+        if (reduced) {
+            gsap.set(rig, { x: prePts[0].x, y: prePts[0].y, rotation: 0, opacity: 1 });
+            return undefined;
+        }
+
+        /* Takeoff window: how much scroll the pinned hero consumes while
+           the passes burst up out of it (capped so the featured pocket
+           always has room to receive them). */
+        const preArrive = (prePts[1]?.y ?? 900) + fanH / 2 - vh / 2;
+        const TW = Math.min(560, Math.max(320, Math.round(preArrive * 0.5)));
+
+        const heroPt = prePts[0];
+        const tilts = [0, -3, 3, -2, 3, -4, 3, -2, 4];
+
+        gsap.set(rig, { x: heroPt.x, y: heroPt.y, rotation: 0, opacity: 1 });
+
+        /* Durations are raw scroll-pixels, so the timeline's time axis maps
+           1:1 to scroll position — arrivals happen exactly when each pocket
+           reaches the viewport centre, and scrolling back up runs the whole
+           thing in reverse. */
+        const addFlight = (timeline, leg, i, at) => {
+            const d = leg.len;
+            const d1 = d * 0.34;
+            const d2 = d * 0.33;
+            const d3 = d * 0.33;
+            const zig = (i % 2 === 0 ? 1 : -1) * 110;
+            const mx1 = leg.a.x + (leg.b.x - leg.a.x) * 0.32;
+            const my1 = leg.a.y + (leg.b.y - leg.a.y) * 0.42;
+            const mx2 = leg.a.x + (leg.b.x - leg.a.x) * 0.68;
+            const my2 = leg.a.y + (leg.b.y - leg.a.y) * 0.74;
+
+            /* The rig weaves the S-curve; on top of that the left pass zigs
+               to the right, the right pass zigs to the left (mirror), and the
+               VIP pass rides straight. They fan apart mid-flight and re-form
+               on the slot. */
+            timeline.to(rig, { x: mx1 + zig, y: my1 - 36, rotation: 7, duration: d1 }, at);
+            timeline.to(tMid, { x: 170, y: 14, rotation: 13, duration: d1 }, at);
+            timeline.to(tNorm, { x: -170, y: -14, rotation: -13, duration: d1 }, at);
+            at += d1;
+
+            timeline.to(rig, { x: mx2 - zig, y: my2 + 28, rotation: -6, duration: d2 }, at);
+            timeline.to(tMid, { x: 80, y: -8, rotation: -7, duration: d2 }, at);
+            timeline.to(tNorm, { x: -80, y: 8, rotation: 7, duration: d2 }, at);
+            at += d2;
+
+            timeline.to(rig, { x: leg.b.x, y: leg.b.y, rotation: leg.rot, duration: d3, ease: 'power2.inOut' }, at);
+            timeline.to(tMid, { x: 0, y: 0, rotation: 0, duration: d3, ease: 'power2.inOut' }, at);
+            timeline.to(tNorm, { x: 0, y: 0, rotation: 0, duration: d3, ease: 'power2.inOut' }, at);
+            return at + d3;
+        };
+
+        /* ── Takeoff keyframes ──
+           The passes burst up through the hero and out the top. Each y target
+           moves the fan CENTRE in viewport space and adds the scroll consumed
+           so far: the rig is page-anchored and the page itself scrolls while
+           the hero is pinned, so without that term the passes would fly off
+           the top instead of visibly rising. */
+        const tkX = (dx) => heroPt.x + dx;
+        const tkY = (viewportY, share) => viewportY - fanH / 2 + TW * share;
+        const td1 = TW * 0.34;
+        const td2 = TW * 0.33;
+        const td3 = TW * 0.33;
+        const fanCY = heroPt.y + fanH / 2;
+        const leapPt = { x: tkX(70), y: tkY(-260, 1) };
+
+        /* Pass 2 (post-pin): ScrollTrigger moves the hero into its pin-spacer
+           on its first refresh, which is what shifts the sections below. TL2
+           is therefore built from that refresh — deferred out of the refresh
+           cycle (rAF) so creating its trigger can't disturb the pin setup. */
+        let built2 = false;
+        const buildJourney2 = () => {
             if (tl2) {
                 if (tl2.scrollTrigger) tl2.scrollTrigger.kill();
                 tl2.kill();
                 tl2 = null;
             }
 
-            /* Only slots currently visible (display:none below lg for section
-               slots, so mobile = hero slot only). */
-            const slots = gsap.utils
-                .toArray('.ticket-slot')
-                .filter((s) => s.getClientRects().length > 0);
-            if (slots.length === 0) return;
+            const pts = measure();
+            const maxScroll = Math.max(1, outer.scrollHeight - vh);
+            const scrollFor = pts.map((p, i) =>
+                i === 0 ? 0 : Math.min(maxScroll, Math.max(0, p.y + fanH / 2 - vh / 2))
+            );
 
-            /* Reset any transform from a previous build so the rect read below
-               is the rig's true (untransformed) static corner in page coords.
-               The fan is a centered child, so centering the rig on a slot
-               centers the fan. Tickets also reset — GSAP owns their flight
-               transforms now, and a stale value would jump at the hero. */
-            gsap.set(rig, { x: 0, y: 0, rotation: 0 });
-            gsap.set(rig.querySelectorAll('.ticket-img'), { x: 0, y: 0, rotation: 0 });
-            const tMid = rig.querySelector('.ticket-mid');
-            const tNorm = rig.querySelector('.ticket-normal');
-            const r = rig.getBoundingClientRect();
-            const sx = r.left + window.scrollX;
-            const sy = r.top + window.scrollY;
-            const fanW = rig.offsetWidth;
-            const fanH = rig.offsetHeight;
-
-            const vh = window.innerHeight || 1;
-
-            const measure = () => slots.map((s) => {
-                const sr = s.getBoundingClientRect();
-                return {
-                    x: sr.left + sr.width / 2 + window.scrollX - sx - fanW / 2,
-                    y: sr.top + sr.height / 2 + window.scrollY - sy - fanH / 2,
-                };
-            });
-
-            /* Pass 1 (pre-pin): hero + featured only — sizes the takeoff. */
-            const prePts = measure();
-
-            if (reduced) {
-                gsap.set(rig, { x: prePts[0].x, y: prePts[0].y, rotation: 0, opacity: 1 });
-                return;
+            const windows = [];
+            for (let i = 0; i < pts.length - 1; i += 1) {
+                const arriveNext = scrollFor[i + 1];
+                const departCur = i === 0 ? TW : scrollFor[i] + vh / 2;
+                windows.push(Math.max(60, arriveNext - departCur));
             }
+            /* Final leg: settle into the last pocket and hold to the page end */
+            windows.push(Math.max(60, maxScroll - scrollFor[pts.length - 1]));
 
-            /* Takeoff window: how much scroll the pinned hero consumes while
-               the passes burst up out of it (capped so the featured pocket
-               always has room to receive them). */
-            const preArrive = (prePts[1]?.y ?? 900) + fanH / 2 - vh / 2;
-            const TW = Math.min(560, Math.max(320, Math.round(preArrive * 0.5)));
-
-            /* ── TL1: pin the hero for the takeoff ──
-               Created first so its pin-spacer exists before we measure the
-               sections below (the spacer shifts everything down by TW). */
-            tl1 = gsap.timeline({
-                defaults: { ease: 'none' },
-                scrollTrigger: {
-                    trigger: heroRef.current,
-                    start: 'top top',
-                    end: `+=${TW}`,
-                    pin: true,
-                    scrub: 1,
-                },
-            });
-
-            /* The hero slot doesn't move when the pin engages (scroll 0), so
-               the takeoff can build immediately from the pre-pin pass. */
-            const heroPt = prePts[0];
-            window.__evxDbg = window.__evxDbg || [];
-            window.__evxDbg.push({
-                build: (window.__evxDbg.length + 1),
-                TW,
-                preY1: Math.round(prePts[1]?.y ?? -1),
-                heroH0: Math.round(heroRef.current.getBoundingClientRect().height),
-                spacersBefore: document.querySelectorAll('.pin-spacer').length,
-            });
-
-            /* Alternate parking tilt per stop */
-            const tilts = [0, -3, 3, -2, 3, -4, 3, -2, 4];
-
-            gsap.set(rig, { x: heroPt.x, y: heroPt.y, rotation: 0, opacity: 1 });
-
-            /* Durations are raw scroll-pixels, so with `end: 'bottom bottom'`
-               the timeline's time axis maps 1:1 to scroll position — arrivals
-               happen exactly when each pocket reaches the viewport centre, and
-               scrolling back up simply runs the whole thing in reverse. */
-            const addFlight = (timeline, leg, i, at) => {
-                const d = leg.len;
-                const d1 = d * 0.34;
-                const d2 = d * 0.33;
-                const d3 = d * 0.33;
-                const zig = (i % 2 === 0 ? 1 : -1) * 110;
-                const mx1 = leg.a.x + (leg.b.x - leg.a.x) * 0.32;
-                const my1 = leg.a.y + (leg.b.y - leg.a.y) * 0.42;
-                const mx2 = leg.a.x + (leg.b.x - leg.a.x) * 0.68;
-                const my2 = leg.a.y + (leg.b.y - leg.a.y) * 0.74;
-
-                /* The rig weaves the S-curve; on top of that the left pass
-                   zigs to the right, the right pass zigs to the left (mirror),
-                   and the VIP pass rides straight. They fan apart mid-flight
-                   and re-form on the slot. */
-                timeline.to(rig, { x: mx1 + zig, y: my1 - 36, rotation: 7, duration: d1 }, at);
-                timeline.to(tMid, { x: 170, y: 14, rotation: 13, duration: d1 }, at);
-                timeline.to(tNorm, { x: -170, y: -14, rotation: -13, duration: d1 }, at);
-                at += d1;
-
-                timeline.to(rig, { x: mx2 - zig, y: my2 + 28, rotation: -6, duration: d2 }, at);
-                timeline.to(tMid, { x: 80, y: -8, rotation: -7, duration: d2 }, at);
-                timeline.to(tNorm, { x: -80, y: 8, rotation: 7, duration: d2 }, at);
-                at += d2;
-
-                timeline.to(rig, { x: leg.b.x, y: leg.b.y, rotation: leg.rot, duration: d3, ease: 'power2.inOut' }, at);
-                timeline.to(tMid, { x: 0, y: 0, rotation: 0, duration: d3, ease: 'power2.inOut' }, at);
-                timeline.to(tNorm, { x: 0, y: 0, rotation: 0, duration: d3, ease: 'power2.inOut' }, at);
-                return at + d3;
-            };
-
-            /* ── Takeoff keyframes ──
-               The passes burst up through the hero and out the top. Each y
-               target moves the fan CENTRE in viewport space and adds the
-               scroll consumed so far: the rig is page-anchored and the page
-               itself scrolls while the hero is pinned, so without that term
-               the passes would fly off the top instead of visibly rising. */
-            const tkX = (dx) => heroPt.x + dx;
-            const tkY = (viewportY, share) => viewportY - fanH / 2 + TW * share;
-            const td1 = TW * 0.34;
-            const td2 = TW * 0.33;
-            const td3 = TW * 0.33;
-            const fanCY = heroPt.y + fanH / 2;
-            const leapPt = { x: tkX(70), y: tkY(-260, 1) };
-
-            /* Pass 2 (post-pin): ScrollTrigger moves the hero into its
-               pin-spacer on its first refresh, which is what shifts the
-               sections below. TL2 is therefore built from that refresh
-               (once per build). */
-            let built2 = false;
-            const buildJourney2 = () => {
-                const pts = measure();
-                const maxScroll = Math.max(1, outer.scrollHeight - vh);
-                const scrollFor = pts.map((p, i) =>
-                    i === 0 ? 0 : Math.min(maxScroll, Math.max(0, p.y + fanH / 2 - vh / 2))
-                );
-
-                const windows = [];
-                for (let i = 0; i < pts.length - 1; i += 1) {
-                    const arriveNext = scrollFor[i + 1];
-                    const departCur = i === 0 ? TW : scrollFor[i] + vh / 2;
-                    windows.push(Math.max(60, arriveNext - departCur));
-                }
-                /* Final leg: settle into the last pocket and hold to the page end */
-                windows.push(Math.max(60, maxScroll - scrollFor[pts.length - 1]));
-
-                const legs = [];
-                for (let i = 0; i < pts.length - 1; i += 1) {
-                    legs.push({
-                        a: pts[i],
-                        b: pts[i + 1],
-                        len: windows[i],
-                        rot: tilts[i + 1] ?? 0,
-                    });
-                }
-                if (legs.length === 0) return;
-
-                tl2 = gsap.timeline({
-                    defaults: { ease: 'none' },
-                    scrollTrigger: {
-                        trigger: outer,
-                        start: TW,
-                        end: 'max',
-                        scrub: 1,
-                    },
+            const legs = [];
+            for (let i = 0; i < pts.length - 1; i += 1) {
+                legs.push({
+                    a: pts[i],
+                    b: pts[i + 1],
+                    len: windows[i],
+                    rot: tilts[i + 1] ?? 0,
                 });
+            }
+            if (legs.length === 0) return;
 
-                /* Glide down from the takeoff exit into the featured pocket */
-                let at = 0;
-                at = addFlight(tl2, { a: leapPt, b: pts[1], len: windows[0], rot: tilts[1] ?? 0 }, 0, at);
-                /* Each later stop: rest in the section as it scrolls through the
-                   viewport (vh/2 of scroll), then leap to the next section */
-                for (let i = 1; i < legs.length; i += 1) {
-                    tl2.to(rig, { x: legs[i - 1].b.x, y: legs[i - 1].b.y, rotation: tilts[i] ?? 0, duration: vh / 2 }, at);
-                    at += vh / 2;
-                    at = addFlight(tl2, legs[i], i, at);
-                }
-                /* Hold the final park through the rest of the page */
-                const last = pts[pts.length - 1];
-                tl2.to(rig, { x: last.x, y: last.y, rotation: tilts[pts.length - 1] ?? 0, duration: windows[windows.length - 1] }, at);
-            };
-
-            /* ── TL1: pin the hero for the takeoff ──
-               onRefresh runs after the pin-spacer exists, so buildJourney2
-               measures the shifted sections and wires the rest of the trip. */
-            tl1 = gsap.timeline({
+            tl2 = gsap.timeline({
                 defaults: { ease: 'none' },
                 scrollTrigger: {
-                    trigger: heroRef.current,
-                    start: 'top top',
-                    end: `+=${TW}`,
-                    pin: true,
+                    trigger: outer,
+                    start: TW,
+                    end: 'max',
                     scrub: 1,
-                    onRefresh: () => {
-                        if (!built2) {
-                            built2 = true;
-                            buildJourney2();
-                        }
-                    },
                 },
             });
 
-            tl1.to(rig, { x: tkX(150), y: tkY(fanCY - 170, 0.34), rotation: 9, duration: td1 }, 0);
-            tl1.to(tMid, { x: 170, y: 12, rotation: 12, duration: td1 }, 0);
-            tl1.to(tNorm, { x: -170, y: -12, rotation: -12, duration: td1 }, 0);
-            tl1.to(rig, { x: tkX(-120), y: tkY(fanCY - 350, 0.67), rotation: -8, duration: td2 });
-            tl1.to(tMid, { x: -70, y: -10, rotation: -9, duration: td2 });
-            tl1.to(tNorm, { x: 70, y: 10, rotation: 9, duration: td2 });
-            tl1.to(rig, { x: tkX(70), y: tkY(-260, 1), rotation: 3, duration: td3, ease: 'power2.inOut' });
-            tl1.to(tMid, { x: 0, y: 0, rotation: 0, duration: td3, ease: 'power2.inOut' });
-            tl1.to(tNorm, { x: 0, y: 0, rotation: 0, duration: td3, ease: 'power2.inOut' });
+            /* Glide down from the takeoff exit into the featured pocket */
+            let at = 0;
+            at = addFlight(tl2, { a: leapPt, b: pts[1], len: windows[0], rot: tilts[1] ?? 0 }, 0, at);
+            /* Each later stop: rest in the section as it scrolls through the
+               viewport (vh/2 of scroll), then leap to the next section */
+            for (let i = 1; i < legs.length; i += 1) {
+                tl2.to(rig, { x: legs[i - 1].b.x, y: legs[i - 1].b.y, rotation: tilts[i] ?? 0, duration: vh / 2 }, at);
+                at += vh / 2;
+                at = addFlight(tl2, legs[i], i, at);
+            }
+            /* Hold the final park through the rest of the page */
+            const last = pts[pts.length - 1];
+            tl2.to(rig, { x: last.x, y: last.y, rotation: tilts[pts.length - 1] ?? 0, duration: windows[windows.length - 1] }, at);
         };
 
-        build();
-        const onResize = () => {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(() => {
-                build();
-                ScrollTrigger.refresh();
-            }, 150);
-        };
-        const onLoad = () => {
-            build();
+        /* ── TL1: pin the hero for the takeoff ──
+           Created once; rebuilds only touch TL2. onRefresh signals that the
+           pin-spacer exists, so buildJourney2 can measure the shifted layout. */
+        tl1 = gsap.timeline({
+            defaults: { ease: 'none' },
+            scrollTrigger: {
+                trigger: heroRef.current,
+                start: 'top top',
+                end: `+=${TW}`,
+                pin: true,
+                scrub: 1,
+                onRefresh: () => {
+                    if (!built2) {
+                        built2 = true;
+                        requestAnimationFrame(buildJourney2);
+                    }
+                },
+            },
+        });
+
+        tl1.to(rig, { x: tkX(150), y: tkY(fanCY - 170, 0.34), rotation: 9, duration: td1 }, 0);
+        tl1.to(tMid, { x: 170, y: 12, rotation: 12, duration: td1 }, 0);
+        tl1.to(tNorm, { x: -170, y: -12, rotation: -12, duration: td1 }, 0);
+        tl1.to(rig, { x: tkX(-120), y: tkY(fanCY - 350, 0.67), rotation: -8, duration: td2 });
+        tl1.to(tMid, { x: -70, y: -10, rotation: -9, duration: td2 });
+        tl1.to(tNorm, { x: 70, y: 10, rotation: 9, duration: td2 });
+        tl1.to(rig, { x: tkX(70), y: tkY(-260, 1), rotation: 3, duration: td3, ease: 'power2.inOut' });
+        tl1.to(tMid, { x: 0, y: 0, rotation: 0, duration: td3, ease: 'power2.inOut' });
+        tl1.to(tNorm, { x: 0, y: 0, rotation: 0, duration: td3, ease: 'power2.inOut' });
+
+        /* Rebuilds (resize / load / events) re-measure and re-wire TL2 only —
+           the pin and takeoff stay put, so no spacer compounding. */
+        const rebuild = () => {
+            buildJourney2();
             ScrollTrigger.refresh();
         };
+        const onResize = () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(rebuild, 150);
+        };
         window.addEventListener('resize', onResize);
-        window.addEventListener('load', onLoad);
+        window.addEventListener('load', rebuild);
         /* Page-enter transition settles the layout ~0.4s after mount */
-        const settleTimer = setTimeout(onLoad, 500);
-        journeyRebuildRef.current = onLoad;
+        const settleTimer = setTimeout(rebuild, 500);
+        journeyRebuildRef.current = rebuild;
 
         return () => {
             window.removeEventListener('resize', onResize);
-            window.removeEventListener('load', onLoad);
+            window.removeEventListener('load', rebuild);
             clearTimeout(resizeTimer);
             clearTimeout(settleTimer);
             if (tl1) {
