@@ -1,38 +1,32 @@
-import { ViewTransition, startTransition, addTransitionType } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 /**
- * Native view-transition helpers (React canary <ViewTransition>).
+ * Navigation helpers for route transitions.
  *
- * - `DirectionalTransition` — wraps each page; type-keyed slides for
- *   hierarchical navigation (list → detail = forward, back = reverse).
- *   default="none" so nothing animates unless explicitly tagged.
- * - `push` — navigate with a direction tag inside startTransition.
- * - `TransitionLink` — a react-router <Link> that navigates through `push`,
- *   so every link participates in the directional page transition.
+ * The native View Transition API experiment (React canary <ViewTransition>)
+ * never fired with react-router v7 navigation, so page transitions now run
+ * through framer-motion <AnimatePresence> in App.jsx. These helpers keep a
+ * single navigation vocabulary app-wide:
+ *
+ * - `DirectionalTransition` — inert wrapper retained so the pages that wrap
+ *   themselves in it need no changes; App.jsx owns the actual animation.
+ * - `push` — plain programmatic navigation.
+ * - `TransitionLink` — a react-router <Link> that navigates through `push`.
  */
 
 export function DirectionalTransition({ children }) {
-    return (
-        <ViewTransition
-            enter={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
-            exit={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
-            default="none"
-        >
-            {children}
-        </ViewTransition>
-    );
+    return children;
 }
 
-export function push(navigate, to, type = 'nav-forward') {
-    startTransition(() => {
-        addTransitionType(type);
-        navigate(to);
-    });
+export function push(navigate, to) {
+    navigate(to);
 }
 
-export function TransitionLink({ to, direction = 'nav-forward', onClick, children, ...props }) {
+export function TransitionLink({ to, onClick, children, ...props }) {
     const navigate = useNavigate();
+    /* Legacy VT vocabulary: some pages pass `direction="nav-back"`. Strip it so
+       it never leaks onto the <Link> and the DOM. */
+    delete props.direction;
     return (
         <Link
             to={to}
@@ -41,7 +35,7 @@ export function TransitionLink({ to, direction = 'nav-forward', onClick, childre
                 if (onClick) onClick(e);
                 if (e.defaultPrevented) return;
                 e.preventDefault();
-                push(navigate, to, direction);
+                push(navigate, to);
             }}
         >
             {children}

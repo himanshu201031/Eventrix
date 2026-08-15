@@ -38,6 +38,24 @@ const Navbar = () => {
         return () => clearTimeout(t);
     }, [location.pathname]);
 
+    /* Esc closes the menu from anywhere; clicking outside the header closes
+       the expanded mega panel / drawer too. */
+    useEffect(() => {
+        if (!open) return undefined;
+        const onKey = (e) => {
+            if (e.key === 'Escape') setOpen(false);
+        };
+        const onPointer = (e) => {
+            if (!e.target.closest('header')) setOpen(false);
+        };
+        window.addEventListener('keydown', onKey);
+        window.addEventListener('pointerdown', onPointer);
+        return () => {
+            window.removeEventListener('keydown', onKey);
+            window.removeEventListener('pointerdown', onPointer);
+        };
+    }, [open]);
+
     const handleLogout = () => {
         logout();
         push(navigate, '/login');
@@ -85,11 +103,13 @@ const Navbar = () => {
                         className="z-50 w-[min(625px,calc(100vw-1.5rem))] bg-brand-dark h-14 px-4 sm:px-5 flex items-center justify-between rounded-full border border-white/10 shadow-[0_18px_50px_-18px_rgba(13,13,17,0.55)]"
                     >
                         {/* Left — hamburger morph + Menu */}
-                        <div
+                        <button
+                            type="button"
                             onClick={() => setOpen(!open)}
-                            className="flex items-center gap-2.5 text-white cursor-pointer select-none"
                             aria-label={open ? 'Close menu' : 'Open menu'}
-                            role="button"
+                            aria-expanded={open}
+                            aria-controls="evx-mega-panel"
+                            className="flex items-center gap-2.5 text-white cursor-pointer select-none bg-transparent border-0 p-0"
                         >
                             <div className="flex flex-col gap-1.5 w-6">
                                 <motion.span
@@ -104,7 +124,7 @@ const Navbar = () => {
                                 />
                             </div>
                             <h3 className="text-[18px] font-bold">{open ? 'Close' : 'Menu'}</h3>
-                        </div>
+                        </button>
 
                         {/* Center — brand */}
                         <TransitionLink to="/" className="flex items-center gap-2 group">
@@ -189,6 +209,8 @@ const Navbar = () => {
                             duration: open ? 0.8 : 0.5,
                             ease: open ? 'circIn' : [0.4, 0, 0.2, 1],
                         }}
+                        id="evx-mega-panel"
+                        aria-hidden={!open}
                         className="z-50 hidden md:block w-[min(1400px,calc(100vw-1.5rem))] absolute top-full mt-2 bg-brand-dark rounded-3xl border border-white/10 overflow-hidden"
                     >
                         <div className="flex p-6 gap-4 min-h-[300px]">
@@ -286,8 +308,8 @@ const Navbar = () => {
                                     </TransitionLink>
                                 </div>
 
-                                {/* Avatar cluster */}
-                                <div className="pointer-events-none select-none">
+                                                {/* Avatar cluster (decorative) */}
+                                <div aria-hidden="true" className="pointer-events-none select-none">
                                     <Avatar src="https://i.pravatar.cc/150?u=evx-a1" size="w-14 h-14" className="absolute -bottom-2 left-4 opacity-90" />
                                     <Avatar src="https://i.pravatar.cc/150?u=evx-a2" size="w-16 h-16" className="absolute bottom-10 left-16 z-10 opacity-90" />
                                     <Avatar src="https://i.pravatar.cc/150?u=evx-a3" size="w-20 h-20" className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-20" />
@@ -298,8 +320,9 @@ const Navbar = () => {
                         </div>
                     </motion.div>
 
-                    {/* Marquee strip */}
+                    {/* Marquee strip (decorative) */}
                     <motion.div
+                        aria-hidden="true"
                         className={`${open ? 'hidden' : 'block'} hidden md:block mt-2 rounded-full bg-brand-lime text-brand-dark overflow-hidden`}
                     >
                         <div className="marquee-content flex gap-4 whitespace-nowrap py-1">
@@ -364,7 +387,7 @@ const Navbar = () => {
                                             Log in
                                         </TransitionLink>
                                         <TransitionLink to="/register" className="rounded-full bg-brand-lime py-3 text-center text-xs font-extrabold uppercase text-brand-dark">
-                                            Sign up
+                                            Join
                                         </TransitionLink>
                                     </div>
                                 )}
@@ -397,6 +420,11 @@ const Navbar = () => {
                 @keyframes scroll {
                     0% { transform: translateX(0); }
                     100% { transform: translateX(-50%); }
+                }
+                @media (prefers-reduced-motion: reduce) {
+                    .marquee-content {
+                        animation: none;
+                    }
                 }
             `}</style>
         </>

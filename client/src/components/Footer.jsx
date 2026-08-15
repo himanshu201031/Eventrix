@@ -1,7 +1,7 @@
 import React from 'react';
-import { Sparkle, AtSign, Camera, Play, Globe } from 'lucide-react';
-import { Reveal } from '../animations';
+import { Sparkle, Camera, AtSign, Play, Globe } from 'lucide-react';
 import { TransitionLink } from './Transitions';
+import { RuixenGradientFooter } from './ui/ruixen-gradient-footer';
 
 const socials = [
     { icon: Camera, label: 'Instagram' },
@@ -10,77 +10,60 @@ const socials = [
     { icon: Globe, label: 'Website' },
 ];
 
+const exploreLinks = [
+    { to: '/', label: 'Home' },
+    { to: '/events', label: 'All Events' },
+    { to: '/events?category=Music', label: 'Music' },
+    { to: '/events?category=Tech', label: 'Conferences' },
+];
+
+const accountLinks = [
+    { to: '/dashboard', label: 'My Tickets' },
+    { to: '/dashboard', label: 'Invoices' },
+    { to: '/register', label: 'Join' },
+    { to: '/login', label: 'Log In' },
+];
+
 const Footer = () => {
     return (
-        <footer className="px-4 sm:px-6 lg:px-8 pb-6 pt-4">
-            <Reveal y={48}>
-                <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] border border-black/10 bg-white dark:border-dark-line dark:bg-dark-surface">
-                    {/* Solid accent top edge */}
-                    <div className="absolute inset-x-0 top-0 h-1.5 bg-brand-purple" />
-                    <div className="absolute -top-24 right-10 h-64 w-64 rounded-full bg-brand-purple/10" />
-                    <div className="absolute bottom-0 -left-16 h-56 w-56 rounded-full bg-brand-pink/10" />
-
-                    <div className="relative grid grid-cols-1 gap-12 p-8 sm:p-12 lg:p-16 lg:grid-cols-12">
-                        {/* Brand */}
-                        <div className="lg:col-span-5 space-y-6">
-                            <TransitionLink to="/" className="flex items-center gap-3">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-purple shadow-[0_8px_22px_-8px_rgba(186,40,226,0.5)]">
-                                    <Sparkle className="h-6 w-6 text-white" fill="white" />
-                                </div>
-                                <div className="leading-none">
-                                    <span className="font-display text-3xl tracking-wide text-brand-dark uppercase dark:text-dark-ink">eventrix</span>
-                                    <span className="mt-1 block text-[9px] font-black uppercase tracking-[0.28em] text-brand-gray-400">
-                                        Good vibes only
-                                    </span>
-                                </div>
-                            </TransitionLink>
-                            <p className="max-w-sm text-sm leading-relaxed text-gray-500 dark:text-dark-muted">
-                                Discover epic events, book your tickets and create unforgettable memories.
-                                Concerts, festivals, workshops and conferences — all in one place.
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                                <span className="rounded-full bg-brand-purple px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-white">
-                                    10K+ Events
+        <RuixenGradientFooter gradientHeight="48vh">
+            <div className="mx-auto w-full max-w-7xl px-4 pt-16 sm:px-6 lg:px-8">
+                <div className="grid gap-12 pb-12 sm:grid-cols-2 lg:grid-cols-6">
+                    {/* Brand + newsletter */}
+                    <div className="space-y-7 lg:col-span-2">
+                        <TransitionLink to="/" className="flex items-center gap-3">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-purple shadow-[0_8px_22px_-8px_rgba(186,40,226,0.5)]">
+                                <Sparkle className="h-6 w-6 text-white" fill="white" />
+                            </div>
+                            <div className="leading-none">
+                                <span className="font-display text-3xl tracking-wide text-brand-dark uppercase dark:text-dark-ink">
+                                    eventrix
                                 </span>
-                                <span className="rounded-full bg-brand-lime px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-brand-dark">
-                                    500K+ Users
-                                </span>
-                                <span className="rounded-full bg-brand-light border border-black/10 px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-brand-gray-700 dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-muted">
-                                    98% Happy
+                                <span className="mt-1 block text-[9px] font-black uppercase tracking-[0.28em] text-brand-gray-400">
+                                    Good vibes only
                                 </span>
                             </div>
+                        </TransitionLink>
+                        <p className="max-w-sm text-sm leading-relaxed text-gray-500 dark:text-dark-muted">
+                            Discover epic events, book your tickets and create unforgettable memories.
+                            Concerts, festivals, workshops and conferences, all in one place.
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                            <span className="rounded-full bg-brand-purple px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-white">
+                                10K+ Events
+                            </span>
+                            <span className="rounded-full bg-brand-lime px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-brand-dark">
+                                500K+ Users
+                            </span>
+                            <span className="rounded-full border border-black/10 bg-brand-light px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-brand-gray-700 dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-muted">
+                                98% Happy
+                            </span>
                         </div>
-
-                        {/* Link columns */}
-                        <div className="lg:col-span-4 grid grid-cols-2 gap-8 text-sm">
-                            <div className="space-y-3">
-                                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-brand-gray-400 dark:text-dark-muted">Explore</h4>
-                                <ul className="space-y-2.5 font-semibold text-brand-gray-700 dark:text-dark-muted">
-                                    <li><TransitionLink to="/" className="transition-colors hover:text-brand-purple">Home</TransitionLink></li>
-                                    <li><TransitionLink to="/events" className="transition-colors hover:text-brand-purple">All Events</TransitionLink></li>
-                                    <li><TransitionLink to="/events?category=Music" className="transition-colors hover:text-brand-purple">Music</TransitionLink></li>
-                                    <li><TransitionLink to="/events?category=Tech" className="transition-colors hover:text-brand-purple">Conferences</TransitionLink></li>
-                                </ul>
-                            </div>
-                            <div className="space-y-3">
-                                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-brand-gray-400 dark:text-dark-muted">Account</h4>
-                                <ul className="space-y-2.5 font-semibold text-brand-gray-700 dark:text-dark-muted">
-                                    <li><TransitionLink to="/dashboard" className="transition-colors hover:text-brand-purple">My Tickets</TransitionLink></li>
-                                    <li><TransitionLink to="/dashboard" className="transition-colors hover:text-brand-purple">Invoices</TransitionLink></li>
-                                    <li><TransitionLink to="/register" className="transition-colors hover:text-brand-purple">Sign Up</TransitionLink></li>
-                                    <li><TransitionLink to="/login" className="transition-colors hover:text-brand-purple">Log In</TransitionLink></li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        {/* Newsletter + socials */}
-                        <div className="lg:col-span-3 space-y-5">
-                            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-brand-gray-400 dark:text-dark-muted">Stay in the loop</h4>
-                            <p className="text-sm text-gray-500 dark:text-dark-muted">Get early-bird drops and festival news first.</p>
-                            <form
-                                onSubmit={(e) => e.preventDefault()}
-                                className="space-y-3"
-                            >
+                        <div>
+                            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-brand-gray-400 dark:text-dark-muted">
+                                Stay in the loop
+                            </h4>
+                            <form onSubmit={(e) => e.preventDefault()} className="mt-3 space-y-3">
                                 <input
                                     type="email"
                                     placeholder="your@email.com"
@@ -91,38 +74,78 @@ const Footer = () => {
                                     Subscribe
                                 </button>
                             </form>
-                            <div className="flex gap-2.5">
-                                {socials.map(({ icon: Icon, label }) => (
-                                    <a
-                                        key={label}
-                                        href="#"
-                                        onClick={(e) => e.preventDefault()}
-                                        title={label}
-                                        className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-light border border-black/10 text-brand-gray-700 transition-all hover:bg-brand-purple hover:text-white dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-muted"
-                                    >
-                                        <Icon className="h-4 w-4" />
-                                    </a>
-                                ))}
-                            </div>
+                        </div>
+                        <div className="flex gap-2.5">
+                            {socials.map(({ icon: Icon, label }) => (
+                                <a
+                                    key={label}
+                                    href="#"
+                                    onClick={(e) => e.preventDefault()}
+                                    title={label}
+                                    aria-label={label}
+                                    className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-brand-light text-brand-gray-700 transition-all hover:bg-brand-purple hover:text-white dark:border-dark-line dark:bg-dark-surface-2 dark:text-dark-muted"
+                                >
+                                    <Icon className="h-4 w-4" />
+                                </a>
+                            ))}
                         </div>
                     </div>
 
-                    {/* Bottom bar */}
-                    <div className="relative border-t border-black/10 px-8 sm:px-12 lg:px-16 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 dark:border-dark-line">
-                        <p className="text-xs font-semibold text-brand-gray-400 dark:text-dark-muted">
-                            © {new Date().getFullYear()} Eventrix. All rights reserved.
-                        </p>
-                        <div className="flex items-center gap-5 text-xs font-semibold text-brand-gray-400 dark:text-dark-muted">
-                            <span className="transition-colors hover:text-brand-dark cursor-pointer dark:hover:text-dark-ink">Privacy</span>
-                            <span className="transition-colors hover:text-brand-dark cursor-pointer dark:hover:text-dark-ink">Terms</span>
-                            <span className="flex items-center gap-1.5 text-brand-purple font-black uppercase">
-                                <span className="h-1.5 w-1.5 rounded-full bg-brand-lime animate-pulse" /> Good vibes only
-                            </span>
+                    {/* Link columns */}
+                    <nav
+                        aria-label="Footer"
+                        className="grid grid-cols-2 gap-10 text-sm lg:col-span-4 lg:pl-16"
+                    >
+                        <div className="space-y-4">
+                            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-brand-gray-400 dark:text-dark-muted">
+                                Explore
+                            </h4>
+                            <ul className="space-y-3 font-semibold text-brand-gray-700 dark:text-dark-muted">
+                                {exploreLinks.map((link) => (
+                                    <li key={link.label}>
+                                        <TransitionLink
+                                            to={link.to}
+                                            className="transition-colors hover:text-brand-purple dark:hover:text-brand-lime"
+                                        >
+                                            {link.label}
+                                        </TransitionLink>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
-                    </div>
+                        <div className="space-y-4">
+                            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-brand-gray-400 dark:text-dark-muted">
+                                Account
+                            </h4>
+                            <ul className="space-y-3 font-semibold text-brand-gray-700 dark:text-dark-muted">
+                                {accountLinks.map((link) => (
+                                    <li key={link.label}>
+                                        <TransitionLink
+                                            to={link.to}
+                                            className="transition-colors hover:text-brand-purple dark:hover:text-brand-lime"
+                                        >
+                                            {link.label}
+                                        </TransitionLink>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </nav>
                 </div>
-            </Reveal>
-        </footer>
+
+                {/* Bottom bar */}
+                <div className="flex flex-col items-center justify-between gap-3 border-t border-black/10 py-6 font-semibold text-brand-gray-400 sm:flex-row dark:border-dark-line dark:text-dark-muted">
+                    <p className="text-xs">© {new Date().getFullYear()} Eventrix. All rights reserved.</p>
+                    <div className="flex items-center gap-5 text-xs">
+                        <span className="cursor-pointer transition-colors hover:text-brand-dark dark:hover:text-dark-ink">Privacy</span>
+                        <span className="cursor-pointer transition-colors hover:text-brand-dark dark:hover:text-dark-ink">Terms</span>
+                    </div>
+                    <span className="flex items-center gap-1.5 text-xs font-black uppercase text-brand-purple dark:text-brand-lime">
+                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-lime" /> Good vibes only
+                    </span>
+                </div>
+            </div>
+        </RuixenGradientFooter>
     );
 };
 
