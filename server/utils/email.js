@@ -3,49 +3,61 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
+/*
+ * SMTP transport with explicit host/port/secure config.
+ *
+ * Using `service: "Gmail"` makes nodemailer resolve smtp.gmail.com, which on
+ * some hosts (e.g. Render) resolves to an IPv6 address first. IPv6 is often
+ * unreachable there, causing `connect ENETUNREACH ...:465` / `ETIMEDOUT`.
+ *
+ * We force IPv4 (`family: 4`) and allow a custom SMTP host via env vars so the
+ * app works on any provider (Gmail, Zoho, Mailgun, SES, etc.).
+ */
 const transporter = nodemailer.createTransport({
-  service: "Gmail",
+  host: process.env.SMTP_HOST || "smtp.gmail.com",
+  port: Number(process.env.SMTP_PORT) || 465,
+  secure: process.env.SMTP_SECURE === "false" ? false : true, // true for 465, false for 587/STARTTLS
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  // Force IPv4 — avoids ENETUNREACH on hosts without IPv6
+  connectionTimeout: 10000, // 10s
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
+  family: 4,
 });
 
-const sendBookingEmail= async(email,username,eventTitle) => {
-
-    try{
-        const mailOptions = {
-            from: `"Eventrix" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: "Booking Confirmation | Eventrix",
-            html: `
+const sendBookingEmail = async (email, username, eventTitle) => {
+  try {
+    const mailOptions = {
+      from: `"Eventrix" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Booking Confirmation | Eventrix",
+      html: `
                 <p>Hello ${username},</p>
                 <p>Your booking for <strong>${eventTitle}</strong> has been confirmed!</p>
                 <p>Thank you for choosing Eventrix.</p>
-            `
-        };
-        const info = await transporter.sendMail(mailOptions);
-        console.log("✅ Booking email sent:", info.response);
-        return true;
-    } catch (error) {
-        console.error("❌ Error sending booking email:", error);
-        throw error;
-    }
+            `,
+    };
+    const info = await transporter.sendMail(mailOptions);
+    console.log("✅ Booking email sent:", info.response);
+    return true;
+  } catch (error) {
+    console.error("❌ Error sending booking email:", error);
+    throw error;
+  }
 };
-
-
-
 
 exports.sendBookingEmail = sendBookingEmail;
 
 exports.sendOtpEmail = async (email, otp, type = "verify") => {
   let subject = "Verify Your Email | Eventrix";
-  let title = type === "Verify Your Email" ? "Verify your Eventrix Account":" Confirm Your Action";
-  let message = type === "verify"
-    ?
-    "Use the One-Time Password (OTP) below to verify your email address and continue with your Eventrix account."
-    :
-    "Use the One-Time Password (OTP) below to verify and Confirm your action. This code expires in 5 minutes.";
+  let title = type === "Verify Your Email" ? "Verify your Eventrix Account" : " Confirm Your Action";
+  let message =
+    type === "verify"
+      ? "Use the One-Time Password (OTP) below to verify your email address and continue with your Eventrix account."
+      : "Use the One-Time Password (OTP) below to verify and Confirm your action. This code expires in 5 minutes.";
 
   switch (type) {
     case "register":
@@ -65,8 +77,7 @@ exports.sendOtpEmail = async (email, otp, type = "verify") => {
     case "login":
       subject = "Login Verification | Eventrix";
       title = "Secure Login Verification";
-      message =
-        "Use the OTP below to securely sign in to your Eventrix account.";
+      message = "Use the OTP below to securely sign in to your Eventrix account.";
       break;
 
     default:
