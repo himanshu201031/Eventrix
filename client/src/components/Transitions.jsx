@@ -3,17 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 /**
  * Navigation helpers for route transitions.
  *
-<<<<<<< HEAD
  * The native View Transition API experiment (React canary <ViewTransition>)
  * never fired with react-router v7 navigation, so page transitions now run
  * through framer-motion <AnimatePresence> in App.jsx. These helpers keep a
  * single navigation vocabulary app-wide:
-=======
- * The original native View Transition API experiment (React canary
- * <ViewTransition>) never fired with react-router v7 navigation, so page
- * transitions now run through framer-motion <AnimatePresence> in App.jsx.
- * These helpers keep a single navigation vocabulary app-wide:
->>>>>>> 0f9398d99f342a20b045dfce0c3915763a25f848
  *
  * - `DirectionalTransition` — inert wrapper retained so the pages that wrap
  *   themselves in it need no changes; App.jsx owns the actual animation.

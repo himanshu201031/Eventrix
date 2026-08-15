@@ -3,11 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigatio
 import { motion, MotionConfig, AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-<<<<<<< HEAD
-import Loader from './components/Loader';
-=======
 import AppLoader from './components/AppLoader';
->>>>>>> 0f9398d99f342a20b045dfce0c3915763a25f848
 import { initSmoothScroll, destroySmoothScroll, scrollToTop } from './utils/smoothScroll';
 import { Compass, Sparkle } from 'lucide-react';
 
@@ -48,36 +44,22 @@ const ScrollToTop = () => {
     return null;
 };
 
-<<<<<<< HEAD
-/* Page transitions run through framer-motion AnimatePresence: the outgoing
-   page fades/slides out (mode="wait"), then the incoming page enters. The
-   key on the location ensures each navigation restarts the animation. */
-=======
 /* Routes with a framer-motion page transition: keyed by pathname, each page
    fades/slides in while the previous one exits (mode="wait" animates them
    one at a time; reducedMotion="user" in MotionConfig collapses this to a
    snap for users who prefer reduced motion). The fixed Navbar/Footer live
    outside this boundary, so they stay put while the page swaps. */
->>>>>>> 0f9398d99f342a20b045dfce0c3915763a25f848
 const AnimatedRoutes = () => {
     const location = useLocation();
     return (
         <Suspense fallback={<RouteFallback />}>
-<<<<<<< HEAD
-            <AnimatePresence mode="wait">
-=======
             <AnimatePresence mode="wait" initial={false}>
->>>>>>> 0f9398d99f342a20b045dfce0c3915763a25f848
                 <motion.div
                     key={location.pathname}
                     initial={{ opacity: 0, y: 14 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-<<<<<<< HEAD
-                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-=======
                     transition={{ duration: 0.28, ease: 'easeOut' }}
->>>>>>> 0f9398d99f342a20b045dfce0c3915763a25f848
                 >
                     <Routes location={location}>
                     <Route path="/" element={<Home />} />
@@ -123,45 +105,73 @@ const AnimatedRoutes = () => {
 };
 
 function App() {
-<<<<<<< HEAD
-    /* Splash loader: hold the WebGL shader splash until the Home chunk is
-       warmed AND a minimum beat has passed (so the reveal isn't a flash),
-       with a hard cap so a slow network can never trap the loader on. */
-    const [booted, setBooted] = useState(false);
-    useEffect(() => {
-        let done = false;
-        const finish = () => {
-            if (!done) {
-                done = true;
-                setBooted(true);
-            }
-        };
-        const minTimer = setTimeout(finish, 1600);
-        const capTimer = setTimeout(finish, 3200);
-        import('./pages/Home').then(finish).catch(finish);
-        return () => {
-            clearTimeout(minTimer);
-            clearTimeout(capTimer);
-=======
-    /* Boot loader: hold the branded splash until the window has loaded (fonts,
-       first chunk) AND a minimum of ~500ms have passed, with a 1.6s cap so a
-       slow network can never trap the user behind the overlay. */
+    /* Boot loader with a real percentage: the bar climbs as the app actually
+       boots (Home chunk warmed + window load = fonts/images/first paint), then
+       finishes at 100 and fades out. The ramp keeps it honest before real
+       signals land; the cap means a slow network can never trap the user. */
     const [booting, setBooting] = useState(true);
+    const [progress, setProgress] = useState(0);
 
     useEffect(() => {
         const start = Date.now();
-        const finish = () => {
-            const elapsed = Date.now() - start;
-            if (elapsed >= 500) setBooting(false);
-            else setTimeout(() => setBooting(false), 500 - elapsed);
+        let finished = false;
+        let raf = 0;
+
+        const setP = (v) => setProgress((p) => Math.max(p, Math.min(100, Math.round(v))));
+
+        /* While nothing real has landed yet, ramp toward ~85 so the loader
+           always reads as alive rather than frozen at 0. */
+        const rampFrom = performance.now();
+        const ramp = () => {
+            const t = (performance.now() - rampFrom) / 1400;
+            setP(85 * Math.min(1, t));
+            if (!finished) raf = requestAnimationFrame(ramp);
         };
-        const cap = setTimeout(() => setBooting(false), 1600);
-        if (document.readyState === 'complete') finish();
-        else window.addEventListener('load', finish);
+        raf = requestAnimationFrame(ramp);
+
+        let homeReady = false;
+        let winLoaded = false;
+
+        const maybeFinish = () => {
+            if (!homeReady || !winLoaded || finished) return;
+            finished = true;
+            cancelAnimationFrame(raf);
+            setProgress(100);
+            /* Minimum beat so the completed state actually reads */
+            const hold = Math.max(0, 450 - (Date.now() - start));
+            setTimeout(() => setBooting(false), hold);
+        };
+
+        /* Hard cap: never let a hung network keep the overlay up */
+        const cap = setTimeout(() => {
+            if (finished) return;
+            finished = true;
+            cancelAnimationFrame(raf);
+            setProgress(100);
+            setTimeout(() => setBooting(false), 120);
+        }, 5000);
+
+        import('./pages/Home').then(() => {
+            homeReady = true;
+            setP(70);
+            maybeFinish();
+        }).catch(() => {
+            homeReady = true;
+            maybeFinish();
+        });
+        const onLoad = () => {
+            winLoaded = true;
+            setP(90);
+            maybeFinish();
+        };
+        if (document.readyState === 'complete') onLoad();
+        else window.addEventListener('load', onLoad);
+
         return () => {
             clearTimeout(cap);
-            window.removeEventListener('load', finish);
->>>>>>> 0f9398d99f342a20b045dfce0c3915763a25f848
+            window.removeEventListener('load', onLoad);
+            cancelAnimationFrame(raf);
+            finished = true;
         };
     }, []);
 
@@ -177,13 +187,9 @@ function App() {
                 the OS prefers-reduced-motion setting; native view transitions have
                 their own reduced-motion CSS in index.css. */}
             <MotionConfig reducedMotion="user">
-<<<<<<< HEAD
-                <AnimatePresence>{!booted && <Loader key="splash" />}</AnimatePresence>
-=======
                 {/* Boot loader overlay — fades out once the app is ready */}
-                <AnimatePresence>{booting && <AppLoader />}</AnimatePresence>
+                <AnimatePresence>{booting && <AppLoader progress={progress} />}</AnimatePresence>
 
->>>>>>> 0f9398d99f342a20b045dfce0c3915763a25f848
                 <a href="#main-content" className="skip-link">
                     Skip to content
                 </a>
