@@ -240,7 +240,7 @@ const UserDashboard = () => {
                                                                 <h4 className="mt-0.5 truncate text-sm font-black line-clamp-1">{event.title || 'Event removed'}</h4>
                                                                 <p className="flex items-center gap-3 text-[11px] font-bold text-gray-500 dark:text-dark-muted">
                                                                     <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3 text-brand-purple" /> {event.date ? new Date(event.date).toLocaleDateString() : 'N/A'}</span>
-                                                                    <span className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3 text-brand-orange" /> {event.location || '—'}</span>
+                                                                    <span className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3 text-brand-orange" /> {event.location || 'TBA'}</span>
                                                                 </p>
                                                             </div>
                                                         </div>

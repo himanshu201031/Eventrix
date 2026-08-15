@@ -45,7 +45,7 @@ const QRTicketModal = ({ booking, onClose }) => {
         <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
             <DialogContent hideCloseButton className="max-w-md gap-0 overflow-hidden p-0">
                 <DialogTitle className="sr-only">
-                    {event.title || 'Eventrix Ticket'} — official pass
+                    {event.title || 'Eventrix Ticket'} · official pass
                 </DialogTitle>
 
                 <div className="overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-2xl dark:border-dark-line dark:bg-dark-surface">
