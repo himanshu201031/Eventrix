@@ -118,7 +118,7 @@ exports.verifyotp = async (req, res) => {
   }
 
   // select("-password") — never return the hash in a response
-  const user = await User.findOneAndUpdate({ email }, { isVerified: true }, { new: true }).select("-password");
+  const user = await User.findOneAndUpdate({ email }, { isVerified: true }, { returnDocument: "after" }).select("-password");
   if (!user) throw new NotFoundError("User not found");
 
   await Otp.deleteMany({ email, action: "Acc_verify" });
