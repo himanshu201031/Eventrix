@@ -15,7 +15,6 @@ import midTicket from '../assets/midticket.png';
 import normalTicket from '../assets/normalticket.png';
 import djImg from '../assets/dj.png';
 import micImg from '../assets/mic3d.png';
-import headphonesImg from '../assets/headphones3d.png';
 import {
     ArrowUpRight, BadgePercent, CalendarCheck, ChevronDown, ChevronRight,
     Flame, GraduationCap, Headphones, MapPin, Mic2, Music2, PartyPopper, Plus,
@@ -266,11 +265,6 @@ const Home = () => {
             });
             gsap.to('.plx-mic', {
                 yPercent: 22,
-                ease: 'none',
-                scrollTrigger: { trigger: whyRef.current, start: 'top bottom', end: 'bottom top', scrub: true },
-            });
-            gsap.to('.plx-phone', {
-                yPercent: 28,
                 ease: 'none',
                 scrollTrigger: { trigger: whyRef.current, start: 'top bottom', end: 'bottom top', scrub: true },
             });
@@ -978,9 +972,9 @@ const Home = () => {
                     </div>
                 </Reveal>
 
-                <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                    {displayEvents.slice(0, 4).map((ev, i) => (
-                        <Reveal key={ev._id} delay={(i % 4) * 0.08}>
+                <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {displayEvents.slice(0, 3).map((ev, i) => (
+                        <Reveal key={ev._id} delay={(i % 3) * 0.08}>
                             <EventCard event={ev} />
                         </Reveal>
                     ))}
@@ -1050,7 +1044,7 @@ const Home = () => {
 
                 <div className="no-scrollbar mt-12 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4">
                     {trending.map((ev, i) => (
-                        <div key={ev._id} className="relative w-[300px] shrink-0 snap-start sm:w-[320px]">
+                        <div key={ev._id} className="relative w-[340px] shrink-0 snap-start sm:w-[360px]">
                             <span
                                 className={`font-display pointer-events-none absolute -top-9 left-2 z-0 text-8xl leading-none text-black/10 dark:text-white/10 ${i === 0 ? 'text-brand-orange/25 dark:text-brand-orange/25' : ''}`}
                                 aria-hidden="true"
@@ -1224,15 +1218,6 @@ const Home = () => {
                         animate={{ y: [0, -10, 0], rotate: [0, 4, 0] }}
                         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
                         className="w-full object-contain drop-shadow-[0_20px_30px_rgba(255,45,122,0.3)]"
-                    />
-                </div>
-                <div className="plx-phone pointer-events-none absolute -right-6 top-2/3 hidden w-24 lg:block" aria-hidden="true">
-                    <motion.img
-                        src={headphonesImg}
-                        alt=""
-                        animate={{ y: [0, -12, 0], rotate: [0, -5, 0] }}
-                        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-                        className="w-full object-contain drop-shadow-[0_20px_30px_rgba(0,229,255,0.3)]"
                     />
                 </div>
 

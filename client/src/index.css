@@ -525,6 +525,56 @@ html.lenis, html.lenis body { height: auto; }
   }
 }
 
+/* ---- Eventrix premium pass card (EventCard) -------------------
+   Always-night collectible pass: solid surface, category-accent glow,
+   physical lift on hover. `--accent` is set inline by the component. */
+@utility evx-card {
+  position: relative;
+  background: #141416;
+  border: 1px solid #26262e;
+  box-shadow: 0 24px 60px -30px color-mix(in oklab, var(--accent) 38%, transparent);
+  transition: transform 0.4s ease-out, box-shadow 0.4s ease-out, border-color 0.4s ease-out;
+  &:hover {
+    transform: translateY(-8px);
+    border-color: color-mix(in oklab, var(--accent) 55%, transparent);
+    box-shadow: 0 32px 72px -26px color-mix(in oklab, var(--accent) 55%, transparent);
+  }
+}
+
+/* Featured pass: the border itself takes the accent (defined after
+   evx-card so it wins the cascade on the same specificity). */
+@utility evx-card-featured {
+  border-color: color-mix(in oklab, var(--accent) 60%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--accent) 42%, transparent),
+    0 26px 66px -26px color-mix(in oklab, var(--accent) 55%, transparent);
+  &:hover {
+    border-color: var(--accent);
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--accent) 70%, transparent),
+      0 34px 76px -26px color-mix(in oklab, var(--accent) 60%, transparent);
+  }
+}
+
+/* Punched ticket silhouette: semicircle cut-outs on the left/right
+   edges. The holes are transparent, so they reveal whatever sits behind
+   the badge (the photo / card body) while the rest stays solid accent.
+   No gradients — layered radial fills only. */
+@utility evx-ticket-badge {
+  background-color: var(--accent);
+  background-image:
+    radial-gradient(circle 15px at 0 50%, transparent 8.5px, var(--accent) 9.2px),
+    radial-gradient(circle 15px at 100% 50%, transparent 8.5px, var(--accent) 9.2px);
+}
+
+/* Book-tickets CTA: same punch-out language, dark purple solid. */
+@utility evx-cta-ticket {
+  background-color: #35145c;
+  background-image:
+    radial-gradient(circle 19px at 0 50%, transparent 10px, #35145c 10.9px),
+    radial-gradient(circle 19px at 100% 50%, transparent 10px, #35145c 10.9px);
+}
+
 /* ---- Editorial outline text ----------------------------------- */
 @utility text-outline {
   color: transparent;

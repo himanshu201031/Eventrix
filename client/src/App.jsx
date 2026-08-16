@@ -4,6 +4,7 @@ import { motion, MotionConfig, AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import AppLoader from './components/AppLoader';
+import EventCard from './components/EventCard';
 import { initSmoothScroll, destroySmoothScroll, scrollToTop } from './utils/smoothScroll';
 import { Compass, Sparkle } from 'lucide-react';
 
@@ -71,6 +72,45 @@ const AnimatedRoutes = () => {
                     <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/payment-success" element={<PaymentSuccess />} />
                     <Route path="/payment-failed" element={<PaymentFailed />} />
+                    {/* TEMP: visual verification for the premium event card — remove before commit */}
+                    <Route
+                        path="/card-demo"
+                        element={
+                            <div className="flex min-h-screen flex-wrap items-start justify-center gap-8 bg-[#111113] px-6 pt-28 pb-24">
+                                <EventCard
+                                    event={{
+                                        _id: 'startup-pitch-2026',
+                                        title: 'Startup Pitch & Pitch Competition',
+                                        category: 'Business',
+                                        date: '2026-09-03',
+                                        location: 'Convention Center, Miami',
+                                        ticketPrice: 100,
+                                        image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1000&auto=format&fit=crop',
+                                        totalSeats: 250,
+                                        availableSeats: 247,
+                                    }}
+                                    time="10:00 AM – 4:00 PM"
+                                    priceLabel="Entry pass"
+                                    isFeatured
+                                />
+                                <EventCard
+                                    event={{
+                                        _id: 'neon-nights-2026',
+                                        title: 'Neon Nights EDM Festival',
+                                        category: 'Music',
+                                        date: '2026-08-24',
+                                        location: 'Grand Arena, New York',
+                                        ticketPrice: 1500,
+                                        image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1000&auto=format&fit=crop',
+                                        totalSeats: 500,
+                                        availableSeats: 499,
+                                    }}
+                                    time="6:00 PM – 2:00 AM"
+                                    priceLabel="VIP pass"
+                                />
+                            </div>
+                        }
+                    />
                     <Route
                         path="*"
                         element={
