@@ -1,5 +1,6 @@
 const nodemailer = require("nodemailer");
 const dotenv = require("dotenv");
+const { logger } = require("./logger");
 
 dotenv.config();
 
@@ -13,10 +14,20 @@ dotenv.config();
  * We force IPv4 (`family: 4`) and allow a custom SMTP host via env vars so the
  * app works on any provider (Gmail, Zoho, Mailgun, SES, etc.).
  */
+const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
+const smtpPort = Number(process.env.SMTP_PORT) || 465;
+/* secure: an explicit SMTP_SECURE wins; otherwise 465 = implicit TLS,
+   587 = STARTTLS. Defaulting 587 to `true` is the classic broken config
+   (nodemailer refuses to STARTTLS an already-secure socket). */
+const smtpSecure =
+  process.env.SMTP_SECURE !== undefined
+    ? process.env.SMTP_SECURE === "true"
+    : smtpPort === 587;
+
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.gmail.com",
-  port: Number(process.env.SMTP_PORT) || 465,
-  secure: process.env.SMTP_SECURE === "false" ? false : true, // true for 465, false for 587/STARTTLS
+  host: smtpHost,
+  port: smtpPort,
+  secure: smtpSecure,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -27,6 +38,27 @@ const transporter = nodemailer.createTransport({
   socketTimeout: 15000,
   family: 4,
 });
+
+const smtpEndpoint = { host: smtpHost, port: smtpPort, secure: smtpSecure };
+
+/* The #1 production failure here is the deployed service pointing at a
+   host that is unreachable from its network (e.g. smtp.gmail.com from
+   Render) — log the effective endpoint once at boot so a connection
+   timeout can be checked against what was actually configured. */
+logger.info("SMTP transport configured", smtpEndpoint);
+const authConfigured = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+if (!authConfigured) {
+  logger.warn("SMTP credentials are not configured — email delivery will fail", {
+    hint: "Set EMAIL_USER / EMAIL_PASS (and SMTP_* if not using Gmail) in the deployment environment",
+  });
+}
+
+const logSendError = (label, error) =>
+  logger.error(`Error sending ${label} email`, {
+    ...smtpEndpoint,
+    code: error.code || error.responseCode || null,
+    message: error.message,
+  });
 
 const sendBookingEmail = async (email, username, eventTitle) => {
   try {
@@ -41,10 +73,10 @@ const sendBookingEmail = async (email, username, eventTitle) => {
             `,
     };
     const info = await transporter.sendMail(mailOptions);
-    console.log("✅ Booking email sent:", info.response);
+    logger.info("Booking email sent", { response: info.response });
     return true;
   } catch (error) {
-    console.error("❌ Error sending booking email:", error);
+    logSendError("booking", error);
     throw error;
   }
 };
@@ -225,10 +257,10 @@ Making event booking simple, secure, and memorable.
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log("✅ OTP email sent:", info.response);
+    logger.info("OTP email sent", { response: info.response });
     return true;
   } catch (error) {
-    console.error("❌ Error sending OTP email:", error);
+    logSendError("OTP", error);
     throw error;
   }
 };

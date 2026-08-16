@@ -68,7 +68,7 @@ exports.createEvent = async (req, res) => {
 };
 
 exports.updateEvent = async (req, res) => {
-  const event = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  const event = await Event.findByIdAndUpdate(req.params.id, req.body, { returnDocument: "after" });
   if (!event) throw new NotFoundError("Event not found");
   res.json(event);
 };

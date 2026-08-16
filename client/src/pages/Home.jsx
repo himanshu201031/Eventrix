@@ -13,8 +13,6 @@ import peoples from '../assets/peoples.png';
 import vipTicket from '../assets/vipticket.png';
 import midTicket from '../assets/midticket.png';
 import normalTicket from '../assets/normalticket.png';
-import djImg from '../assets/dj.png';
-import micImg from '../assets/mic3d.png';
 import {
     ArrowUpRight, BadgePercent, CalendarCheck, ChevronDown, ChevronRight,
     Flame, GraduationCap, Headphones, MapPin, Mic2, Music2, PartyPopper, Plus,

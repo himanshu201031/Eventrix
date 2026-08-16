@@ -53,7 +53,11 @@ exports.register = async (req, res) => {
   try {
     await sendOtpEmail(email, otp, "register");
   } catch (err) {
-    logger.error("Failed to send registration OTP email", { email, message: err.message });
+    logger.error("Failed to send registration OTP email", {
+      email,
+      code: err.code || err.responseCode || null,
+      message: err.message,
+    });
   }
 
   res.status(201).json({
