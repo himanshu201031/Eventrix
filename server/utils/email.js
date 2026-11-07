@@ -22,7 +22,7 @@ const smtpPort = Number(process.env.SMTP_PORT) || 465;
 const smtpSecure =
   process.env.SMTP_SECURE !== undefined
     ? process.env.SMTP_SECURE === "true"
-    : smtpPort === 587;
+    : smtpPort === 465;
 
 const transporter = nodemailer.createTransport({
   host: smtpHost,
